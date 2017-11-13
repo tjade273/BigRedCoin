@@ -1,7 +1,10 @@
-module type Hashable
+module type Hashable = sig
+  type t
+
+  val hash : t -> string
+end
 
 module type S = sig
-  
   (* [t] is the type representaing a database. *)
   type t
 
@@ -10,20 +13,20 @@ module type S = sig
 
   (* [put t b] takes in a database [t] and a value [b], and writes the block to
    * the database. *)
-  val put : value t -> value -> unit Lwt.t
+  val put : t -> value -> unit Lwt.t
 
-  (* [get t s] takes in a database [t] and the SHA-256 hash [s] of an value, and 
-   * returns the value with that hash. Throws an exception if the value isn't 
+  (* [get t s] takes in a database [t] and the SHA-256 hash [s] of an value, and
+   * returns the value with that hash. Throws an exception if the value isn't
    * present. *)
-  val get : value t -> string -> value
+  val get : t -> string -> value
 
-  (* [get t s] takes in a database [t] and the SHA-256 hash [s] of a value, and 
+  (* [get t s] takes in a database [t] and the SHA-256 hash [s] of a value,
    * returns the an option for value with that hash. *)
-  val get_opt : value t -> string -> value option
-
+  val get_opt : t -> string -> value option
+      
   (* [create s] makes an object representing the database from the location of the
    * database [s]. *)
-  val create : string -> value t
+  val create : string -> t
 
   (* [mem t s] is true if the value with SHA-256 [s] is in the database [t], and
    * false otherwise. *)
@@ -34,4 +37,4 @@ module type S = sig
 
 end
 
-module type Database(Hashable a)
+module Make(Value : Hashable) : S with type value = Value.t

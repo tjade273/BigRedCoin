@@ -5,9 +5,10 @@
  * was made. *)
 type header = {
   version : int;
-  prev_hash : string; 
-  merkle_root : string; 
-  nonce : int; 
+  prev_hash : string;
+  merkle_root : string;
+  nonce : int;
+  nBits : int;
   timestamp : int
 }
 
@@ -44,3 +45,8 @@ and block = {
   transactions : transaction list;
   transactions_count : int
 }
+
+val target : int -> string
+
+val difficulty : int -> int
+
