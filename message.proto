@@ -1,0 +1,51 @@
+message Get {
+    enum Request {
+        PING = 0;
+        PONG = 1;
+        PEER = 2;
+        MEMPOOL = 3;
+        BLOCKS = 4;
+    }
+    required Request request = 1;
+    optional bytes startblock = 2;
+}
+
+message Transaction {
+    message Output {
+        required uint64 amount = 1;
+        required bytes address = 2;
+    }
+    message Input {
+        required bytes txid = 1;
+        required uint32 out_index = 2;
+        required bytes signature = 3;
+    }   
+    repeated Output outs = 1;
+    repeated Input ins = 2;
+}
+
+message Block {
+    message Header {
+        required uint32 version = 1;
+        required bytes prev_hash = 2;
+        required bytes merkle_root = 3;
+        required uint64 nonce = 4;
+        required uint64 nBits = 5;
+        required uint64 timestamp = 6;
+    }
+    required Header header = 1;
+    repeated Transaction txs = 2;
+    required uint32 tx_count = 3;
+}
+
+message Peer {
+    required string address = 1;
+    required uint32 port = 2;
+    required uint64 last_seen = 3;
+}
+
+message Post {
+   repeated Transaction transactions = 1;
+   repeated Block blocks = 2;
+   repeated Peer peers = 3;
+}
