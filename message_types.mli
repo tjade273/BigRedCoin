@@ -5,11 +5,11 @@
 (** {2 Types} *)
 
 type get_request =
-  | Ping 
-  | Pong 
-  | Peer 
-  | Mempool 
-  | Blocks 
+  | Ping
+  | Pong
+  | Peer
+  | Mempool
+  | Blocks
 
 type get = {
   request : get_request;
@@ -65,21 +65,21 @@ type post = {
 val default_get_request : unit -> get_request
 (** [default_get_request ()] is the default value for type [get_request] *)
 
-val default_get : 
+val default_get :
   ?request:get_request ->
   ?startblock:bytes option ->
   unit ->
   get
 (** [default_get ()] is the default value for type [get] *)
 
-val default_transaction_output : 
+val default_transaction_output :
   ?amount:int ->
   ?address:bytes ->
   unit ->
   transaction_output
 (** [default_transaction_output ()] is the default value for type [transaction_output] *)
 
-val default_transaction_input : 
+val default_transaction_input :
   ?txid:bytes ->
   ?out_index:int ->
   ?signature:bytes ->
@@ -87,14 +87,14 @@ val default_transaction_input :
   transaction_input
 (** [default_transaction_input ()] is the default value for type [transaction_input] *)
 
-val default_transaction : 
+val default_transaction :
   ?outs:transaction_output list ->
   ?ins:transaction_input list ->
   unit ->
   transaction
 (** [default_transaction ()] is the default value for type [transaction] *)
 
-val default_block_header : 
+val default_block_header :
   ?version:int ->
   ?prev_hash:bytes ->
   ?merkle_root:bytes ->
@@ -105,7 +105,7 @@ val default_block_header :
   block_header
 (** [default_block_header ()] is the default value for type [block_header] *)
 
-val default_block : 
+val default_block :
   ?header:block_header ->
   ?txs:transaction list ->
   ?tx_count:int ->
@@ -113,7 +113,7 @@ val default_block :
   block
 (** [default_block ()] is the default value for type [block] *)
 
-val default_peer : 
+val default_peer :
   ?address:string ->
   ?port:int ->
   ?last_seen:int ->
@@ -121,7 +121,7 @@ val default_peer :
   peer
 (** [default_peer ()] is the default value for type [peer] *)
 
-val default_post : 
+val default_post :
   ?transactions:transaction list ->
   ?blocks:block list ->
   ?peers:peer list ->

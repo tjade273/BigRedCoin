@@ -16,7 +16,7 @@ type header = {
  * address is the recipient of a transaction. *)
 and output = {
   amount: int;
-  address : address
+  address : string
 }
 
 (* The input to a transaction. txid is the SHA-256 hash of the transaction the
@@ -29,13 +29,13 @@ and input = {
   signature : string
 }
 
-(* A transaction is a list of outputs to which coins are sent and a list of 
+(* A transaction is a list of outputs to which coins are sent and a list of
  * inputs from which coins originate. The sum of the amounts in the outputs
  * linked to the inputs must sum to the sum of the outputs of this transaction.
  * *)
 and transaction = {
-  outs = output list
-  ins = input list
+  outs : output list;
+  ins : input list
 }
 
 (* A block consists of its header, the transactions in the block, and a count
