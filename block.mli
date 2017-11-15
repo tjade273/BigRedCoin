@@ -12,41 +12,22 @@ type header = {
   timestamp : int
 }
 
-(* The output of a transaction. Amount is how much is sent to an address and
- * address is the recipient of a transaction. *)
-and output = {
-  amount: int;
-  address : string
-}
-
-(* The input to a transaction. txid is the SHA-256 hash of the transaction the
- * input comes from and out_index is the index of the input. The signature is
- * the ECDSA signature of the hash of the transaction id, out_index, and list
- * of outputs from the transaction.*)
-and input = {
-  txid : string;
-  out_index : int;
-  signature : string
-}
-
-(* A transaction is a list of outputs to which coins are sent and a list of
- * inputs from which coins originate. The sum of the amounts in the outputs
- * linked to the inputs must sum to the sum of the outputs of this transaction.
- * *)
-and transaction = {
-  outs : output list;
-  ins : input list
-}
 
 (* A block consists of its header, the transactions in the block, and a count
  * of the number of transactions in the block. *)
-and block = {
+type block = {
   header : header;
-  transactions : transaction list;
+  transactions : Transaction.transaction list;
   transactions_count : int
 }
 
+(* [target nbits] is the decompressed target that [nbits] represents. *)
 val target : int -> string
 
+(* [difficulty nbits] is the "reciprocal" of the target, a measure of the proportion
+ * of the maximum possible difficulty *)
 val difficulty : int -> int
 
+(* [next_target header] is the compressed form of the target for the next block, given
+ * the timestamp and difficulty of the previous block. *)
+val next_difficulty : header -> int
