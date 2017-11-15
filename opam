@@ -1,0 +1,15 @@
+opam-version: "1.2"
+name: "big_red_coin"
+version: "0.1"
+maintainer: "Lucas Switzer <LucasSwitz>"
+authors: "Lucas Switzer <LucasSwitz>"
+build: [
+  ["./configure" "--prefix=%{prefix}%"]
+  ["ocamlbuild" "dummy.byte"]
+]
+remove: ["ocamlfind" "remove" "big_red_coin"]
+depends: [
+  "ocamlfind" {build}
+  "ocaml-protoc" {build}
+  "lwt" {build}
+]
