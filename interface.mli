@@ -1,10 +1,10 @@
-(* [get_block hash] sends an RPC command to get the block with hash [hash] *)
-val get_block : string -> Block.block Lwt.t
+(* The type of a JSON-RPC server *)
+type t
 
-(* [send account amount address] sends an RPC command to have [account] send
- * [amount] coins to [address]. *)
-val send : Account.t -> int -> string Lwt.t
+(* [create port blockchain] is an RPC server listening on localhost:port
+ * with [blockchain] as a backend. *)
+val create : int -> Blockchain.t -> t
 
-(* [balance address] sends an RPC command to check the current balance of
- * [address]. *)
-val balance : string -> int Lwt.t
+(* [stop t] unbinds [t] from its port and stops the server *)
+val stop : t -> unit
+
