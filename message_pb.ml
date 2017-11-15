@@ -96,6 +96,18 @@ let default_post_mutable () : post_mutable = {
   peers = [];
 }
 
+type message_mutable = {
+  mutable method_ : Message_types.message_method;
+  mutable get : Message_types.get option;
+  mutable post : Message_types.post option;
+}
+
+let default_message_mutable () : message_mutable = {
+  method_ = Message_types.default_message_method ();
+  get = None;
+  post = None;
+}
+
 
 let rec decode_get_request d = 
   match Pbrt.Decoder.int_as_varint d with
@@ -386,6 +398,44 @@ let rec decode_post d =
     Message_types.peers = v.peers;
   } : Message_types.post)
 
+let rec decode_message_method d = 
+  match Pbrt.Decoder.int_as_varint d with
+  | 0 -> (Message_types.Get:Message_types.message_method)
+  | 1 -> (Message_types.Post:Message_types.message_method)
+  | _ -> Pbrt.Decoder.malformed_variant "message_method"
+
+let rec decode_message d =
+  let v = default_message_mutable () in
+  let continue__= ref true in
+  let method__is_set = ref false in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+    ); continue__ := false
+    | Some (1, Pbrt.Varint) -> begin
+      v.method_ <- decode_message_method d; method__is_set := true;
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(message), field(1)" pk
+    | Some (2, Pbrt.Bytes) -> begin
+      v.get <- Some (decode_get (Pbrt.Decoder.nested d));
+    end
+    | Some (2, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(message), field(2)" pk
+    | Some (3, Pbrt.Bytes) -> begin
+      v.post <- Some (decode_post (Pbrt.Decoder.nested d));
+    end
+    | Some (3, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(message), field(3)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  begin if not !method__is_set then Pbrt.Decoder.missing_field "method_" end;
+  ({
+    Message_types.method_ = v.method_;
+    Message_types.get = v.get;
+    Message_types.post = v.post;
+  } : Message_types.message)
+
 let rec encode_get_request (v:Message_types.get_request) encoder =
   match v with
   | Message_types.Ping -> Pbrt.Encoder.int_as_varint (0) encoder
@@ -480,4 +530,26 @@ let rec encode_post (v:Message_types.post) encoder =
     Pbrt.Encoder.key (3, Pbrt.Bytes) encoder; 
     Pbrt.Encoder.nested (encode_peer x) encoder;
   ) v.Message_types.peers;
+  ()
+
+let rec encode_message_method (v:Message_types.message_method) encoder =
+  match v with
+  | Message_types.Get -> Pbrt.Encoder.int_as_varint (0) encoder
+  | Message_types.Post -> Pbrt.Encoder.int_as_varint 1 encoder
+
+let rec encode_message (v:Message_types.message) encoder = 
+  Pbrt.Encoder.key (1, Pbrt.Varint) encoder; 
+  encode_message_method v.Message_types.method_ encoder;
+  begin match v.Message_types.get with
+  | Some x -> 
+    Pbrt.Encoder.key (2, Pbrt.Bytes) encoder; 
+    Pbrt.Encoder.nested (encode_get x) encoder;
+  | None -> ();
+  end;
+  begin match v.Message_types.post with
+  | Some x -> 
+    Pbrt.Encoder.key (3, Pbrt.Bytes) encoder; 
+    Pbrt.Encoder.nested (encode_post x) encoder;
+  | None -> ();
+  end;
   ()

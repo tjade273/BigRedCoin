@@ -56,6 +56,16 @@ type post = {
   peers : peer list;
 }
 
+type message_method =
+  | Get 
+  | Post 
+
+type message = {
+  method_ : message_method;
+  get : get option;
+  post : post option;
+}
+
 let rec default_get_request () = (Ping:get_request)
 
 let rec default_get 
@@ -136,4 +146,16 @@ let rec default_post
   transactions;
   blocks;
   peers;
+}
+
+let rec default_message_method () = (Get:message_method)
+
+let rec default_message 
+  ?method_:((method_:message_method) = default_message_method ())
+  ?get:((get:get option) = None)
+  ?post:((post:post option) = None)
+  () : message  = {
+  method_;
+  get;
+  post;
 }

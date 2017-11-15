@@ -30,6 +30,12 @@ val encode_peer : Message_types.peer -> Pbrt.Encoder.t -> unit
 val encode_post : Message_types.post -> Pbrt.Encoder.t -> unit
 (** [encode_post v encoder] encodes [v] with the given [encoder] *)
 
+val encode_message_method : Message_types.message_method -> Pbrt.Encoder.t -> unit
+(** [encode_message_method v encoder] encodes [v] with the given [encoder] *)
+
+val encode_message : Message_types.message -> Pbrt.Encoder.t -> unit
+(** [encode_message v encoder] encodes [v] with the given [encoder] *)
+
 
 (** {2 Protobuf Decoding} *)
 
@@ -59,3 +65,9 @@ val decode_peer : Pbrt.Decoder.t -> Message_types.peer
 
 val decode_post : Pbrt.Decoder.t -> Message_types.post
 (** [decode_post decoder] decodes a [post] value from [decoder] *)
+
+val decode_message_method : Pbrt.Decoder.t -> Message_types.message_method
+(** [decode_message_method decoder] decodes a [message_method] value from [decoder] *)
+
+val decode_message : Pbrt.Decoder.t -> Message_types.message
+(** [decode_message decoder] decodes a [message] value from [decoder] *)
