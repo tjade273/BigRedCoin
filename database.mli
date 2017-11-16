@@ -1,6 +1,7 @@
 module type Hashable = sig
   type t
 
+  (* [hash t] is the hash of [t]. *) 
   val hash : t -> string
 end
 
@@ -37,4 +38,5 @@ module type S = sig
 
 end
 
+(* Make a database module with values of type [Value]. *)
 module Make(Value : Hashable) : S with type value = Value.t

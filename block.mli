@@ -23,10 +23,10 @@ type block = {
 (* [target nbits] is the decompressed target that [nbits] represents. *)
 val target : int -> string
 
-(* [difficulty nbits] is the "reciprocal" of the target, a measure of the proportion
- * of the maximum possible difficulty *)
+(* [difficulty nbits] is the "reciprocal" of the target, a measure of the 
+ * proportion of the maximum possible difficulty. *)
 val difficulty : int -> int
 
-(* [next_target header] is the compressed form of the target for the next block, given
- * the timestamp and difficulty of the previous block. *)
+(* [next_target header] is the compressed form of the target for the next block,
+ * given the timestamp and difficulty of the previous block. *)
 val next_difficulty : header -> int
