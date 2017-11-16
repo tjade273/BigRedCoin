@@ -1,8 +1,8 @@
 (* The header of a block in the chain. Version is the version of the protocol.
  * The prev_hash is the hash of the previous block. The merkle_root is the
  * root of this block in the merkle_tree. The nonce is as in the proof of work
- * algorithm. The timestamp is the seconds since the unix epoch when the block
- * was made. *)
+ * algorithm. nBits is a compressed version of the mining difficulty. The 
+ * timestamp is the seconds since the unix epoch when the block was made. *)
 type header = {
   version : int;
   prev_hash : string;
@@ -11,7 +11,6 @@ type header = {
   nBits : int;
   timestamp : int
 }
-
 
 (* A block consists of its header, the transactions in the block, and a count
  * of the number of transactions in the block. *)
