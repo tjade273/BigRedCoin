@@ -11,7 +11,6 @@ module PeerTbl = struct
     remove tbl x >>
     Lwt.return @@ add tbl x y
 end
-
 let peer_table = PeerTbl.create 25
 
 let send_pingpong p oc =
