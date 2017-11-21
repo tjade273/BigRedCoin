@@ -19,14 +19,14 @@ module ECDSA = struct
 
   type pubkey = Public.t
   type privkey = Secret.t
-  type keypair = privkey * pubkey
+  type keypair =  pubkey * privkey
 
   type signature = RecoverableSign.t
 
   let hash_msg msg = msg
-                   |> Cstruct.of_string
-                   |> Nocrypto.Hash.SHA256.digest
-                   |> Cstruct.to_bigarray
+                     |> Cstruct.of_string
+                     |> Nocrypto.Hash.SHA256.digest
+                     |> Cstruct.to_bigarray
 
   let to_address pubkey =
     let pubkey_hash = pubkey
@@ -39,16 +39,32 @@ module ECDSA = struct
 
   let of_hex s =
     let buf = s |> Hex.of_string |> Hex.to_cstruct |> Cstruct.to_bigarray in
-    Secret.of_bytes_exn context buf
+    let privkey = Secret.of_bytes_exn context buf in
+    let pubkey = Public.of_secret context privkey in
+    (pubkey, privkey)
 
   let sign (pub, priv) msg =
     RecoverableSign.sign context ~seckey:priv (hash_msg msg)
 
   let recover msg signature =
-    RecoverableSign.recover context signature (hash_msg msg)
+    Some(RecoverableSign.recover context signature (hash_msg msg))
 
   let verify address msg signature =
-    to_address (recover msg signature) = address
+    match recover msg signature with
+    | None -> false
+    | Some pubkey -> to_address pubkey = address
+
+  let string_of_sig s =
+    let (s, v) = RecoverableSign.to_compact context s in
+    let buf = Cstruct.add_len (Cstruct.of_bigarray s) 1 in
+    Cstruct.set_uint8 buf 64 v; Cstruct.to_string buf
+
+  let sig_of_string s =
+    try
+      let b = Cstruct.of_string s in
+      let v = Cstruct.get_uint8 b 64 in
+      RecoverableSign.of_compact ~recid:v context (Cstruct.to_bigarray b)
+    with Invalid_argument _ -> None
 end
 
 module AES = struct
@@ -79,21 +95,22 @@ module AES = struct
   let to_string {address; iv; salt; ciphertext} =
     let to_hex b = `String(b |> Hex.of_cstruct |> Hex.show) in
     let json = `Assoc [
-      ("address", `String address);
-      ("IV", to_hex iv);
-      ("salt", to_hex salt);
-      ("private key", to_hex ciphertext)]
-  in
-  Yojson.Basic.to_string json
+        ("address", `String address);
+        ("IV", to_hex iv);
+        ("salt", to_hex salt);
+        ("private key", to_hex ciphertext)]
+    in
+    Yojson.Basic.to_string json
 
-  let scrypt salt pswd =
-  Scrypt_kdf.scrypt_kdf
-    ~password:pswd
-    ~salt:salt
-    ~n:16384 ~r:8 ~p:1 ~dk_len:(Int32.of_int 32)
+  let scrypt salt password =
+    let pswd = Cstruct.of_string password in
+    Scrypt_kdf.scrypt_kdf
+      ~password:pswd
+      ~salt:salt
+      ~n:16384 ~r:8 ~p:1 ~dk_len:(Int32.of_int 32)
 
-  let decrypt {address; iv; salt; ciphertext} pswd =
-    let stretched = scrypt salt pswd in
+  let decrypt {address; iv; salt; ciphertext} password =
+    let stretched = scrypt salt password in
     let key = of_secret stretched in
     let plaintext= decrypt ~key:key ~iv:iv ciphertext |> Cstruct.to_bigarray in
     try

@@ -31,6 +31,12 @@ module ECDSA : sig
 
   (* [to_address pkey] is the hex-encoded address derived from [pkey] *)
   val to_address : pubkey -> string
+
+  (* [string_of_sig s] is the serialization of the signature [s] as a string *)
+  val string_of_sig : signature -> string
+
+  (* [sig_of_string s] is the decoded signature that stringifies to [s] *)
+  val sig_of_string : string -> signature option
 end
 
 module AES : sig
@@ -48,7 +54,7 @@ module AES : sig
   val decrypt : t -> string -> ECDSA.keypair option
 
   (* [encrypt key pswd] is the encrypted form of [key] using the password [paswd] *)
-  val encypt : ECDSA.keypair -> string -> t
+  val encrypt : ECDSA.keypair -> string -> t
 
   (* [address a] is the address associated with the encrypted account [a] *)
   val address : t -> string
