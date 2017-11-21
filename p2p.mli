@@ -56,5 +56,12 @@ val shutdown : t -> unit Lwt.t
 
 val close_peer_connection: t -> BRCPeer.peer_connection -> unit Lwt.t
 
+val handle : (BRCPeer.peer_connection -> (bool*('a Lwt.t)) Lwt.t) -> t ->  
+  BRCPeer.peer_connection -> 'a Lwt.t
+
+val server_port : t -> int
+
+val (@<>) : (t*BRCPeer.peer_connection) -> (BRCPeer.peer_connection -> 
+  (bool*('a Lwt.t)) Lwt.t) -> 'a Lwt.t
 
 (*Create seperate stream for incomming connections*)
