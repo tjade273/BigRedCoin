@@ -1,1 +1,1 @@
-true: package(oUnit),package(lwt),package(lwt.ppx),package(lwt.unix),package(ocaml-protoc)
+true: package(oUnit),package(lwt),package(lwt.ppx),package(lwt.unix),package(ocaml-protoc),package(csv-lwt)
