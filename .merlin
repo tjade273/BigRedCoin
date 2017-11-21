@@ -1,1 +1,1 @@
-PKG lwt
+PKG lwt secp256k1 cryptokit scrypt-kdf hex yojson
