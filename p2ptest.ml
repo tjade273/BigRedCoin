@@ -2,10 +2,8 @@ open Lwt
 open Message_types
 open P2p
 
-let rec print_message msg = 
-  Lwt.return (print_endline "Got message")
+let suites : Test.suite list = []
 
-let msg = {method_=(Message_types.Get);get=None;post=None}
 
 open Test
 
@@ -23,6 +21,7 @@ let messaging_tests = suite "messaging tests" [
   end;
 
   test "simple_message" begin fun () -> 
+    let msg = {method_=(Message_types.Get);get=None;post=None} in  
     let%lwt node_a = P2p.create_from_list ~port:4444 [("127.0.0.1",4445)] in
     let%lwt node_b = P2p.create_from_list ~port:4445 [("127.0.0.1",4444)] in
     P2p.broadcast msg node_b >>
@@ -35,8 +34,6 @@ let messaging_tests = suite "messaging tests" [
     |None -> Lwt.return true
 end;
 ]
-
-let suites : Test.suite list = []
 
 let suites = suites @ [messaging_tests] 
 
