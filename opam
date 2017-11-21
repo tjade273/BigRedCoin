@@ -13,4 +13,10 @@ depends: [
   "ocaml-protoc" {build}
   "lwt" {build}
   "leveldb" {build}
+  "nocrypto" {build}
+  "yojson" {build}
+  "secp256k1" {build}
+  "hex" {build}
+  "scrypt-kdf" {build}
+  "ounit" {test}
 ]
