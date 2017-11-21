@@ -3,6 +3,13 @@ module type Hashable = sig
 
   (* [hash t] is the hash of [t]. *) 
   val hash : t -> string
+
+  (* [serialize t] is a serialized representation of [t]. *)
+  val serialize : t -> string
+
+  (* [deserialize s] is a data structure obtained by deserializing [s]. *)
+  val deserialize : string -> t
+
 end
 
 module type S = sig
