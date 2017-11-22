@@ -15,7 +15,8 @@ let rec create_n_linked_nodes ?start_port:(start_port=4000) n =
     if p > start_port + n then  
       Lwt.return (Array.of_list lst)
     else
-      let%lwt new_node =  P2p.create_from_list ~port:p [("127.0.0.1",p-1)] in
+      let%lwt new_node =  P2p.create_from_list ~port:p 
+        ["127.0.0.1",(p-1),None] in
       create_nodes_rec (p+1) (lst @ [new_node])
     in
     create_nodes_rec start_port []
@@ -27,7 +28,8 @@ let messaging_tests = suite "messaging tests" [
     end;
 
     test "open_server" begin fun () ->
-      try let%lwt p2p = P2p.create_from_list ~port:4444 [("127.0.0.1",4445)]
+      try let%lwt p2p = P2p.create_from_list ~port:4444 
+        [("127.0.0.1",4445,None)]
         in  P2p.shutdown p2p >> Lwt.return true
       with 
       | _ -> Lwt.return false
@@ -68,6 +70,6 @@ let messaging_tests = suite "messaging tests" [
     end
   ]
 
-let suites = suites @ [messaging_tests] 
+let suites = suites @ [messaging_tests]
 
 let () = Test.run "all_test" suites

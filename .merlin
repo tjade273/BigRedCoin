@@ -3,3 +3,4 @@ PKG lwt
 PKG lwt.ppx
 PKG ocaml-protoc
 PKG oUnit
+PKG csv-lwt

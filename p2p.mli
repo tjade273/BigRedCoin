@@ -19,10 +19,14 @@ module type Message_channel = sig
 end
 
 
-module BRCMessage_channel : Message_channel 
+module BRCMessage_channel : Message_channel
 
-module type BRCPeer_t = sig 
-  type peer_connection  
+module type BRCPeer_t = sig
+  type peer_connection
+  type peer
+  val addr : peer -> Unix.sockaddr
+  val s_addr : peer -> string
+  val str : peer_connection -> string
   val ic : peer_connection -> BRCMessage_channel.input
   val oc : peer_connection -> BRCMessage_channel.output
 end
@@ -37,15 +41,15 @@ type t
 (* [broadcast m t] sends the given message [m] to all peers of the node [t]. *)
 val broadcast : Message_types.message -> t -> unit Lwt.t
 
-(* [create s] makes a p2p node from a list of peers in the file with name [s]. 
+(* [create s] makes a p2p node from a list of peers in the file with name [s].
  * *)
-val create : ?port:int -> string -> t
+val create : ?port:int -> string -> t Lwt.t
 
-(* [create s] makes a p2p node from a list of peers in the file with name [s]. 
+(* [create s] makes a p2p node from a list of peers in the file with name [s].
  * *)
-val create_from_list : ?port:int -> (string*int) list -> t Lwt.t
+val create_from_list : ?port:int -> (string * int * (Unix.tm option)) list -> t Lwt.t
 
-(* [peer_stream t] is a stream of peers of [t]. Elements of the stream are 
+(* [peer_stream t] is a stream of peers of [t]. Elements of the stream are
  * tuples of an input stream and an output stream.*)
 val peer_stream : t -> BRCPeer.peer_connection Lwt_stream.t
 
