@@ -212,7 +212,8 @@ let handle f p2p conn  =
 let (@<>) (p2p,conn) f =
   handle f p2p conn
 
-(* [add_new_peer (addr,port) p2p]*)
+(* [add_new_peer (addr,port) p2p] adds a peer with given [addr] and [port] to
+ * the list of known peers of the [p2p] node *)
 let add_new_peer (addr,port) p2p =
   p2p.known_peers <- PeerList.append (new_peer addr port) p2p.known_peers
 
@@ -238,12 +239,12 @@ let string_of_tm tm =
 let tm_of_string s =
   try
     Scanf.sscanf s "%02d:%02d:%02d %02d/%02d/%04d"
-      (fun h m s mo d y -> Unix.(snd (mktime
-                                        {
-                                          tm_sec=s; tm_min=m; tm_hour=h;
-                                          tm_mday=d; tm_mon=mo-1; tm_year=y-1900;
-                                          tm_wday=0; tm_yday=0; tm_isdst=false
-                                        })))
+      (fun h m s mo d y ->
+         Unix.(snd (mktime{
+                            tm_sec=s; tm_min=m; tm_hour=h;
+                            tm_mday=d; tm_mon=mo-1; tm_year=y-1900;
+                            tm_wday=0; tm_yday=0; tm_isdst=false
+                          })))
   with
   | Scanf.Scan_failure _
   | End_of_file
@@ -295,7 +296,18 @@ let socket_addr_to_string addr =
   | Lwt_unix.ADDR_INET (addr,port) ->
     (Unix.string_of_inet_addr addr) ^ ":" ^ (string_of_int port)
 
-(* [read_for_time conn time] *)
+(* [decode_message bytes] is the message, decoded from the given bytes *)
+let decode_message bytes =
+  (Message_pb.decode_message (Pbrt.Decoder.of_bytes bytes))
+
+(* [encode_message msg] is the byte-encoded form of the given message [msg] *)
+let encode_message msg =
+  let encoder = Pbrt.Encoder.create() in
+  Message_pb.encode_message msg encoder;
+  Pbrt.Encoder.to_bytes encoder
+
+(* [read_for_time conn time] is the message read from the given connection. it
+ * times out aftom [time] seconds, in which case, None is returned. *)
 let read_for_time conn time =
   let timeout = Lwt_unix.sleep time >> Lwt.return None in
   let read = BRCMessage_channel.read conn in
@@ -304,19 +316,24 @@ let read_for_time conn time =
   | None -> Lwt.return_none
 
 (* [initiate_connection addr] is a peer connection to the given address [addr],
- * if successfully connected, None otherwise *)
+ * if successfully opened, None otherwise *)
 let initiate_connection addr : peer_connection option Lwt.t =
   Lwt.catch (
     fun () -> let%lwt (ic, oc)  = Lwt_io.open_connection addr in
       Lwt.return_some {addr=addr;ic=ic;oc=oc})
     (fun e -> Lwt.return_none)
 
-(* [connect_to_peer peer p2p] *)
+(* [connect_to_peer peer p2p] is a peer connection to the given peer or None
+ * if no connection was found or failed to be established. If a connection was
+ * found, it is added to the table of opened connections in the [p2p] node,
+ * and the last seen for the [peer] is updated in the node's list of known
+ * peers. *)
 let connect_to_peer peer p2p =
   let target = (s_addr peer) in
   if (is_conn_open target p2p) then
-    let conn = (get_connection target p2p) in
-    Lwt.return_some conn
+    let mod_peer = {peer with last_seen = int_of_float (Unix.time ())} in
+    p2p.known_peers <- PeerList.modify mod_peer p2p.known_peers;
+    Lwt.return_some (get_connection target p2p)
   else
     let addr =
       Unix.(ADDR_INET (Unix.inet_addr_of_string peer.address, peer.port)) in
@@ -331,7 +348,9 @@ let connect_to_peer peer p2p =
         >> Lwt.return_some conn
       | None -> Lwt.return_none
 
-(* [connect_to_a_peer p2p peers ()] *)
+(* [connect_to_a_peer p2p peers ()] is a peer connection to a random peer
+ * from the list of given [peers] of the [p2p] node, or None if an empty List
+ * is given. *)
 let rec connect_to_a_peer p2p ?peers:(peers=p2p.known_peers) () =
   if PeerList.length peers = 0 then
     Lwt.return_none
@@ -355,11 +374,14 @@ let rec connect_to_a_peer p2p ?peers:(peers=p2p.known_peers) () =
 let tbl_to_list tbl =
   Hashtbl.fold ( fun _ peer lst -> peer::lst) tbl []
 
-(* [known_peer_stream p2p] *)
+(* [known_peer_stream p2p] is a stream of peer connections to random known peers of
+ * the [p2p] node. *)
 let known_peer_stream p2p =
   Lwt_stream.from(connect_to_a_peer p2p)
 
-(* [unhandled_connected_peer_stream p2p] *)
+(* [unhandled_connected_peer_stream p2p] is a stream of peer connections that
+ * are already opened in the [p2p] node and are not being handled currently
+ * elsewhere. *)
 let unhandled_connected_peer_stream p2p =
   let unhandled = Hashtbl.copy p2p.connections in
   Hashtbl.filter_map_inplace(
@@ -372,7 +394,10 @@ let unhandled_connected_peer_stream p2p =
 let peer_stream p2p =
   Lwt_stream.append (unhandled_connected_peer_stream p2p) (known_peer_stream p2p)
 
-(* [handle_new_peer_connection p2p addr (ic,oc)] *)
+(* [handle_new_peer_connection p2p addr (ic,oc)] handles new incoming connections
+ * to the server of the [p2p] node. It adds the connection to the table of
+ * open connections if there is space for more connections, otherwise closes the
+ * connection. *)
 let handle_new_peer_connection p2p addr (ic,oc) =
   if (Hashtbl.length p2p.connections < c_MAX_CONNECTIONS) then
     Lwt_log.notice
@@ -388,7 +413,7 @@ let handle_new_peer_connection p2p addr (ic,oc) =
   else
     BRCMessage_channel.close_in ic >> BRCMessage_channel.close_out oc
 
-(* [start_server p2p] *)
+(* [start_server p2p] is a server on the port of the given [p2p] node. *)
 let start_server p2p =
   let port = Unix.(ADDR_INET (inet_addr_loopback, server_port p2p)) in
   let%lwt server =
@@ -397,7 +422,8 @@ let start_server p2p =
   in
   Lwt.return (server)
 
-(* [send_till_success conn msg] *)
+(* [send_till_success conn msg] sends the given message [msg] through the given
+ * peer connection [conn] and keeps trying until successful. *)
 let rec send_till_success conn msg =
   let%lwt bytes_sent = BRCMessage_channel.write conn.oc msg in
   if bytes_sent = 0 then
@@ -405,7 +431,8 @@ let rec send_till_success conn msg =
   else
     Lwt.return_some ()
 
-(* [connect_and_send peer msg p2p] *)
+(* [connect_and_send peer msg p2p] connects to [peer] and sends the given
+ * message [msg] through the [p2p] node. *)
 let connect_and_send peer msg p2p =
   match%lwt connect_to_peer peer p2p with
   | Some conn ->
