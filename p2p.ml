@@ -1,5 +1,6 @@
 open Lwt
 open Csv_lwt
+open Message_types
 
 exception FailedToConnect of string
 
@@ -76,20 +77,17 @@ let socket_addr_to_string addr =
     (Unix.string_of_inet_addr addr) ^ ":" ^ (string_of_int port)
 
 module BRCPeer = struct
+  
   type peer_connection = {
     addr: Unix.sockaddr;
     ic: BRCMessage_channel.input;
     oc: BRCMessage_channel.output;
   }
 
-  type peer = {
-    ip: string;
-    port: int;
-    mutable timestamp: Unix.tm;
-  }
+  type peer = Message_types.peer
 
-  let addr peer = Unix.(ADDR_INET (inet_addr_of_string peer.ip, peer.port))
-  let s_addr peer = peer.ip ^ ":" ^ (string_of_int peer.port)
+  let addr peer = Unix.(ADDR_INET (inet_addr_of_string peer.address, peer.port))
+  let s_addr peer = peer.address ^ ":" ^ (string_of_int peer.port)
   let socket_addr_to_string addr = 
     match addr with 
     | Lwt_unix.ADDR_UNIX addr -> addr
@@ -119,7 +117,7 @@ end
 type t = {
   connections:(string,peer_connection) PeerTbl.t;
   handled_connections:(string,peer_connection) Hashtbl.t;
-  known_peers:peer list;
+  mutable known_peers:peer list;
   server:Lwt_io.server option;
   port:int;
   peer_file:string}
@@ -170,7 +168,7 @@ let connect_to_peer peer p2p =
     let peer = (get_connected_peer target p2p) in
     Lwt.return_some peer
   else
-    let addr = Unix.(ADDR_INET (Unix.inet_addr_of_string peer.ip, peer.port)) in
+    let addr = Unix.(ADDR_INET (Unix.inet_addr_of_string peer.address, peer.port)) in
       match%lwt initiate_connection addr with
       | Some peer -> 
         PeerTbl.add p2p.connections peer 
@@ -199,8 +197,7 @@ let handle_new_peer_connection p2p addr (ic,oc) =
   else
     BRCMessage_channel.close_in ic >> BRCMessage_channel.close_out oc
 
-let create ?port:(port=4000) peer_file = 
-  failwith "Unimplemented create"
+
 
 let rec connect_to_a_peer p2p ?peers:(peers=p2p.known_peers) () = 
   if List.length peers = 0 then
@@ -252,17 +249,7 @@ let shutdown p2p =
 let add_new_peer addr_port p2p = 
   List.append p2p.known_peers addr_port
 
-let create_from_list ?port:(p=4000) (peer_list:peer list) = 
-  let p2p = 
-    {server=None;
-     connections=(PeerTbl.create 20);
-     known_peers=peer_list;
-     handled_connections=(Hashtbl.create 20);
-     port=0;
-     peer_file = "";
-     } in
-  let%lwt server = start_server p p2p in
-  Lwt.return {p2p with server = (Some server); port = p} 
+
 let server_port p2p = 
   p2p.port
 
@@ -276,11 +263,12 @@ let shutdown p2p =
 let create_from_list ?port:(p=4000) (peer_list:(string * int * (Unix.tm option)) list) =
   let peers = List.map
       (fun (i,p,tm) ->
-         let time = match tm with None -> Unix.gmtime 0. | Some a -> a in
+         let time_tm = match tm with None -> Unix.gmtime 0. | Some a -> a in
+         let (time,_) = Unix.mktime time_tm in 
          {
-           ip = i;
+           address = i;
            port = p;
-           timestamp = time
+           last_seen = int_of_float time
          }) peer_list in
   let p2p = {
     server= None;
@@ -318,13 +306,14 @@ let tm_of_string s =
     Unix.gmtime 0.
 
 let csv_of_peer peer =
-  [peer.ip; string_of_int peer.port; string_of_tm peer.timestamp ]
+  [peer.address; string_of_int peer.port; string_of_int peer.last_seen ]
 
 let peer_of_csv s =
+  let (time,_) = Unix.mktime (tm_of_string (List.nth s 2)) in
   {
-    ip = List.nth s 0;
+    address = List.nth s 0;
     port = int_of_string (List.nth s 1);
-    timestamp = tm_of_string (List.nth s 2);
+    last_seen = int_of_float time;
   }
 
 let save_peers f p2p =
@@ -335,15 +324,15 @@ let load_peers f =
   let%lwt csv = Csv_lwt.load f in
   Lwt.return @@ List.map (fun s -> peer_of_csv s) csv
 
-let create ?port:(p=4000) s =
-  let%lwt peers = load_peers s in
+let create ?port:(p=4000) peer_file =
+  let%lwt peers = load_peers peer_file in
   let p2p = {
     server= None;
     port = 0;
     handled_connections = Hashtbl.create 20;
     connections= (PeerTbl.create 20);
     known_peers= peers;
-    peer_file = s;
+    peer_file = peer_file;
   } in
   let%lwt server = start_server p p2p in
   Lwt.return {p2p with server = (Some server)}
