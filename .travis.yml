@@ -9,7 +9,7 @@ env:
 os:
   - linux
 
-sudo: false
+sudo: required
 
 cache:
   directories:
@@ -25,4 +25,5 @@ addons:
       - jq
       - libleveldb-dev
       - libsnappy-dev
+      - libsecp256k1-dev
 
