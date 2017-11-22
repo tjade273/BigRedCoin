@@ -1,4 +1,5 @@
 _build/*
 Makefile
 *.byte
+nodes/brc*.peers
 brc*.peers

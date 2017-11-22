@@ -56,6 +56,7 @@ let messaging_tests = suite "messaging tests" [
       let msg = {method_=(Message_types.Get);get=None;post=None;frame_type=Data} in
       let%lwt node_a = P2p.create ~port:4444 "node_a.peers" in
       let%lwt node_b = P2p.create ~port:4445 "node_b.peers" in
+      let%lwt node_c = P2p.create ~port:4446 "node_c.peers" in
       P2p.broadcast data_preamble node_b >> P2p.broadcast msg node_b >>
       let res = Lwt_stream.get (P2p.peer_stream node_a) in
       let%lwt check_message = match%lwt res with
@@ -68,7 +69,7 @@ let messaging_tests = suite "messaging tests" [
     end;
 
     test "test_connect_random" begin fun () ->
-      let%lwt nodes = create_n_linked_nodes ~start_port:4000 2 in
+      let%lwt nodes = create_n_linked_nodes ~start_port:5000 2 in
       let peer_opt = Lwt_stream.get (P2p.peer_stream nodes.(1)) in
       let%lwt check_connection =
         match%lwt peer_opt with
@@ -78,7 +79,7 @@ let messaging_tests = suite "messaging tests" [
     end;
 
     test "test_random_connection_failed" begin fun () ->
-      let%lwt nodes = create_n_linked_nodes ~start_port:4000 2 in
+      let%lwt nodes = create_n_linked_nodes ~start_port:6000 2 in
       let peer_opt = Lwt_stream.get (P2p.peer_stream nodes.(0)) in
       let%lwt check_connection =
         match%lwt peer_opt with

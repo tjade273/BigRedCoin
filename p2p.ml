@@ -108,6 +108,7 @@ module type PeerList_t = sig
   val find: item -> t -> int option
   val remove: int -> t -> t
   val update: int -> item -> t -> t
+  val modify: item -> t -> t
   val append: item -> t -> t
 end
 
@@ -118,7 +119,7 @@ module PeerList = struct
   type t = item array
 
   let find item arr =
-    let (found, i) = Array.fold_left
+    let (found, i) = fold_left
             (fun (found, index) a ->
                if item <=> a then (true, index)
                else (false, index+1)) (false,0) arr in
@@ -134,6 +135,9 @@ module PeerList = struct
 
   let update i item arr =
     arr.(i) <- item; arr
+
+  let modify item arr =
+    iteri (fun i a -> if a <=> item then arr.(i) <- item else ()) arr; arr
 
   let append item arr =
     Array.append [|item|] arr
@@ -216,10 +220,13 @@ let connect_to_peer peer p2p =
     let addr = Unix.(ADDR_INET (Unix.inet_addr_of_string peer.address, peer.port)) in
     Lwt_log.notice ((id p2p) ^ ": Attempting to initiate connection: " ^ socket_addr_to_string addr) >>
       match%lwt initiate_connection addr with
-      | Some peer ->
-        PeerTbl.add p2p.connections peer
-        >> Lwt.return_some peer
+      | Some conn ->
+        let mod_peer = {peer with last_seen = int_of_float (Unix.time ())} in
+        p2p.known_peers <- PeerList.modify mod_peer p2p.known_peers;
+        PeerTbl.add p2p.connections conn
+        >> Lwt.return_some conn
       | None -> Lwt.return_none
+
 let read_for_time conn time =
   let timeout = Lwt_unix.sleep time >> Lwt.return None in
   let read = BRCMessage_channel.read conn in
@@ -322,12 +329,10 @@ let add_new_peer addr_port p2p =
 let server_port p2p =
   p2p.port
 
-
-
 let create_from_list ?port:(p=4000) (peer_list:(string * int * (Unix.tm option)) list) =
   let peers = Array.of_list (List.map
     (fun (i,p,tm) ->
-       let time = match tm with None -> 0. | Some a -> (fst (Unix.mktime a)) in
+      let time = match tm with None -> 0. | Some a -> (fst (Unix.mktime a)) in
        {
          address = i;
          port = p;
@@ -384,7 +389,13 @@ let peer_of_csv s =
     last_seen = int_of_float time;
   }
 
+let peer_cmp p1 p2 =
+  if p1.last_seen > p2.last_seen then -1
+  else if p1.last_seen = p2.last_seen then 0
+  else 1
+
 let save_peers f p2p =
+  PeerList.sort peer_cmp p2p.known_peers;
   let csv = PeerList.map (fun p -> csv_of_peer p) p2p.known_peers in
   Csv_lwt.save f (PeerList.to_list csv)
 
