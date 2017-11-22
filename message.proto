@@ -40,8 +40,8 @@ message Block {
 
 message Peer {
     required string address = 1;
-    required uint32 port = 2;
-    required uint64 last_seen = 3;
+    required uint32 port = 2 [(ocaml_type) = int_t];;
+    required uint64 last_seen = 3 [(ocaml_type) = int_t];;
 }
 
 message Post {
@@ -51,11 +51,16 @@ message Post {
 }
 
 message Message {
+    enum FRAME_T {
+        PEER = 0;
+        DATA = 1;
+    }
     enum Method {
          GET = 0;
          POST = 1;
     }
-    required Method method = 1;
-    optional Get get = 2;
-    optional Post post = 3;
+    required FRAME_T frame_type = 1;
+    required Method method = 2;
+    optional Get get = 3;
+    optional Post post = 4;
 }

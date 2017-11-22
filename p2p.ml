@@ -27,7 +27,7 @@ end
 module BRCMessage_channel : Message_channel with
   type input = Lwt_io.input Lwt_io.channel and
   type output = Lwt_io.output Lwt_io.channel
-= struct
+  = struct
 
   type input = Lwt_io.input Lwt_io.channel
 
@@ -171,6 +171,12 @@ let connect_to_peer peer p2p =
         PeerTbl.add p2p.connections peer
         >> Lwt.return_some peer
       | None -> Lwt.return_none
+let read_for_time conn time = 
+  let timeout = Lwt_unix.sleep time >> Lwt.return None in 
+  let read = BRCMessage_channel.read conn in 
+  match%lwt Lwt.pick[read;timeout] with 
+  | Some msg -> Lwt.return_some msg
+  | None -> Lwt.return_none
 
 let rec send_till_success conn msg =
   let%lwt bytes_sent = BRCMessage_channel.write conn.oc msg in 
@@ -199,7 +205,13 @@ let handle_new_peer_connection p2p addr (ic,oc) =
   if (Hashtbl.length p2p.connections < c_MAX_CONNECTIONS) then
     Lwt_log.notice("Got new peer @ " ^ socket_addr_to_string addr) >>
     let conn = { addr = addr; ic = ic; oc = oc} in
-    PeerTbl.add p2p.connections conn
+    match%lwt read_for_time (BRCPeer.ic conn) 2. with 
+    | Some msg -> 
+      (match msg.frame_type with
+      | Peer -> failwith "handle peer data"
+      | Data -> PeerTbl.add p2p.connections conn
+      ) 
+    | None -> Lwt_log.notice("Failed to retrieve preamble.")
   else
     BRCMessage_channel.close_in ic >> BRCMessage_channel.close_out oc
 

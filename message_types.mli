@@ -17,13 +17,13 @@ type get = {
 }
 
 type transaction_output = {
-  amount : int;
+  amount : int64;
   address : bytes;
 }
 
 type transaction_input = {
   txid : bytes;
-  out_index : int;
+  out_index : int32;
   signature : bytes;
 }
 
@@ -33,18 +33,18 @@ type transaction = {
 }
 
 type block_header = {
-  version : int;
+  version : int32;
   prev_hash : bytes;
   merkle_root : bytes;
-  nonce : int;
-  n_bits : int;
-  timestamp : int;
+  nonce : int64;
+  n_bits : int64;
+  timestamp : int64;
 }
 
 type block = {
   header : block_header;
   txs : transaction list;
-  tx_count : int;
+  tx_count : int32;
 }
 
 type peer = {
@@ -59,11 +59,16 @@ type post = {
   peers : peer list;
 }
 
+type message_frame_t =
+  | Peer 
+  | Data 
+
 type message_method =
   | Get 
   | Post 
 
 type message = {
+  frame_type : message_frame_t;
   method_ : message_method;
   get : get option;
   post : post option;
@@ -83,7 +88,7 @@ val default_get :
 (** [default_get ()] is the default value for type [get] *)
 
 val default_transaction_output : 
-  ?amount:int ->
+  ?amount:int64 ->
   ?address:bytes ->
   unit ->
   transaction_output
@@ -91,7 +96,7 @@ val default_transaction_output :
 
 val default_transaction_input : 
   ?txid:bytes ->
-  ?out_index:int ->
+  ?out_index:int32 ->
   ?signature:bytes ->
   unit ->
   transaction_input
@@ -105,12 +110,12 @@ val default_transaction :
 (** [default_transaction ()] is the default value for type [transaction] *)
 
 val default_block_header : 
-  ?version:int ->
+  ?version:int32 ->
   ?prev_hash:bytes ->
   ?merkle_root:bytes ->
-  ?nonce:int ->
-  ?n_bits:int ->
-  ?timestamp:int ->
+  ?nonce:int64 ->
+  ?n_bits:int64 ->
+  ?timestamp:int64 ->
   unit ->
   block_header
 (** [default_block_header ()] is the default value for type [block_header] *)
@@ -118,7 +123,7 @@ val default_block_header :
 val default_block : 
   ?header:block_header ->
   ?txs:transaction list ->
-  ?tx_count:int ->
+  ?tx_count:int32 ->
   unit ->
   block
 (** [default_block ()] is the default value for type [block] *)
@@ -139,10 +144,14 @@ val default_post :
   post
 (** [default_post ()] is the default value for type [post] *)
 
+val default_message_frame_t : unit -> message_frame_t
+(** [default_message_frame_t ()] is the default value for type [message_frame_t] *)
+
 val default_message_method : unit -> message_method
 (** [default_message_method ()] is the default value for type [message_method] *)
 
 val default_message : 
+  ?frame_type:message_frame_t ->
   ?method_:message_method ->
   ?get:get option ->
   ?post:post option ->
