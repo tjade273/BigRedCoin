@@ -70,14 +70,8 @@ module type BRCPeer_t = sig
   val oc : peer_connection -> BRCMessage_channel.output
 end
 
-let socket_addr_to_string addr =
-  match addr with
-  | Lwt_unix.ADDR_UNIX addr -> addr
-  | Lwt_unix.ADDR_INET (addr,port) ->
-    (Unix.string_of_inet_addr addr) ^ ":" ^ (string_of_int port)
-
 module BRCPeer = struct
-  
+
   type peer_connection = {
     addr: Unix.sockaddr;
     ic: BRCMessage_channel.input;
@@ -88,11 +82,11 @@ module BRCPeer = struct
 
   let addr peer = Unix.(ADDR_INET (inet_addr_of_string peer.address, peer.port))
   let s_addr peer = peer.address ^ ":" ^ (string_of_int peer.port)
-  let socket_addr_to_string addr = 
-    match addr with 
+  let socket_addr_to_string addr =
+    match addr with
     | Lwt_unix.ADDR_UNIX addr -> addr
-    | Lwt_unix.ADDR_INET (addr,port) -> 
-      (Unix.string_of_inet_addr addr) ^ ":" ^ (string_of_int port) 
+    | Lwt_unix.ADDR_INET (addr,port) ->
+      (Unix.string_of_inet_addr addr) ^ ":" ^ (string_of_int port)
   let str conn = socket_addr_to_string conn.addr
   let ic conn = conn.ic
   let oc conn = conn.oc
@@ -122,32 +116,34 @@ type t = {
   port:int;
   peer_file:string}
 
-let remove_known_peer p2p addr = 
+let remove_known_peer p2p addr =
   List.remove_assoc p2p.known_peers addr
-let remove_handle_connection p2p peer = 
 
+let remove_handle_connection p2p peer =
   Hashtbl.remove p2p.handled_connections (str peer);
-  Lwt.return_unit  
+  Lwt.return_unit
 
 let close_peer_connection p2p (peer:peer_connection) =
   PeerTbl.remove p2p.connections (str peer)
 
-let handle f p2p peer  = 
+let handle f p2p peer  =
   Hashtbl.add p2p.handled_connections (str peer) peer;
   let%lwt (close,res) = f peer in
-  if close then 
+  if close then
     close_peer_connection p2p peer >> res
   else
     remove_handle_connection p2p peer >> res
 
-let (@<>) (p2p,peer) f = handle f p2p peer  
-let peer_open inet p2p = 
+let (@<>) (p2p,peer) f =
+  handle f p2p peer
+
+let peer_open inet p2p =
   PeerTbl.mem p2p.connections inet
 
-
-let get_connected_peer inet p2p = 
+let get_connected_peer inet p2p =
   PeerTbl.find p2p.connections inet
-let decode_message bytes = 
+
+let decode_message bytes =
   (Message_pb.decode_message (Pbrt.Decoder.of_bytes bytes))
 
 let encode_message bytes =
@@ -156,22 +152,22 @@ let encode_message bytes =
   Pbrt.Encoder.to_bytes encoder
 
 let initiate_connection peer_addr =
-  Lwt_log.notice ("Attempting to initiate connection: " ^ socket_addr_to_string peer_addr) >> 
+  Lwt_log.notice ("Attempting to initiate connection: " ^ socket_addr_to_string peer_addr) >>
   Lwt.catch (
       fun () -> let%lwt (ic, oc)  = Lwt_io.open_connection peer_addr in
         Lwt.return_some {addr=peer_addr;ic=ic;oc=oc})
       (fun e -> Lwt.return_none)
 
 let connect_to_peer peer p2p =
-  let target = (s_addr peer) in 
-  if (peer_open target p2p) then 
+  let target = (s_addr peer) in
+  if (peer_open target p2p) then
     let peer = (get_connected_peer target p2p) in
     Lwt.return_some peer
   else
     let addr = Unix.(ADDR_INET (Unix.inet_addr_of_string peer.address, peer.port)) in
       match%lwt initiate_connection addr with
-      | Some peer -> 
-        PeerTbl.add p2p.connections peer 
+      | Some peer ->
+        PeerTbl.add p2p.connections peer
         >> Lwt.return_some peer
       | None -> Lwt.return_none
 
@@ -197,9 +193,7 @@ let handle_new_peer_connection p2p addr (ic,oc) =
   else
     BRCMessage_channel.close_in ic >> BRCMessage_channel.close_out oc
 
-
-
-let rec connect_to_a_peer p2p ?peers:(peers=p2p.known_peers) () = 
+let rec connect_to_a_peer p2p ?peers:(peers=p2p.known_peers) () =
   if List.length peers = 0 then
     Lwt.return_none
   else
@@ -207,34 +201,36 @@ let rec connect_to_a_peer p2p ?peers:(peers=p2p.known_peers) () =
     let peer = List.nth peers random in
     let target_addr = s_addr peer in
     if (PeerTbl.mem p2p.connections target_addr) then
-      let peer_connection = PeerTbl.find p2p.connections target_addr in 
+      let peer_connection = PeerTbl.find p2p.connections target_addr in
       Lwt.return_some peer_connection
     else
       let timeout = Lwt_unix.sleep 2. >> Lwt.return_none in
       let conn_thread = connect_to_peer peer p2p in
       match%lwt Lwt.pick [timeout;conn_thread] with
       | Some peer -> Lwt.return_some peer
-      | None -> 
+      | None ->
         let good_peer_lst = List.filter(fun p -> p <> peer) peers in
         connect_to_a_peer p2p ~peers:good_peer_lst ()
 
 let tbl_to_list tbl =
   Hashtbl.fold ( fun _ peer lst -> peer::lst) tbl []
-let known_peer_stream p2p = 
+let known_peer_stream p2p =
   Lwt_stream.from(connect_to_a_peer p2p)
 
-let unhandled_connected_peer_stream p2p = 
-  let unhandled = Hashtbl.copy p2p.connections in 
+let unhandled_connected_peer_stream p2p =
+  let unhandled = Hashtbl.copy p2p.connections in
   Hashtbl.filter_map_inplace(
-    fun addr peer -> 
+    fun addr peer ->
       if (Hashtbl.mem p2p.handled_connections addr) then
         None
       else
         Some peer
   ) unhandled;
   Lwt_stream.of_list(tbl_to_list unhandled)
+
 let peer_stream p2p =
-  Lwt_stream.append (unhandled_connected_peer_stream p2p) (known_peer_stream p2p) 
+  Lwt_stream.append (unhandled_connected_peer_stream p2p) (known_peer_stream p2p)
+
 let start_server port p2p =
   let port = Unix.(ADDR_INET (inet_addr_loopback,port)) in
   let%lwt server =
@@ -242,17 +238,17 @@ let start_server port p2p =
       (p2p |> handle_new_peer_connection)
   in
   Lwt.return (server)
-let shutdown p2p = 
-  match p2p.server with 
+
+let shutdown p2p =
+  match p2p.server with
   | Some server -> Lwt_io.shutdown_server server
-  | None -> Lwt.return_unit  
-let add_new_peer addr_port p2p = 
+  | None -> Lwt.return_unit
+
+let add_new_peer addr_port p2p =
   List.append p2p.known_peers addr_port
 
-
-let server_port p2p = 
+let server_port p2p =
   p2p.port
-
 
 let shutdown p2p =
   Hashtbl.fold (fun _ a _ -> ignore (close_peer_connection p2p a)) (p2p.connections) ();
@@ -263,8 +259,8 @@ let shutdown p2p =
 let create_from_list ?port:(p=4000) (peer_list:(string * int * (Unix.tm option)) list) =
   let peers = List.map
       (fun (i,p,tm) ->
-         let time_tm = match tm with None -> Unix.gmtime 0. | Some a -> a in
-         let (time,_) = Unix.mktime time_tm in 
+         let time =
+           match tm with None -> 0. | Some a -> (fst (Unix.mktime a)) in
          {
            address = i;
            port = p;
@@ -276,7 +272,7 @@ let create_from_list ?port:(p=4000) (peer_list:(string * int * (Unix.tm option))
     handled_connections = Hashtbl.create 20;
     connections= (PeerTbl.create 20);
     known_peers= peers;
-    peer_file = "brc" ^ (string_of_int p);
+    peer_file = "brc" ^ (string_of_int p) ^ ".peers";
   } in
   let%lwt server = start_server p p2p in
   Lwt.return {p2p with server = (Some server);port=p}
