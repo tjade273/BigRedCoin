@@ -86,6 +86,8 @@ module BRCPeer = struct
     port = 0;
     last_seen = 0;
   }
+  let (<=>) p1 p2 =
+    p1.address = p2.address && p1.port = p2.port
   let addr peer = Unix.(ADDR_INET (inet_addr_of_string peer.address, peer.port))
   let s_addr peer = peer.address ^ ":" ^ (string_of_int peer.port)
   let socket_addr_to_string addr =
@@ -111,9 +113,17 @@ end
 
 module PeerList = struct
   include Array
+
   type item = peer
   type t = item array
-  let find item arr = failwith "Unimplemented"
+
+  let find item arr =
+    let (found, i) = Array.fold_left
+            (fun (found, index) a ->
+               if item <=> a then (true, index)
+               else (false, index+1)) (false,0) arr in
+    if found then Some i else None
+
   let remove i arr =
     let new_arr = make ((Array.length arr)-1) (null_peer ()) in
     iteri (fun pos item ->
@@ -155,7 +165,9 @@ let id p2p =
   string_of_int p2p.port
 
 let remove_known_peer p2p addr =
-  p2p.known_peers <- PeerList.remove addr p2p.known_peers
+  match PeerList.find addr p2p.known_peers with
+  | Some i -> p2p.known_peers <- PeerList.remove i p2p.known_peers
+  | None -> ()
 
 let remove_handle_connection p2p peer =
   Hashtbl.remove p2p.handled_connections (str peer);
@@ -175,7 +187,7 @@ let handle f p2p peer  =
 let (@<>) (p2p,peer) f =
   handle f p2p peer
 
-let peer_open inet p2p =
+let is_peer_open inet p2p =
   PeerTbl.mem p2p.connections inet
 
 let get_connected_peer inet p2p =
@@ -197,7 +209,7 @@ let initiate_connection peer_addr =
 
 let connect_to_peer peer p2p =
   let target = (s_addr peer) in
-  if (peer_open target p2p) then
+  if (is_peer_open target p2p) then
     let peer = (get_connected_peer target p2p) in
     Lwt.return_some peer
   else
@@ -259,8 +271,8 @@ let rec connect_to_a_peer p2p ?peers:(peers=p2p.known_peers) () =
     let random = Random.int (PeerList.length peers) in
     let peer = peers.(random) in
     let target_addr = s_addr peer in
-    if (PeerTbl.mem p2p.connections target_addr) then
-      let peer_connection = PeerTbl.find p2p.connections target_addr in
+    if (is_peer_open target_addr p2p) then
+      let peer_connection = get_connected_peer target_addr p2p in
       Lwt.return_some peer_connection
     else
       let timeout = Lwt_unix.sleep 2. >> Lwt.return_none in
