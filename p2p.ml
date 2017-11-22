@@ -63,6 +63,7 @@ end
 module type BRCPeer_t = sig
   type peer_connection
   type peer
+  val null_peer : unit -> peer
   val addr : peer -> Unix.sockaddr
   val s_addr : peer -> string
   val str : peer_connection -> string
@@ -79,7 +80,11 @@ module BRCPeer = struct
   }
 
   type peer = Message_types.peer
-
+  let null_peer () = {
+    address = "";
+    port = 0;
+    last_seen = 0;
+  }
   let addr peer = Unix.(ADDR_INET (inet_addr_of_string peer.address, peer.port))
   let s_addr peer = peer.address ^ ":" ^ (string_of_int peer.port)
   let socket_addr_to_string addr =
@@ -93,6 +98,35 @@ module BRCPeer = struct
 end
 
 open BRCPeer
+
+module type PeerList_t = sig
+  type item
+  type t
+  val find: item -> t -> int option
+  val remove: int -> t -> t
+  val update: int -> item -> t -> t
+  val append: item -> t -> t
+end
+
+module PeerList = struct
+  include Array
+  type item = peer
+  type t = item array
+  let find item arr = failwith "Unimplemented"
+  let remove i arr =
+    let new_arr = make ((Array.length arr)-1) (null_peer ()) in
+    iteri (fun pos item ->
+        if pos < i then new_arr.(pos) <- arr.(pos)
+        else if pos > i then new_arr.(pos-1) <- arr.(pos)
+        else ()) arr;
+    new_arr
+
+  let update i item arr =
+    arr.(i) <- item; arr
+
+  let append item arr =
+    Array.append [|item|] arr
+end
 
 module PeerTbl = struct
   include Hashtbl
@@ -111,13 +145,13 @@ end
 type t = {
   connections:(string,peer_connection) PeerTbl.t;
   handled_connections:(string,peer_connection) Hashtbl.t;
-  mutable known_peers:peer list;
+  mutable known_peers: PeerList.t;
   server:Lwt_io.server option;
   port:int;
   peer_file:string}
 
 let remove_known_peer p2p addr =
-  List.remove_assoc p2p.known_peers addr
+  p2p.known_peers <- PeerList.remove addr p2p.known_peers
 
 let remove_handle_connection p2p peer =
   Hashtbl.remove p2p.handled_connections (str peer);
@@ -181,7 +215,7 @@ let send_raw bytes size oc =
   Lwt_io.write_from_exactly oc bytes 0 size
 
 let broadcast (msg:Message_types.message) (p2p:t) =
-  List.fold_left (fun acc peer ->
+  PeerList.fold_left (fun acc peer ->
       (connect_and_send peer msg p2p)<&>acc)
     Lwt.return_unit p2p.known_peers
 
@@ -194,11 +228,11 @@ let handle_new_peer_connection p2p addr (ic,oc) =
     BRCMessage_channel.close_in ic >> BRCMessage_channel.close_out oc
 
 let rec connect_to_a_peer p2p ?peers:(peers=p2p.known_peers) () =
-  if List.length peers = 0 then
+  if PeerList.length peers = 0 then
     Lwt.return_none
   else
-    let random = Random.int (List.length peers) in
-    let peer = List.nth peers random in
+    let random = Random.int (PeerList.length peers) in
+    let peer = peers.(random) in
     let target_addr = s_addr peer in
     if (PeerTbl.mem p2p.connections target_addr) then
       let peer_connection = PeerTbl.find p2p.connections target_addr in
@@ -209,7 +243,7 @@ let rec connect_to_a_peer p2p ?peers:(peers=p2p.known_peers) () =
       match%lwt Lwt.pick [timeout;conn_thread] with
       | Some peer -> Lwt.return_some peer
       | None ->
-        let good_peer_lst = List.filter(fun p -> p <> peer) peers in
+        let good_peer_lst = PeerList.remove random peers in
         connect_to_a_peer p2p ~peers:good_peer_lst ()
 
 let tbl_to_list tbl =
@@ -246,7 +280,7 @@ let shutdown p2p =
   | None -> Lwt.return_unit
 
 let add_new_peer addr_port p2p =
-  List.append p2p.known_peers addr_port
+  p2p.known_peers <- PeerList.append addr_port p2p.known_peers
 
 let server_port p2p =
   p2p.port
@@ -258,7 +292,7 @@ let shutdown p2p =
   | None -> Lwt.return_unit
 
 let create_from_list ?port:(p=4000) (peer_list:(string * int * (Unix.tm option)) list) =
-  let peers = List.map
+  let peers = Array.of_list (List.map
     (fun (i,p,tm) ->
        let time = match tm with None -> 0. | Some a -> (fst (Unix.mktime a)) in
        {
@@ -266,7 +300,7 @@ let create_from_list ?port:(p=4000) (peer_list:(string * int * (Unix.tm option))
          port = p;
          last_seen = int_of_float time
        })
-    peer_list in
+    peer_list) in
   let p2p = {
     server= None;
     port = 0;
@@ -318,12 +352,12 @@ let peer_of_csv s =
   }
 
 let save_peers f p2p =
-  let csv = List.map (fun p -> csv_of_peer p) p2p.known_peers in
-  Csv_lwt.save f csv
+  let csv = PeerList.map (fun p -> csv_of_peer p) p2p.known_peers in
+  Csv_lwt.save f (PeerList.to_list csv)
 
 let load_peers f =
   let%lwt csv = Csv_lwt.load f in
-  Lwt.return @@ List.map (fun s -> peer_of_csv s) csv
+  Lwt.return @@ PeerList.of_list (List.map (fun s -> peer_of_csv s) csv)
 
 let create ?port:(p=4000) peer_file =
   let%lwt peers = load_peers peer_file in

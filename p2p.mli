@@ -24,6 +24,7 @@ module BRCMessage_channel : Message_channel
 module type BRCPeer_t = sig
   type peer_connection
   type peer
+  val null_peer : unit -> peer
   val addr : peer -> Unix.sockaddr
   val s_addr : peer -> string
   val str : peer_connection -> string
@@ -60,12 +61,12 @@ val shutdown : t -> unit Lwt.t
 
 val close_peer_connection: t -> BRCPeer.peer_connection -> unit Lwt.t
 
-val handle : (BRCPeer.peer_connection -> (bool*('a Lwt.t)) Lwt.t) -> t ->  
+val handle : (BRCPeer.peer_connection -> (bool*('a Lwt.t)) Lwt.t) -> t ->
   BRCPeer.peer_connection -> 'a Lwt.t
 
 val server_port : t -> int
 
-val (@<>) : (t*BRCPeer.peer_connection) -> (BRCPeer.peer_connection -> 
+val (@<>) : (t*BRCPeer.peer_connection) -> (BRCPeer.peer_connection ->
   (bool*('a Lwt.t)) Lwt.t) -> 'a Lwt.t
 
 (*Create seperate stream for incomming connections*)
