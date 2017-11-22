@@ -18,11 +18,8 @@ ocaml -version
 opam --version
 opam --git-version
 
-opam install "depext=1.0.5"
-opam install "jbuilder=1.0+beta16"
-
 opam depext conf-m4
-opam pin add travis-opam https://github.com/${fork_user}/ocaml-ci-scripts.git#${fork_branch}
+opam pin add bigredcoin .
 
 echo -en "travis_fold:end:prepare.ci\r"
-opam config exec -- ci-opam
+
