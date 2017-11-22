@@ -54,9 +54,9 @@ let messaging_tests = suite "messaging tests" [
 
     test "simple_message_peer_file" begin fun () ->
       let msg = {method_=(Message_types.Get);get=None;post=None;frame_type=Data} in
-      let%lwt node_a = P2p.create ~port:4444 "node_a.peers" in
-      let%lwt node_b = P2p.create ~port:4445 "node_b.peers" in
-      let%lwt node_c = P2p.create ~port:4446 "node_c.peers" in
+      let%lwt node_a = P2p.create ~port:4444 "nodes/node_a.peers" in
+      let%lwt node_b = P2p.create ~port:4445 "nodes/node_b.peers" in
+      let%lwt node_c = P2p.create ~port:4446 "nodes/node_c.peers" in
       P2p.broadcast data_preamble node_b >> P2p.broadcast msg node_b >>
       let res = Lwt_stream.get (P2p.peer_stream node_a) in
       let%lwt check_message = match%lwt res with

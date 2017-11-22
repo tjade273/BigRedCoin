@@ -345,7 +345,7 @@ let create_from_list ?port:(p=4000) (peer_list:(string * int * (Unix.tm option))
     handled_connections = Hashtbl.create 20;
     connections= (PeerTbl.create 20);
     known_peers= peers;
-    peer_file = "brc" ^ (string_of_int p) ^ ".peers";
+    peer_file = "nodes/brc" ^ (string_of_int p) ^ ".peers";
   } in
   let%lwt server = start_server p p2p in
   Lwt.return {p2p with server = (Some server);port=p}
