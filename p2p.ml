@@ -322,11 +322,7 @@ let add_new_peer addr_port p2p =
 let server_port p2p =
   p2p.port
 
-let shutdown p2p =
-  Hashtbl.fold (fun _ a _ -> ignore (close_peer_connection p2p a)) (p2p.connections) ();
-  match p2p.server with
-  | Some server -> Lwt_io.shutdown_server server
-  | None -> Lwt.return_unit
+
 
 let create_from_list ?port:(p=4000) (peer_list:(string * int * (Unix.tm option)) list) =
   let peers = Array.of_list (List.map
@@ -361,23 +357,23 @@ let string_of_tm (tm:Unix.tm) =
 let tm_of_string s =
   try
     Scanf.sscanf s "%02d:%02d:%02d %02d/%02d/%04d"
-      (fun h m s mo d y -> Unix.(gmtime (fst (mktime
+      (fun h m s mo d y -> Unix.(snd (mktime
           {
             tm_sec=s; tm_min=m; tm_hour=h;
             tm_mday=d; tm_mon=mo-1; tm_year=y-1900;
             tm_wday=0; tm_yday=0; tm_isdst=false
-          }))))
+          })))
   with
   | Scanf.Scan_failure _
   | End_of_file
   | Unix.Unix_error (Unix.ERANGE, "mktime", _) ->
-    Unix.gmtime 0.
+    Unix.localtime 0.
 
 let csv_of_peer peer =
   [
     peer.address;
     string_of_int peer.port;
-    string_of_tm (Unix.gmtime (float_of_int peer.last_seen))
+    string_of_tm (Unix.localtime (float_of_int peer.last_seen))
   ]
 
 let peer_of_csv s =
@@ -408,3 +404,10 @@ let create ?port:(p=4000) peer_file =
   } in
   let%lwt server = start_server p p2p in
   Lwt.return {p2p with server = (Some server)}
+
+let shutdown p2p =
+  Hashtbl.fold (fun _ a _ -> ignore (close_peer_connection p2p a)) (p2p.connections) ();
+  save_peers p2p.peer_file p2p >>
+  match p2p.server with
+  | Some server -> Lwt_io.shutdown_server server
+  | None -> Lwt.return_unit
