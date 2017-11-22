@@ -65,6 +65,8 @@ module type BRCPeer_t = sig
   val oc : peer_connection -> BRCMessage_channel.output
 end
 
+(* The type of a socket connection to an address, with the input and output
+ * channels associated with the connection. *)
 type connection = {
   addr: Unix.sockaddr;
   ic: BRCMessage_channel.input;
@@ -150,7 +152,7 @@ module PeerList = struct
     else Array.append [|p|] lst
 end
 
-module PeerTbl = struct
+module ConnTbl = struct
   include Hashtbl
 
   (* [remove tbl addr] removes the value associated with key [addr] from the
@@ -172,7 +174,7 @@ module PeerTbl = struct
 end
 
 type t = {
-  connections:(string,peer_connection) PeerTbl.t;
+  connections:(string,peer_connection) ConnTbl.t;
   handled_connections:(string,peer_connection) Hashtbl.t;
   mutable known_peers: PeerList.t;
   server:Lwt_io.server option;
@@ -192,7 +194,7 @@ let remove_handle_connection p2p peer =
   Lwt.return_unit
 
 let close_peer_connection p2p (peer:peer_connection) =
-  PeerTbl.remove p2p.connections (str peer)
+  ConnTbl.remove p2p.connections (str peer)
 
 let handle f p2p peer  =
   Hashtbl.add p2p.handled_connections (str peer) peer;
@@ -206,10 +208,10 @@ let (@<>) (p2p,peer) f =
   handle f p2p peer
 
 let is_peer_open inet p2p =
-  PeerTbl.mem p2p.connections inet
+  ConnTbl.mem p2p.connections inet
 
 let get_connected_peer inet p2p =
-  PeerTbl.find p2p.connections inet
+  ConnTbl.find p2p.connections inet
 
 let decode_message bytes =
   (Message_pb.decode_message (Pbrt.Decoder.of_bytes bytes))
@@ -237,7 +239,7 @@ let connect_to_peer peer p2p =
       | Some conn ->
         let mod_peer = {peer with last_seen = int_of_float (Unix.time ())} in
         p2p.known_peers <- PeerList.modify mod_peer p2p.known_peers;
-        PeerTbl.add p2p.connections conn
+        ConnTbl.add p2p.connections conn
         >> Lwt.return_some conn
       | None -> Lwt.return_none
 
@@ -279,7 +281,7 @@ let handle_new_peer_connection p2p addr (ic,oc) =
     | Some msg ->
       (match msg.frame_type with
       | Peer -> failwith "handle peer data"
-      | Data -> PeerTbl.add p2p.connections conn
+      | Data -> ConnTbl.add p2p.connections conn
       )
     | None -> Lwt_log.notice((id p2p) ^ ": Failed to retrieve preamble.")
   else
@@ -357,7 +359,7 @@ let create_from_list ?port:(p=4000) (peer_list:(string * int * (Unix.tm option))
     server= None;
     port = p;
     handled_connections = Hashtbl.create 20;
-    connections= (PeerTbl.create 20);
+    connections= (ConnTbl.create 20);
     known_peers= peers;
     peer_file = "nodes/brc" ^ (string_of_int p) ^ ".peers";
   } in
@@ -423,7 +425,7 @@ let create ?port:(p=4000) peer_file =
     server= None;
     port = p;
     handled_connections = Hashtbl.create 20;
-    connections= (PeerTbl.create 20);
+    connections= (ConnTbl.create 20);
     known_peers= peers;
     peer_file = peer_file;
   } in
