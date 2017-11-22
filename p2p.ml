@@ -14,7 +14,7 @@ module type Message_channel = sig
   type output
 
   (* [write o m] writes the message [m] to the given output channel [o]. *)
-  val write : output -> Message_types.message -> unit Lwt.t
+  val write : output -> Message_types.message -> int Lwt.t
 
   (* [read i] reads a message from the given input channel [i]. *)
   val read : input -> Message_types.message option Lwt.t
@@ -36,7 +36,8 @@ module BRCMessage_channel : Message_channel with
     let encoder = Pbrt.Encoder.create() in
     Message_pb.encode_message msg encoder;
     let buf = Pbrt.Encoder.to_bytes encoder in
-    Lwt_io.write_from oc buf 0 (Bytes.length buf) >|= ignore
+    let%lwt bytes_written = Lwt_io.write_from oc buf 0 (Bytes.length buf) in 
+    Lwt.return bytes_written
 
   let read_raw_msg ic =
     let timeout = Lwt_unix.sleep 1. >> Lwt.return (0,Bytes.empty) in
@@ -175,12 +176,21 @@ let connect_to_peer peer p2p =
         >> Lwt.return_some peer
       | None -> Lwt.return_none
 
+let rec send_till_success conn msg =
+  let%lwt bytes_sent = BRCMessage_channel.write conn.oc msg in 
+  if bytes_sent = 0 then 
+    send_till_success conn msg 
+  else  
+    Lwt.return_some ()
+
 let connect_and_send peer msg p2p =
   match%lwt connect_to_peer peer p2p with
-  | Some conn -> BRCMessage_channel.write conn.oc msg
-    >> Lwt_log.notice ("Wrote Message to: " ^ (str conn))
+  | Some conn -> 
+    let timeout = Lwt_unix.sleep 2.0 >> Lwt.return None in
+    (match%lwt Lwt.pick [timeout;(send_till_success conn msg)] with
+    | Some _ -> Lwt_log.notice ("Wrote Message to: " ^ (str conn))
+    | None -> Lwt_log.notice ("Failed to send message to: " ^ (str conn)))
   | None -> Lwt.return_unit
-
 let send_raw bytes size oc =
   Lwt_io.write_from_exactly oc bytes 0 size
 
