@@ -9,7 +9,7 @@ env:
 os:
   - linux
 
-sudo: required
+sudo: false
 
 cache:
   directories:
