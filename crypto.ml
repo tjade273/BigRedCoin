@@ -37,6 +37,12 @@ module ECDSA = struct
     let (addr, _) = Cstruct.split pubkey_hash 20 in
     Cstruct.to_string addr
 
+  let create () =
+    let prv = Nocrypto.Rng.generate 32 |> Cstruct.to_bigarray in
+    let secret = Secret.of_bytes_exn context prv in
+    let public = Public.of_secret context secret in
+    (public, secret)
+
   let of_hex s =
     let buf = s |> Hex.of_string |> Hex.to_cstruct |> Cstruct.to_bigarray in
     let privkey = Secret.of_bytes_exn context buf in

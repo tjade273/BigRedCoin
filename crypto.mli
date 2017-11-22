@@ -17,6 +17,9 @@ module ECDSA : sig
    * Raises: Invalid_key *)
   val of_hex : string -> keypair
 
+  (* [create ()] generates a new random ECDSA keypair *)
+  val create : unit -> keypair
+
   (* [sign key s] creates an ECDSA signature of the message [s] with the keypair
    * [key]. Gets a random nonce from the OS randomness source. *)
   val sign : keypair -> string -> signature
