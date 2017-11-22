@@ -14,13 +14,13 @@ type get = {
 }
 
 type transaction_output = {
-  amount : int;
+  amount : int64;
   address : bytes;
 }
 
 type transaction_input = {
   txid : bytes;
-  out_index : int;
+  out_index : int32;
   signature : bytes;
 }
 
@@ -30,18 +30,18 @@ type transaction = {
 }
 
 type block_header = {
-  version : int;
+  version : int32;
   prev_hash : bytes;
   merkle_root : bytes;
-  nonce : int;
-  n_bits : int;
-  timestamp : int;
+  nonce : int64;
+  n_bits : int64;
+  timestamp : int64;
 }
 
 type block = {
   header : block_header;
   txs : transaction list;
-  tx_count : int;
+  tx_count : int32;
 }
 
 type peer = {
@@ -56,11 +56,16 @@ type post = {
   peers : peer list;
 }
 
+type message_frame_t =
+  | Peer 
+  | Data 
+
 type message_method =
   | Get 
   | Post 
 
 type message = {
+  frame_type : message_frame_t;
   method_ : message_method;
   get : get option;
   post : post option;
@@ -77,7 +82,7 @@ let rec default_get
 }
 
 let rec default_transaction_output 
-  ?amount:((amount:int) = 0)
+  ?amount:((amount:int64) = 0L)
   ?address:((address:bytes) = Bytes.create 0)
   () : transaction_output  = {
   amount;
@@ -86,7 +91,7 @@ let rec default_transaction_output
 
 let rec default_transaction_input 
   ?txid:((txid:bytes) = Bytes.create 0)
-  ?out_index:((out_index:int) = 0)
+  ?out_index:((out_index:int32) = 0l)
   ?signature:((signature:bytes) = Bytes.create 0)
   () : transaction_input  = {
   txid;
@@ -103,12 +108,12 @@ let rec default_transaction
 }
 
 let rec default_block_header 
-  ?version:((version:int) = 0)
+  ?version:((version:int32) = 0l)
   ?prev_hash:((prev_hash:bytes) = Bytes.create 0)
   ?merkle_root:((merkle_root:bytes) = Bytes.create 0)
-  ?nonce:((nonce:int) = 0)
-  ?n_bits:((n_bits:int) = 0)
-  ?timestamp:((timestamp:int) = 0)
+  ?nonce:((nonce:int64) = 0L)
+  ?n_bits:((n_bits:int64) = 0L)
+  ?timestamp:((timestamp:int64) = 0L)
   () : block_header  = {
   version;
   prev_hash;
@@ -121,7 +126,7 @@ let rec default_block_header
 let rec default_block 
   ?header:((header:block_header) = default_block_header ())
   ?txs:((txs:transaction list) = [])
-  ?tx_count:((tx_count:int) = 0)
+  ?tx_count:((tx_count:int32) = 0l)
   () : block  = {
   header;
   txs;
@@ -148,13 +153,17 @@ let rec default_post
   peers;
 }
 
+let rec default_message_frame_t () = (Peer:message_frame_t)
+
 let rec default_message_method () = (Get:message_method)
 
 let rec default_message 
+  ?frame_type:((frame_type:message_frame_t) = default_message_frame_t ())
   ?method_:((method_:message_method) = default_message_method ())
   ?get:((get:get option) = None)
   ?post:((post:post option) = None)
   () : message  = {
+  frame_type;
   method_;
   get;
   post;
