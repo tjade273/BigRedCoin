@@ -11,24 +11,24 @@ let default_get_mutable () : get_mutable = {
 }
 
 type transaction_output_mutable = {
-  mutable amount : int;
+  mutable amount : int64;
   mutable address : bytes;
 }
 
 let default_transaction_output_mutable () : transaction_output_mutable = {
-  amount = 0;
+  amount = 0L;
   address = Bytes.create 0;
 }
 
 type transaction_input_mutable = {
   mutable txid : bytes;
-  mutable out_index : int;
+  mutable out_index : int32;
   mutable signature : bytes;
 }
 
 let default_transaction_input_mutable () : transaction_input_mutable = {
   txid = Bytes.create 0;
-  out_index = 0;
+  out_index = 0l;
   signature = Bytes.create 0;
 }
 
@@ -43,33 +43,33 @@ let default_transaction_mutable () : transaction_mutable = {
 }
 
 type block_header_mutable = {
-  mutable version : int;
+  mutable version : int32;
   mutable prev_hash : bytes;
   mutable merkle_root : bytes;
-  mutable nonce : int;
-  mutable n_bits : int;
-  mutable timestamp : int;
+  mutable nonce : int64;
+  mutable n_bits : int64;
+  mutable timestamp : int64;
 }
 
 let default_block_header_mutable () : block_header_mutable = {
-  version = 0;
+  version = 0l;
   prev_hash = Bytes.create 0;
   merkle_root = Bytes.create 0;
-  nonce = 0;
-  n_bits = 0;
-  timestamp = 0;
+  nonce = 0L;
+  n_bits = 0L;
+  timestamp = 0L;
 }
 
 type block_mutable = {
   mutable header : Message_types.block_header;
   mutable txs : Message_types.transaction list;
-  mutable tx_count : int;
+  mutable tx_count : int32;
 }
 
 let default_block_mutable () : block_mutable = {
   header = Message_types.default_block_header ();
   txs = [];
-  tx_count = 0;
+  tx_count = 0l;
 }
 
 type peer_mutable = {
@@ -97,12 +97,14 @@ let default_post_mutable () : post_mutable = {
 }
 
 type message_mutable = {
+  mutable frame_type : Message_types.message_frame_t;
   mutable method_ : Message_types.message_method;
   mutable get : Message_types.get option;
   mutable post : Message_types.post option;
 }
 
 let default_message_mutable () : message_mutable = {
+  frame_type = Message_types.default_message_frame_t ();
   method_ = Message_types.default_message_method ();
   get = None;
   post = None;
@@ -154,7 +156,7 @@ let rec decode_transaction_output d =
     | None -> (
     ); continue__ := false
     | Some (1, Pbrt.Varint) -> begin
-      v.amount <- Pbrt.Decoder.int_as_varint d; amount_is_set := true;
+      v.amount <- Pbrt.Decoder.int64_as_varint d; amount_is_set := true;
     end
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(transaction_output), field(1)" pk
@@ -188,7 +190,7 @@ let rec decode_transaction_input d =
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(transaction_input), field(1)" pk
     | Some (2, Pbrt.Varint) -> begin
-      v.out_index <- Pbrt.Decoder.int_as_varint d; out_index_is_set := true;
+      v.out_index <- Pbrt.Decoder.int32_as_varint d; out_index_is_set := true;
     end
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(transaction_input), field(2)" pk
@@ -248,7 +250,7 @@ let rec decode_block_header d =
     | None -> (
     ); continue__ := false
     | Some (1, Pbrt.Varint) -> begin
-      v.version <- Pbrt.Decoder.int_as_varint d; version_is_set := true;
+      v.version <- Pbrt.Decoder.int32_as_varint d; version_is_set := true;
     end
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(block_header), field(1)" pk
@@ -263,17 +265,17 @@ let rec decode_block_header d =
     | Some (3, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(block_header), field(3)" pk
     | Some (4, Pbrt.Varint) -> begin
-      v.nonce <- Pbrt.Decoder.int_as_varint d; nonce_is_set := true;
+      v.nonce <- Pbrt.Decoder.int64_as_varint d; nonce_is_set := true;
     end
     | Some (4, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(block_header), field(4)" pk
     | Some (5, Pbrt.Varint) -> begin
-      v.n_bits <- Pbrt.Decoder.int_as_varint d; n_bits_is_set := true;
+      v.n_bits <- Pbrt.Decoder.int64_as_varint d; n_bits_is_set := true;
     end
     | Some (5, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(block_header), field(5)" pk
     | Some (6, Pbrt.Varint) -> begin
-      v.timestamp <- Pbrt.Decoder.int_as_varint d; timestamp_is_set := true;
+      v.timestamp <- Pbrt.Decoder.int64_as_varint d; timestamp_is_set := true;
     end
     | Some (6, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(block_header), field(6)" pk
@@ -315,7 +317,7 @@ let rec decode_block d =
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(block), field(2)" pk
     | Some (3, Pbrt.Varint) -> begin
-      v.tx_count <- Pbrt.Decoder.int_as_varint d; tx_count_is_set := true;
+      v.tx_count <- Pbrt.Decoder.int32_as_varint d; tx_count_is_set := true;
     end
     | Some (3, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(block), field(3)" pk
@@ -398,6 +400,12 @@ let rec decode_post d =
     Message_types.peers = v.peers;
   } : Message_types.post)
 
+let rec decode_message_frame_t d = 
+  match Pbrt.Decoder.int_as_varint d with
+  | 0 -> (Message_types.Peer:Message_types.message_frame_t)
+  | 1 -> (Message_types.Data:Message_types.message_frame_t)
+  | _ -> Pbrt.Decoder.malformed_variant "message_frame_t"
+
 let rec decode_message_method d = 
   match Pbrt.Decoder.int_as_varint d with
   | 0 -> (Message_types.Get:Message_types.message_method)
@@ -408,29 +416,37 @@ let rec decode_message d =
   let v = default_message_mutable () in
   let continue__= ref true in
   let method__is_set = ref false in
+  let frame_type_is_set = ref false in
   while !continue__ do
     match Pbrt.Decoder.key d with
     | None -> (
     ); continue__ := false
     | Some (1, Pbrt.Varint) -> begin
-      v.method_ <- decode_message_method d; method__is_set := true;
+      v.frame_type <- decode_message_frame_t d; frame_type_is_set := true;
     end
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(message), field(1)" pk
-    | Some (2, Pbrt.Bytes) -> begin
-      v.get <- Some (decode_get (Pbrt.Decoder.nested d));
+    | Some (2, Pbrt.Varint) -> begin
+      v.method_ <- decode_message_method d; method__is_set := true;
     end
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(message), field(2)" pk
     | Some (3, Pbrt.Bytes) -> begin
-      v.post <- Some (decode_post (Pbrt.Decoder.nested d));
+      v.get <- Some (decode_get (Pbrt.Decoder.nested d));
     end
     | Some (3, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(message), field(3)" pk
+    | Some (4, Pbrt.Bytes) -> begin
+      v.post <- Some (decode_post (Pbrt.Decoder.nested d));
+    end
+    | Some (4, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(message), field(4)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   begin if not !method__is_set then Pbrt.Decoder.missing_field "method_" end;
+  begin if not !frame_type_is_set then Pbrt.Decoder.missing_field "frame_type" end;
   ({
+    Message_types.frame_type = v.frame_type;
     Message_types.method_ = v.method_;
     Message_types.get = v.get;
     Message_types.post = v.post;
@@ -457,7 +473,7 @@ let rec encode_get (v:Message_types.get) encoder =
 
 let rec encode_transaction_output (v:Message_types.transaction_output) encoder = 
   Pbrt.Encoder.key (1, Pbrt.Varint) encoder; 
-  Pbrt.Encoder.int_as_varint v.Message_types.amount encoder;
+  Pbrt.Encoder.int64_as_varint v.Message_types.amount encoder;
   Pbrt.Encoder.key (2, Pbrt.Bytes) encoder; 
   Pbrt.Encoder.bytes v.Message_types.address encoder;
   ()
@@ -466,7 +482,7 @@ let rec encode_transaction_input (v:Message_types.transaction_input) encoder =
   Pbrt.Encoder.key (1, Pbrt.Bytes) encoder; 
   Pbrt.Encoder.bytes v.Message_types.txid encoder;
   Pbrt.Encoder.key (2, Pbrt.Varint) encoder; 
-  Pbrt.Encoder.int_as_varint v.Message_types.out_index encoder;
+  Pbrt.Encoder.int32_as_varint v.Message_types.out_index encoder;
   Pbrt.Encoder.key (3, Pbrt.Bytes) encoder; 
   Pbrt.Encoder.bytes v.Message_types.signature encoder;
   ()
@@ -484,17 +500,17 @@ let rec encode_transaction (v:Message_types.transaction) encoder =
 
 let rec encode_block_header (v:Message_types.block_header) encoder = 
   Pbrt.Encoder.key (1, Pbrt.Varint) encoder; 
-  Pbrt.Encoder.int_as_varint v.Message_types.version encoder;
+  Pbrt.Encoder.int32_as_varint v.Message_types.version encoder;
   Pbrt.Encoder.key (2, Pbrt.Bytes) encoder; 
   Pbrt.Encoder.bytes v.Message_types.prev_hash encoder;
   Pbrt.Encoder.key (3, Pbrt.Bytes) encoder; 
   Pbrt.Encoder.bytes v.Message_types.merkle_root encoder;
   Pbrt.Encoder.key (4, Pbrt.Varint) encoder; 
-  Pbrt.Encoder.int_as_varint v.Message_types.nonce encoder;
+  Pbrt.Encoder.int64_as_varint v.Message_types.nonce encoder;
   Pbrt.Encoder.key (5, Pbrt.Varint) encoder; 
-  Pbrt.Encoder.int_as_varint v.Message_types.n_bits encoder;
+  Pbrt.Encoder.int64_as_varint v.Message_types.n_bits encoder;
   Pbrt.Encoder.key (6, Pbrt.Varint) encoder; 
-  Pbrt.Encoder.int_as_varint v.Message_types.timestamp encoder;
+  Pbrt.Encoder.int64_as_varint v.Message_types.timestamp encoder;
   ()
 
 let rec encode_block (v:Message_types.block) encoder = 
@@ -505,7 +521,7 @@ let rec encode_block (v:Message_types.block) encoder =
     Pbrt.Encoder.nested (encode_transaction x) encoder;
   ) v.Message_types.txs;
   Pbrt.Encoder.key (3, Pbrt.Varint) encoder; 
-  Pbrt.Encoder.int_as_varint v.Message_types.tx_count encoder;
+  Pbrt.Encoder.int32_as_varint v.Message_types.tx_count encoder;
   ()
 
 let rec encode_peer (v:Message_types.peer) encoder = 
@@ -532,6 +548,11 @@ let rec encode_post (v:Message_types.post) encoder =
   ) v.Message_types.peers;
   ()
 
+let rec encode_message_frame_t (v:Message_types.message_frame_t) encoder =
+  match v with
+  | Message_types.Peer -> Pbrt.Encoder.int_as_varint (0) encoder
+  | Message_types.Data -> Pbrt.Encoder.int_as_varint 1 encoder
+
 let rec encode_message_method (v:Message_types.message_method) encoder =
   match v with
   | Message_types.Get -> Pbrt.Encoder.int_as_varint (0) encoder
@@ -539,16 +560,18 @@ let rec encode_message_method (v:Message_types.message_method) encoder =
 
 let rec encode_message (v:Message_types.message) encoder = 
   Pbrt.Encoder.key (1, Pbrt.Varint) encoder; 
+  encode_message_frame_t v.Message_types.frame_type encoder;
+  Pbrt.Encoder.key (2, Pbrt.Varint) encoder; 
   encode_message_method v.Message_types.method_ encoder;
   begin match v.Message_types.get with
   | Some x -> 
-    Pbrt.Encoder.key (2, Pbrt.Bytes) encoder; 
+    Pbrt.Encoder.key (3, Pbrt.Bytes) encoder; 
     Pbrt.Encoder.nested (encode_get x) encoder;
   | None -> ();
   end;
   begin match v.Message_types.post with
   | Some x -> 
-    Pbrt.Encoder.key (3, Pbrt.Bytes) encoder; 
+    Pbrt.Encoder.key (4, Pbrt.Bytes) encoder; 
     Pbrt.Encoder.nested (encode_post x) encoder;
   | None -> ();
   end;
