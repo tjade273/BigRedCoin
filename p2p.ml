@@ -197,7 +197,7 @@ let rec connect_to_a_peer p2p ?peers:(peers=p2p.known_peers) () =
   if List.length peers = 0 then
     Lwt.return_none
   else
-    let random = Random.int (List.length p2p.known_peers) in
+    let random = Random.int (List.length peers) in
     let peer = List.nth peers random in
     let target_addr = s_addr peer in
     if (PeerTbl.mem p2p.connections target_addr) then
@@ -214,6 +214,7 @@ let rec connect_to_a_peer p2p ?peers:(peers=p2p.known_peers) () =
 
 let tbl_to_list tbl =
   Hashtbl.fold ( fun _ peer lst -> peer::lst) tbl []
+
 let known_peer_stream p2p =
   Lwt_stream.from(connect_to_a_peer p2p)
 
@@ -258,14 +259,14 @@ let shutdown p2p =
 
 let create_from_list ?port:(p=4000) (peer_list:(string * int * (Unix.tm option)) list) =
   let peers = List.map
-      (fun (i,p,tm) ->
-         let time =
-           match tm with None -> 0. | Some a -> (fst (Unix.mktime a)) in
-         {
-           address = i;
-           port = p;
-           last_seen = int_of_float time
-         }) peer_list in
+    (fun (i,p,tm) ->
+       let time = match tm with None -> 0. | Some a -> (fst (Unix.mktime a)) in
+       {
+         address = i;
+         port = p;
+         last_seen = int_of_float time
+       })
+    peer_list in
   let p2p = {
     server= None;
     port = 0;
@@ -302,7 +303,11 @@ let tm_of_string s =
     Unix.gmtime 0.
 
 let csv_of_peer peer =
-  [peer.address; string_of_int peer.port; string_of_int peer.last_seen ]
+  [
+    peer.address;
+    string_of_int peer.port;
+    string_of_tm (Unix.gmtime (float_of_int peer.last_seen))
+  ]
 
 let peer_of_csv s =
   let (time,_) = Unix.mktime (tm_of_string (List.nth s 2)) in
