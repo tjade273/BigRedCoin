@@ -7,20 +7,11 @@ exception FailedToConnect of string
 let c_MAX_CONNECTIONS = 1024
 
 module type Message_channel = sig
-  (* The type of an input message channel. *)
   type input
-
-  (* The type of an output message channel. *)
   type output
-
-  (* [write o m] writes the message [m] to the given output channel [o]. *)
   val write : output -> Message_types.message -> int Lwt.t
-
-  (* [read i] reads a message from the given input channel [i]. *)
   val read : input -> Message_types.message option Lwt.t
-
   val close_in : input -> unit Lwt.t
-
   val close_out : output -> unit Lwt.t
 end
 
@@ -32,6 +23,7 @@ module BRCMessage_channel : Message_channel with
   type input = Lwt_io.input Lwt_io.channel
 
   type output = Lwt_io.output Lwt_io.channel
+
   let write oc msg =
     let encoder = Pbrt.Encoder.create() in
     Message_pb.encode_message msg encoder;
@@ -65,6 +57,7 @@ module type BRCPeer_t = sig
   type peer_connection
   type peer
   val null_peer : unit -> peer
+  val (<=>) : peer -> peer -> bool
   val addr : peer -> Unix.sockaddr
   val s_addr : peer -> string
   val str : peer_connection -> string
@@ -72,24 +65,22 @@ module type BRCPeer_t = sig
   val oc : peer_connection -> BRCMessage_channel.output
 end
 
-module BRCPeer = struct
+type connection = {
+  addr: Unix.sockaddr;
+  ic: BRCMessage_channel.input;
+  oc: BRCMessage_channel.output;
+}
 
-  type peer_connection = {
-    addr: Unix.sockaddr;
-    ic: BRCMessage_channel.input;
-    oc: BRCMessage_channel.output;
-  }
-
+module BRCPeer : BRCPeer_t
+  with type peer = Message_types.peer and
+  type peer_connection = connection
+= struct
+  type peer_connection = connection
   type peer = Message_types.peer
-  let null_peer () = {
-    address = "";
-    port = 0;
-    last_seen = 0;
-  }
-  let (<=>) p1 p2 =
-    p1.address = p2.address && p1.port = p2.port
-  let addr peer = Unix.(ADDR_INET (inet_addr_of_string peer.address, peer.port))
-  let s_addr peer = peer.address ^ ":" ^ (string_of_int peer.port)
+  let null_peer () = { address = ""; port = 0; last_seen = 0;}
+  let (<=>) p1 p2 = p1.address = p2.address && p1.port = p2.port
+  let addr p = Unix.(ADDR_INET (inet_addr_of_string p.address, p.port))
+  let s_addr p = p.address ^ ":" ^ (string_of_int p.port)
   let socket_addr_to_string addr =
     match addr with
     | Lwt_unix.ADDR_UNIX addr -> addr
@@ -102,56 +93,79 @@ end
 
 open BRCPeer
 
-module type PeerList_t = sig
-  type item
-  type t
-  val find: item -> t -> int option
-  val remove: int -> t -> t
-  val update: int -> item -> t -> t
-  val modify: item -> t -> t
-  val append: item -> t -> t
-end
+let socket_addr_to_string addr =
+  match addr with
+  | Lwt_unix.ADDR_UNIX addr -> addr
+  | Lwt_unix.ADDR_INET (addr,port) ->
+    (Unix.string_of_inet_addr addr) ^ ":" ^ (string_of_int port)
 
 module PeerList = struct
   include Array
 
+  (* The type of the item (peer) in the list. *)
   type item = peer
+
+  (* The type of the list. *)
   type t = item array
 
-  let find item arr =
+  (* [similar p1 p2] is true if the core structure of [p1] and [p2] is
+   * equal, false otherwise. The comparison method is used by [find] and
+   * [update]. *)
+  let similar p1 p2 =
+    p1 <=> p2
+
+  (* [find p lst] is the index of the first item that is similar to [p] in the
+   * given Peer List [lst] if such an item exists in the list, None otherwise. *)
+  let find p lst =
     let (found, i) = fold_left
             (fun (found, index) a ->
-               if item <=> a then (true, index)
-               else (false, index+1)) (false,0) arr in
+               if (similar a p) then (true, index)
+               else (false, index+1)) (false,0) lst in
     if found then Some i else None
 
-  let remove i arr =
-    let new_arr = make ((Array.length arr)-1) (null_peer ()) in
+  (* [remove i lst] is the given list [lst] with the item at position [i]
+   * removed. *)
+  let remove i lst =
+    let new_arr = make ((Array.length lst)-1) (null_peer ()) in
     iteri (fun pos item ->
-        if pos < i then new_arr.(pos) <- arr.(pos)
-        else if pos > i then new_arr.(pos-1) <- arr.(pos)
-        else ()) arr;
+        if pos < i then new_arr.(pos) <- lst.(pos)
+        else if pos > i then new_arr.(pos-1) <- lst.(pos)
+        else ()) lst;
     new_arr
 
-  let update i item arr =
-    arr.(i) <- item; arr
+  (* [update i p lst] is the given list [lst] with the item at position [i]
+   * replaced by the item [p]. *)
+  let update i item lst =
+    lst.(i) <- item; lst
 
-  let modify item arr =
-    iteri (fun i a -> if a <=> item then arr.(i) <- item else ()) arr; arr
+  (* [modify p lst] is the given list [lst] with the first item that is similar
+   * to [p] replaced by the given version of [p]. *)
+  let modify p lst =
+    iteri (fun i a -> if (similar a p) then lst.(i) <- p else ()) lst; lst
 
-  let append item arr =
-    Array.append [|item|] arr
+  (* [append p lst] is the given list [lst] with the item [p] added to it. If
+   * a similar item already exists, the item is modified. *)
+  let append p lst =
+    if exists (fun a -> similar a p) lst then modify p lst
+    else Array.append [|p|] lst
 end
 
 module PeerTbl = struct
   include Hashtbl
+
+  (* [remove tbl addr] removes the value associated with key [addr] from the
+   * given table [tbl], while also managing all the resources associated with
+   * value. leaves [tbl] unmodified if [addr] is not a key in the table. *)
   let remove tbl addr =
     match find_opt tbl addr with
     | Some peer -> remove tbl addr;
-      BRCMessage_channel.close_in peer.ic >>
-      BRCMessage_channel.close_out peer.oc
+      BRCMessage_channel.close_in (ic peer) >>
+      BRCMessage_channel.close_out (oc peer)
     | None -> Lwt.return_unit
 
+  (* [add tbl peer] adds [peer] to the given table [tbl] using a string
+   * represenation of [peer] as the key. If the [peer] is already in
+   * the table, the [peer] is removed and replced by the given copy. *)
   let add tbl peer =
     remove tbl (str peer) >>
     Lwt.return @@ add tbl (str peer) peer
