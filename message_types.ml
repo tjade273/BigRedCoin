@@ -2,8 +2,6 @@
 
 
 type get_request =
-  | Ping 
-  | Pong 
   | Peer 
   | Mempool 
   | Blocks 
@@ -50,28 +48,35 @@ type peer = {
   last_seen : int;
 }
 
-type post = {
-  transactions : transaction list;
-  blocks : block list;
+type manage_manage_t =
+  | Ping 
+  | Pong 
+  | Peer_p 
+  | Data_p 
+
+type manage = {
+  manage_type : manage_manage_t;
   peers : peer list;
 }
 
-type message_frame_t =
-  | Peer 
-  | Data 
+type post = {
+  transactions : transaction list;
+  blocks : block list;
+}
 
 type message_method =
   | Get 
   | Post 
+  | Manage 
 
 type message = {
-  frame_type : message_frame_t;
   method_ : message_method;
   get : get option;
   post : post option;
+  manage : manage option;
 }
 
-let rec default_get_request () = (Ping:get_request)
+let rec default_get_request () = (Peer:get_request)
 
 let rec default_get 
   ?request:((request:get_request) = default_get_request ())
@@ -143,28 +148,34 @@ let rec default_peer
   last_seen;
 }
 
-let rec default_post 
-  ?transactions:((transactions:transaction list) = [])
-  ?blocks:((blocks:block list) = [])
+let rec default_manage_manage_t () = (Ping:manage_manage_t)
+
+let rec default_manage 
+  ?manage_type:((manage_type:manage_manage_t) = default_manage_manage_t ())
   ?peers:((peers:peer list) = [])
-  () : post  = {
-  transactions;
-  blocks;
+  () : manage  = {
+  manage_type;
   peers;
 }
 
-let rec default_message_frame_t () = (Peer:message_frame_t)
+let rec default_post 
+  ?transactions:((transactions:transaction list) = [])
+  ?blocks:((blocks:block list) = [])
+  () : post  = {
+  transactions;
+  blocks;
+}
 
 let rec default_message_method () = (Get:message_method)
 
 let rec default_message 
-  ?frame_type:((frame_type:message_frame_t) = default_message_frame_t ())
   ?method_:((method_:message_method) = default_message_method ())
   ?get:((get:get option) = None)
   ?post:((post:post option) = None)
+  ?manage:((manage:manage option) = None)
   () : message  = {
-  frame_type;
   method_;
   get;
   post;
+  manage;
 }

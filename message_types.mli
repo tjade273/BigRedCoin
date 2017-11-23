@@ -5,8 +5,6 @@
 (** {2 Types} *)
 
 type get_request =
-  | Ping 
-  | Pong 
   | Peer 
   | Mempool 
   | Blocks 
@@ -53,25 +51,32 @@ type peer = {
   last_seen : int;
 }
 
-type post = {
-  transactions : transaction list;
-  blocks : block list;
+type manage_manage_t =
+  | Ping 
+  | Pong 
+  | Peer_p 
+  | Data_p 
+
+type manage = {
+  manage_type : manage_manage_t;
   peers : peer list;
 }
 
-type message_frame_t =
-  | Peer 
-  | Data 
+type post = {
+  transactions : transaction list;
+  blocks : block list;
+}
 
 type message_method =
   | Get 
   | Post 
+  | Manage 
 
 type message = {
-  frame_type : message_frame_t;
   method_ : message_method;
   get : get option;
   post : post option;
+  manage : manage option;
 }
 
 
@@ -136,25 +141,31 @@ val default_peer :
   peer
 (** [default_peer ()] is the default value for type [peer] *)
 
+val default_manage_manage_t : unit -> manage_manage_t
+(** [default_manage_manage_t ()] is the default value for type [manage_manage_t] *)
+
+val default_manage : 
+  ?manage_type:manage_manage_t ->
+  ?peers:peer list ->
+  unit ->
+  manage
+(** [default_manage ()] is the default value for type [manage] *)
+
 val default_post : 
   ?transactions:transaction list ->
   ?blocks:block list ->
-  ?peers:peer list ->
   unit ->
   post
 (** [default_post ()] is the default value for type [post] *)
-
-val default_message_frame_t : unit -> message_frame_t
-(** [default_message_frame_t ()] is the default value for type [message_frame_t] *)
 
 val default_message_method : unit -> message_method
 (** [default_message_method ()] is the default value for type [message_method] *)
 
 val default_message : 
-  ?frame_type:message_frame_t ->
   ?method_:message_method ->
   ?get:get option ->
   ?post:post option ->
+  ?manage:manage option ->
   unit ->
   message
 (** [default_message ()] is the default value for type [message] *)

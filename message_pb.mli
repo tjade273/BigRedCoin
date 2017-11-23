@@ -27,11 +27,14 @@ val encode_block : Message_types.block -> Pbrt.Encoder.t -> unit
 val encode_peer : Message_types.peer -> Pbrt.Encoder.t -> unit
 (** [encode_peer v encoder] encodes [v] with the given [encoder] *)
 
+val encode_manage_manage_t : Message_types.manage_manage_t -> Pbrt.Encoder.t -> unit
+(** [encode_manage_manage_t v encoder] encodes [v] with the given [encoder] *)
+
+val encode_manage : Message_types.manage -> Pbrt.Encoder.t -> unit
+(** [encode_manage v encoder] encodes [v] with the given [encoder] *)
+
 val encode_post : Message_types.post -> Pbrt.Encoder.t -> unit
 (** [encode_post v encoder] encodes [v] with the given [encoder] *)
-
-val encode_message_frame_t : Message_types.message_frame_t -> Pbrt.Encoder.t -> unit
-(** [encode_message_frame_t v encoder] encodes [v] with the given [encoder] *)
 
 val encode_message_method : Message_types.message_method -> Pbrt.Encoder.t -> unit
 (** [encode_message_method v encoder] encodes [v] with the given [encoder] *)
@@ -66,11 +69,14 @@ val decode_block : Pbrt.Decoder.t -> Message_types.block
 val decode_peer : Pbrt.Decoder.t -> Message_types.peer
 (** [decode_peer decoder] decodes a [peer] value from [decoder] *)
 
+val decode_manage_manage_t : Pbrt.Decoder.t -> Message_types.manage_manage_t
+(** [decode_manage_manage_t decoder] decodes a [manage_manage_t] value from [decoder] *)
+
+val decode_manage : Pbrt.Decoder.t -> Message_types.manage
+(** [decode_manage decoder] decodes a [manage] value from [decoder] *)
+
 val decode_post : Pbrt.Decoder.t -> Message_types.post
 (** [decode_post decoder] decodes a [post] value from [decoder] *)
-
-val decode_message_frame_t : Pbrt.Decoder.t -> Message_types.message_frame_t
-(** [decode_message_frame_t decoder] decodes a [message_frame_t] value from [decoder] *)
 
 val decode_message_method : Pbrt.Decoder.t -> Message_types.message_method
 (** [decode_message_method decoder] decodes a [message_method] value from [decoder] *)

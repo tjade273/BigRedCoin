@@ -84,40 +84,46 @@ let default_peer_mutable () : peer_mutable = {
   last_seen = 0;
 }
 
+type manage_mutable = {
+  mutable manage_type : Message_types.manage_manage_t;
+  mutable peers : Message_types.peer list;
+}
+
+let default_manage_mutable () : manage_mutable = {
+  manage_type = Message_types.default_manage_manage_t ();
+  peers = [];
+}
+
 type post_mutable = {
   mutable transactions : Message_types.transaction list;
   mutable blocks : Message_types.block list;
-  mutable peers : Message_types.peer list;
 }
 
 let default_post_mutable () : post_mutable = {
   transactions = [];
   blocks = [];
-  peers = [];
 }
 
 type message_mutable = {
-  mutable frame_type : Message_types.message_frame_t;
   mutable method_ : Message_types.message_method;
   mutable get : Message_types.get option;
   mutable post : Message_types.post option;
+  mutable manage : Message_types.manage option;
 }
 
 let default_message_mutable () : message_mutable = {
-  frame_type = Message_types.default_message_frame_t ();
   method_ = Message_types.default_message_method ();
   get = None;
   post = None;
+  manage = None;
 }
 
 
 let rec decode_get_request d = 
   match Pbrt.Decoder.int_as_varint d with
-  | 0 -> (Message_types.Ping:Message_types.get_request)
-  | 1 -> (Message_types.Pong:Message_types.get_request)
-  | 2 -> (Message_types.Peer:Message_types.get_request)
-  | 3 -> (Message_types.Mempool:Message_types.get_request)
-  | 4 -> (Message_types.Blocks:Message_types.get_request)
+  | 0 -> (Message_types.Peer:Message_types.get_request)
+  | 1 -> (Message_types.Mempool:Message_types.get_request)
+  | 2 -> (Message_types.Blocks:Message_types.get_request)
   | _ -> Pbrt.Decoder.malformed_variant "get_request"
 
 let rec decode_get d =
@@ -367,13 +373,47 @@ let rec decode_peer d =
     Message_types.last_seen = v.last_seen;
   } : Message_types.peer)
 
+let rec decode_manage_manage_t d = 
+  match Pbrt.Decoder.int_as_varint d with
+  | 0 -> (Message_types.Ping:Message_types.manage_manage_t)
+  | 1 -> (Message_types.Pong:Message_types.manage_manage_t)
+  | 2 -> (Message_types.Peer_p:Message_types.manage_manage_t)
+  | 4 -> (Message_types.Data_p:Message_types.manage_manage_t)
+  | _ -> Pbrt.Decoder.malformed_variant "manage_manage_t"
+
+let rec decode_manage d =
+  let v = default_manage_mutable () in
+  let continue__= ref true in
+  let manage_type_is_set = ref false in
+  while !continue__ do
+    match Pbrt.Decoder.key d with
+    | None -> (
+      v.peers <- List.rev v.peers;
+    ); continue__ := false
+    | Some (0, Pbrt.Varint) -> begin
+      v.manage_type <- decode_manage_manage_t d; manage_type_is_set := true;
+    end
+    | Some (0, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(manage), field(0)" pk
+    | Some (1, Pbrt.Bytes) -> begin
+      v.peers <- (decode_peer (Pbrt.Decoder.nested d)) :: v.peers;
+    end
+    | Some (1, pk) -> 
+      Pbrt.Decoder.unexpected_payload "Message(manage), field(1)" pk
+    | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
+  done;
+  begin if not !manage_type_is_set then Pbrt.Decoder.missing_field "manage_type" end;
+  ({
+    Message_types.manage_type = v.manage_type;
+    Message_types.peers = v.peers;
+  } : Message_types.manage)
+
 let rec decode_post d =
   let v = default_post_mutable () in
   let continue__= ref true in
   while !continue__ do
     match Pbrt.Decoder.key d with
     | None -> (
-      v.peers <- List.rev v.peers;
       v.blocks <- List.rev v.blocks;
       v.transactions <- List.rev v.transactions;
     ); continue__ := false
@@ -387,78 +427,63 @@ let rec decode_post d =
     end
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(post), field(2)" pk
-    | Some (3, Pbrt.Bytes) -> begin
-      v.peers <- (decode_peer (Pbrt.Decoder.nested d)) :: v.peers;
-    end
-    | Some (3, pk) -> 
-      Pbrt.Decoder.unexpected_payload "Message(post), field(3)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   ({
     Message_types.transactions = v.transactions;
     Message_types.blocks = v.blocks;
-    Message_types.peers = v.peers;
   } : Message_types.post)
-
-let rec decode_message_frame_t d = 
-  match Pbrt.Decoder.int_as_varint d with
-  | 0 -> (Message_types.Peer:Message_types.message_frame_t)
-  | 1 -> (Message_types.Data:Message_types.message_frame_t)
-  | _ -> Pbrt.Decoder.malformed_variant "message_frame_t"
 
 let rec decode_message_method d = 
   match Pbrt.Decoder.int_as_varint d with
   | 0 -> (Message_types.Get:Message_types.message_method)
   | 1 -> (Message_types.Post:Message_types.message_method)
+  | 2 -> (Message_types.Manage:Message_types.message_method)
   | _ -> Pbrt.Decoder.malformed_variant "message_method"
 
 let rec decode_message d =
   let v = default_message_mutable () in
   let continue__= ref true in
   let method__is_set = ref false in
-  let frame_type_is_set = ref false in
   while !continue__ do
     match Pbrt.Decoder.key d with
     | None -> (
     ); continue__ := false
     | Some (1, Pbrt.Varint) -> begin
-      v.frame_type <- decode_message_frame_t d; frame_type_is_set := true;
+      v.method_ <- decode_message_method d; method__is_set := true;
     end
     | Some (1, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(message), field(1)" pk
-    | Some (2, Pbrt.Varint) -> begin
-      v.method_ <- decode_message_method d; method__is_set := true;
+    | Some (2, Pbrt.Bytes) -> begin
+      v.get <- Some (decode_get (Pbrt.Decoder.nested d));
     end
     | Some (2, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(message), field(2)" pk
     | Some (3, Pbrt.Bytes) -> begin
-      v.get <- Some (decode_get (Pbrt.Decoder.nested d));
+      v.post <- Some (decode_post (Pbrt.Decoder.nested d));
     end
     | Some (3, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(message), field(3)" pk
     | Some (4, Pbrt.Bytes) -> begin
-      v.post <- Some (decode_post (Pbrt.Decoder.nested d));
+      v.manage <- Some (decode_manage (Pbrt.Decoder.nested d));
     end
     | Some (4, pk) -> 
       Pbrt.Decoder.unexpected_payload "Message(message), field(4)" pk
     | Some (_, payload_kind) -> Pbrt.Decoder.skip d payload_kind
   done;
   begin if not !method__is_set then Pbrt.Decoder.missing_field "method_" end;
-  begin if not !frame_type_is_set then Pbrt.Decoder.missing_field "frame_type" end;
   ({
-    Message_types.frame_type = v.frame_type;
     Message_types.method_ = v.method_;
     Message_types.get = v.get;
     Message_types.post = v.post;
+    Message_types.manage = v.manage;
   } : Message_types.message)
 
 let rec encode_get_request (v:Message_types.get_request) encoder =
   match v with
-  | Message_types.Ping -> Pbrt.Encoder.int_as_varint (0) encoder
-  | Message_types.Pong -> Pbrt.Encoder.int_as_varint 1 encoder
-  | Message_types.Peer -> Pbrt.Encoder.int_as_varint 2 encoder
-  | Message_types.Mempool -> Pbrt.Encoder.int_as_varint 3 encoder
-  | Message_types.Blocks -> Pbrt.Encoder.int_as_varint 4 encoder
+  | Message_types.Peer -> Pbrt.Encoder.int_as_varint (0) encoder
+  | Message_types.Mempool -> Pbrt.Encoder.int_as_varint 1 encoder
+  | Message_types.Blocks -> Pbrt.Encoder.int_as_varint 2 encoder
 
 let rec encode_get (v:Message_types.get) encoder = 
   Pbrt.Encoder.key (1, Pbrt.Varint) encoder; 
@@ -533,6 +558,22 @@ let rec encode_peer (v:Message_types.peer) encoder =
   Pbrt.Encoder.int_as_varint v.Message_types.last_seen encoder;
   ()
 
+let rec encode_manage_manage_t (v:Message_types.manage_manage_t) encoder =
+  match v with
+  | Message_types.Ping -> Pbrt.Encoder.int_as_varint (0) encoder
+  | Message_types.Pong -> Pbrt.Encoder.int_as_varint 1 encoder
+  | Message_types.Peer_p -> Pbrt.Encoder.int_as_varint 2 encoder
+  | Message_types.Data_p -> Pbrt.Encoder.int_as_varint 4 encoder
+
+let rec encode_manage (v:Message_types.manage) encoder = 
+  Pbrt.Encoder.key (0, Pbrt.Varint) encoder; 
+  encode_manage_manage_t v.Message_types.manage_type encoder;
+  List.iter (fun x -> 
+    Pbrt.Encoder.key (1, Pbrt.Bytes) encoder; 
+    Pbrt.Encoder.nested (encode_peer x) encoder;
+  ) v.Message_types.peers;
+  ()
+
 let rec encode_post (v:Message_types.post) encoder = 
   List.iter (fun x -> 
     Pbrt.Encoder.key (1, Pbrt.Bytes) encoder; 
@@ -542,37 +583,33 @@ let rec encode_post (v:Message_types.post) encoder =
     Pbrt.Encoder.key (2, Pbrt.Bytes) encoder; 
     Pbrt.Encoder.nested (encode_block x) encoder;
   ) v.Message_types.blocks;
-  List.iter (fun x -> 
-    Pbrt.Encoder.key (3, Pbrt.Bytes) encoder; 
-    Pbrt.Encoder.nested (encode_peer x) encoder;
-  ) v.Message_types.peers;
   ()
-
-let rec encode_message_frame_t (v:Message_types.message_frame_t) encoder =
-  match v with
-  | Message_types.Peer -> Pbrt.Encoder.int_as_varint (0) encoder
-  | Message_types.Data -> Pbrt.Encoder.int_as_varint 1 encoder
 
 let rec encode_message_method (v:Message_types.message_method) encoder =
   match v with
   | Message_types.Get -> Pbrt.Encoder.int_as_varint (0) encoder
   | Message_types.Post -> Pbrt.Encoder.int_as_varint 1 encoder
+  | Message_types.Manage -> Pbrt.Encoder.int_as_varint 2 encoder
 
 let rec encode_message (v:Message_types.message) encoder = 
   Pbrt.Encoder.key (1, Pbrt.Varint) encoder; 
-  encode_message_frame_t v.Message_types.frame_type encoder;
-  Pbrt.Encoder.key (2, Pbrt.Varint) encoder; 
   encode_message_method v.Message_types.method_ encoder;
   begin match v.Message_types.get with
   | Some x -> 
-    Pbrt.Encoder.key (3, Pbrt.Bytes) encoder; 
+    Pbrt.Encoder.key (2, Pbrt.Bytes) encoder; 
     Pbrt.Encoder.nested (encode_get x) encoder;
   | None -> ();
   end;
   begin match v.Message_types.post with
   | Some x -> 
-    Pbrt.Encoder.key (4, Pbrt.Bytes) encoder; 
+    Pbrt.Encoder.key (3, Pbrt.Bytes) encoder; 
     Pbrt.Encoder.nested (encode_post x) encoder;
+  | None -> ();
+  end;
+  begin match v.Message_types.manage with
+  | Some x -> 
+    Pbrt.Encoder.key (4, Pbrt.Bytes) encoder; 
+    Pbrt.Encoder.nested (encode_manage x) encoder;
   | None -> ();
   end;
   ()
