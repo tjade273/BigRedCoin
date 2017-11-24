@@ -1,5 +1,10 @@
 open Lwt_io
 
+
+type log_level = 
+  | DEBUG
+  | INFO
+
 module type Message_channel = sig
   (* The type of an input message channel. *)
   type input
@@ -98,3 +103,6 @@ val (@<>) : (t*BRCPeer.peer_connection) -> (BRCPeer.peer_connection ->
 (* [shutdown p2p] shuts down the given [p2p] node by closing all its connections,
  * saving the updated list of known peers to file, and shuting down the server. *)
 val shutdown : t -> unit Lwt.t
+
+(*[set_log_level p2p level] set the log level of a p2p instance to [level]*)
+val set_log_level : t -> log_level -> unit

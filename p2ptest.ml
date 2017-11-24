@@ -21,7 +21,7 @@ let test name f =
   Test.test name (fun () -> 
     Lwt_log.notice("Starting Test: "^ name) >>
     let%lwt result = f () in
-    Lwt_log.notice("Finished Test: "^name^ "\n\n") 
+    Lwt_log.notice("Finished Test: "^name^ "\n") 
     >> Lwt.return result    
   )
 let peer_preable = 
@@ -47,7 +47,7 @@ let simple_data_msg =
 let message_check_thread node = 
   let%lwt peer = Lwt_stream.get( P2p.peer_stream node) in
   match peer with 
-  | Some peer -> Lwt_log.notice (BRCPeer.str peer) >>
+  | Some peer -> 
     (node,peer) @<> (fun peer ->
         (match%lwt BRCMessage_channel.read (BRCPeer.ic peer) with
          | Some msg -> Lwt.return (true,Lwt.return true)
@@ -85,8 +85,8 @@ let messaging_tests = suite "messaging tests" [
 
     test "simple_message_peer_list" begin fun () -> 
       let%lwt nodes = create_n_linked_nodes ~start_port:4000 2 in
-      P2p.broadcast data_preamble nodes.(1) 
-      >> P2p.broadcast simple_data_msg nodes.(1) >>
+      P2p.broadcast data_preamble nodes.(1) >>
+      P2p.broadcast simple_data_msg nodes.(1) >>
       let%lwt check_message = message_check_thread nodes.(0)      
       in close_all nodes >> Lwt.return check_message
     end;
