@@ -74,14 +74,14 @@ type output = Lwt_io.output Lwt_io.channel
 
   let close_in ic =
     try 
-      Lwt_log.notice "Closing input channel" >>
+    Lwt_log.notice "Closing input channel" >>
       Lwt_io.close ic
     with 
     | _ -> Lwt_log.notice ("Failed to close input chanel")
 
   let close_out oc =
     try 
-      Lwt_log.notice "Closing ouput channel" >>
+    Lwt_log.notice "Closing ouput channel" >>
       Lwt_io.close oc
     with 
     | _ -> Lwt_log.notice ("Failed to close input chanel")
@@ -197,10 +197,8 @@ module ConnTbl = struct
   let remove tbl addr =
     match find_opt tbl addr with
     | Some peer -> remove tbl addr;
-      (try 
          BRCMessage_channel.close_in peer.ic >>
-         BRCMessage_channel.close_out peer.oc with 
-      | _ -> Lwt_log.notice ("Failed to close: " ^ addr))
+         BRCMessage_channel.close_out peer.oc  
     | None -> Lwt.return_unit
 
   (* [add tbl peer] adds [peer] to the given table [tbl] using a string
@@ -219,6 +217,11 @@ type t = {
   server:Lwt_io.server option;
   mutable port:int;
   peer_file:string}
+
+
+let log (msg:string) p2p = 
+  Lwt_log.notice ((string_of_int p2p.port) ^ ": " ^ msg)
+
 
 let server_port p2p =
   p2p.port
@@ -359,13 +362,13 @@ let encode_message msg =
  * a peer at address [peer_addr]. Returns [Some BRCPeer.t] if connection
  * establishes successfully. *)
 let initiate_connection peer_addr p2p =
-  Lwt_log.notice ((string_of_int p2p.port)^": Attempting to initiate connection: " ^ socket_addr_to_string peer_addr) >>
-  Lwt.catch (
+  log ("Attempting to initiate connection: " ^ socket_addr_to_string peer_addr) p2p 
+  >> Lwt.catch (
     fun () -> let%lwt (ic, oc)  = Lwt_io.open_connection peer_addr in
       Lwt.return_some {addr=peer_addr;ic=ic;oc=oc})
     (fun e -> Lwt.return_none)
 (* [read_for_manage_ping conn] reads for an initial connection ping. *)
-let rec read_for_manage_ping conn = 
+let rec read_for_manage_ping conn p2p = 
   match%lwt BRCMessage_channel.read (ic conn) with 
   | Some msg -> 
     (match msg.method_ with
@@ -375,7 +378,7 @@ let rec read_for_manage_ping conn =
           Lwt.return_some true 
         | _ -> 
           Lwt.return_none)
-     | _ -> Lwt_log.notice ("Not a manage frame") >> Lwt.return_none
+     | _ -> log ("Not a manage frame. Exepected ping.") p2p >> Lwt.return_none
     )
   | None -> Lwt.return_none
 
@@ -388,9 +391,9 @@ let rec send_till_success conn msg =
   else
     Lwt.return_some ()
 (*[get_connection_ping conn] wraps [read_for_manage_ping] in a timeout *)
-let get_connection_ping conn = 
+let get_connection_ping conn p2p = 
   let timeout = Lwt_unix.timeout 2. >> Lwt.return None in
-  (match%lwt Lwt.pick [timeout;(read_for_manage_ping conn)] with 
+  (match%lwt Lwt.pick [timeout;(read_for_manage_ping conn p2p)] with 
    | Some _ -> Lwt.return_some conn
    | None -> Lwt.return_none 
   )
@@ -408,9 +411,9 @@ let connect_to_peer peer p2p =
     let addr = Unix.(ADDR_INET (Unix.inet_addr_of_string peer.address, peer.port)) in
     match%lwt (initiate_connection addr p2p) with
     | Some conn -> 
-      (match%lwt get_connection_ping conn with 
+      (match%lwt get_connection_ping conn p2p with 
        | Some _ ->  ConnTbl.add p2p.connections conn >> Lwt.return_some conn
-       | None -> Lwt_log.notice ("Failed to recieve connection ping from: " ^ target)
+       | None -> log ("Failed to recieve connection ping from: " ^ target) p2p
          >> Lwt.return_none 
       )
     | None -> Lwt.return_none
@@ -424,11 +427,11 @@ let connect_and_send peer msg p2p =
     (match%lwt Lwt.pick [timeout;(send_till_success conn msg)] with
      | Some _ -> 
        (match msg.method_ with 
-        | Get -> Lwt_log.notice ("Wrote get broadcast to: " ^ (str conn))
-        | Post -> Lwt_log.notice ("Wrote post broadcast to: " ^ (str conn))
+        | Get -> log ("Wrote get broadcast to: " ^ (str conn)) p2p
+        | Post -> log ("Wrote post broadcast to: " ^ (str conn)) p2p
         | Manage -> Lwt_unix.sleep 0.0 (*TODO: Find a better way to do this*) 
-          >> Lwt_log.notice ("Wrote manage broadcast to: " ^ (str conn)))
-     | None -> Lwt_log.notice ("Failed to broadcast to: " ^ (str conn))
+          >> log ("Wrote manage broadcast to: " ^ (str conn)) p2p)
+     | None -> log ("Failed to broadcast to: " ^ (str conn)) p2p
     )
   | None -> Lwt.return_unit
 
@@ -449,7 +452,7 @@ let read_for_time conn time =
  * connection. *)
 let handle_new_peer_connection p2p addr (ic,oc) =
   if (Hashtbl.length p2p.connections < c_MAX_CONNECTIONS) then
-    Lwt_log.notice((string_of_int p2p.port) ^ ": Got new peer @ " ^ socket_addr_to_string addr) >>
+    log((string_of_int p2p.port) ^ ": Got new peer @ " ^ socket_addr_to_string addr) p2p >>
     let conn = { addr = addr; ic = ic; oc = oc} in
     let timeout = Lwt_unix.sleep 2.0 >> Lwt.return None in    
     (match%lwt Lwt.pick [timeout;(send_till_success conn ping_msg)] with
@@ -463,16 +466,16 @@ let handle_new_peer_connection p2p addr (ic,oc) =
                 (match manage_data.manage_type with 
                  | Peer_p -> failwith ("Handle peer stream")
                  | Data_p -> ConnTbl.add p2p.data_connections conn >> 
-                   Lwt_log.notice("Recieved data preamble.")
-                 | _ -> Lwt_log.notice("First message was not a preamble.")
+                   log ("Recieved data preamble.") p2p
+                 | _ -> log("First message was not a preamble.") p2p
                 )
-              | None -> Lwt_log.notice("No management data")
+              | None -> log("No management data") p2p
              )
-           | _ -> Lwt_log.notice("First message was not a management frame.")
+           | _ -> log("First message was not a management frame.") p2p
           )
-        | None -> Lwt_log.notice("Failed to recieve a preamble.")
+        | None -> log("Failed to recieve a preamble.") p2p
        )
-     | None -> Lwt_log.notice("Failed to send ping.")
+     | None -> log("Failed to send ping.") p2p
     )
   else
     BRCMessage_channel.close_in ic >> BRCMessage_channel.close_out oc

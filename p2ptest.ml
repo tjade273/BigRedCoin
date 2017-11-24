@@ -17,6 +17,13 @@ let data_preamble = {
     }
 }
 
+let test name f = 
+  Test.test name (fun () -> 
+    Lwt_log.notice("Starting Test: "^ name) >>
+    let%lwt result = f () in
+    Lwt_log.notice("Finished Test: "^name^ "\n\n") 
+    >> Lwt.return result    
+  )
 let peer_preable = 
   {method_=(Message_types.Manage);
    get=None;
@@ -45,7 +52,7 @@ let message_check_thread node =
         (match%lwt BRCMessage_channel.read (BRCPeer.ic peer) with
          | Some msg -> Lwt.return (true,Lwt.return true)
          | None -> Lwt.return (true,Lwt.return false))) 
-  |None -> Lwt_unix.sleep 2. >> Lwt.return_false 
+  |None -> Lwt.return_false 
 
 let close_all (node_lst:P2p.t array) = 
   Array.fold_left (fun acc node -> 
