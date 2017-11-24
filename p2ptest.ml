@@ -35,6 +35,8 @@ let simple_data_msg =
    manage=None;
   }
 
+(*Checks to see if any data message is avaiable for reading from the first
+ connection in the peer stream*)
 let message_check_thread node = 
   let%lwt peer = Lwt_stream.get( P2p.peer_stream node) in
   match peer with 
@@ -102,7 +104,6 @@ let messaging_tests = suite "messaging tests" [
       let%lwt check_message_2 = message_check_thread node_b  
       in close_all [|node_a;node_b|] >> Lwt.return (check_message_1 && check_message_2)
     end;
-
 
     test "simple_message_multicast" begin fun () -> 
       let%lwt node_a = P2p.create ~port:4444 "nodes/node_a.peers" in
