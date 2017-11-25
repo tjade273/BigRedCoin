@@ -474,7 +474,7 @@ let read_for_time conn time =
  * connection. *)
 let handle_new_peer_connection p2p addr (ic,oc) =
   if (Hashtbl.length p2p.connections < c_MAX_CONNECTIONS) then
-    log((string_of_int p2p.port) ^ ": Got new peer @ " ^ socket_addr_to_string addr) p2p >>
+    log("Got new peer @ " ^ socket_addr_to_string addr) p2p >>
     let conn = { addr = addr; ic = ic; oc = oc} in
     let timeout = Lwt_unix.sleep 2.0 >> Lwt.return None in
     (match%lwt Lwt.pick [timeout;(send_till_success conn ping_msg)] with
@@ -512,14 +512,14 @@ let rec connect_to_a_peer_for_data p2p ?peers:(peers=p2p.known_peers) () =
     let random = Random.int (PeerList.length peers) in
     let peer = peers.(random) in
     let target_addr = s_addr peer in
-    if (ConnTbl.mem p2p.connections target_addr) then
-      let peer_connection = ConnTbl.find p2p.connections target_addr in
+    if (is_conn_open target_addr p2p) then
+      let peer_connection = get_connection target_addr p2p in
       Lwt.return_some peer_connection
     else
       match%lwt connect_and_send peer data_preamble p2p with
       | Some peer -> Lwt.return_some peer
       | None ->
-          let good_peer_lst = PeerList.filter peers (fun p -> p <> peer)  in
+          let good_peer_lst = PeerList.filter peers (fun p -> p <> peer) in
           connect_to_a_peer_for_data p2p ~peers:good_peer_lst ()
 
 (* [tbl_to_list tbl] is a list of all the values in the given table [tbl]. *)
