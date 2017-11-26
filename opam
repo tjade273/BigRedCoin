@@ -1,0 +1,23 @@
+opam-version: "1.2"
+name: "big_red_coin"
+version: "0.1"
+maintainer: "Lucas Switzer <LucasSwitz>"
+authors: "Lucas Switzer <LucasSwitz>, Tjaden Hess <tjade273>"
+homepage: "https://github.com/tjade273/BigRedCoin"
+dev-repo: "https://github.com/tjade273/BigRedCoin"
+bug-reports: "https://github.com/tjade273/BigRedCoin"
+build: [
+  "make"
+]
+depends: [
+  "ocamlfind" {build}
+  "ocaml-protoc" {build}
+  "lwt" {build}
+  "leveldb" {build}
+  "nocrypto" {build}
+  "yojson" {build}
+  "secp256k1" {build}
+  "hex" {build}
+  "scrypt-kdf" {build}
+  "ounit" {test}
+]
