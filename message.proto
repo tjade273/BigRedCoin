@@ -47,7 +47,8 @@ message Manage
     enum Manage_T {
         PING = 0;
         PONG = 1;
-        PEER_P = 2;
+        PEER_D = 2;
+        PEER_P = 3;
         DATA_P = 4;
     }
     required Manage_T manage_type = 0;

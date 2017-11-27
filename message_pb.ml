@@ -377,7 +377,8 @@ let rec decode_manage_manage_t d =
   match Pbrt.Decoder.int_as_varint d with
   | 0 -> (Message_types.Ping:Message_types.manage_manage_t)
   | 1 -> (Message_types.Pong:Message_types.manage_manage_t)
-  | 2 -> (Message_types.Peer_p:Message_types.manage_manage_t)
+  | 2 -> (Message_types.Peer_d:Message_types.manage_manage_t)
+  | 3 -> (Message_types.Peer_p:Message_types.manage_manage_t)
   | 4 -> (Message_types.Data_p:Message_types.manage_manage_t)
   | _ -> Pbrt.Decoder.malformed_variant "manage_manage_t"
 
@@ -562,7 +563,8 @@ let rec encode_manage_manage_t (v:Message_types.manage_manage_t) encoder =
   match v with
   | Message_types.Ping -> Pbrt.Encoder.int_as_varint (0) encoder
   | Message_types.Pong -> Pbrt.Encoder.int_as_varint 1 encoder
-  | Message_types.Peer_p -> Pbrt.Encoder.int_as_varint 2 encoder
+  | Message_types.Peer_d -> Pbrt.Encoder.int_as_varint 2 encoder
+  | Message_types.Peer_p -> Pbrt.Encoder.int_as_varint 3 encoder
   | Message_types.Data_p -> Pbrt.Encoder.int_as_varint 4 encoder
 
 let rec encode_manage (v:Message_types.manage) encoder = 

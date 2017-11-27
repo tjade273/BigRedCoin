@@ -120,7 +120,7 @@ let messaging_tests = suite "messaging tests" [
       P2p.broadcast simple_data_msg node_b >>
       let%lwt check_message_1 = message_check_thread node_a in 
       let%lwt check_message_2 = message_check_thread node_c in
-      Lwt.return (check_message_1 && check_message_2)
+      close_all [|node_a; node_b;node_c|] >> Lwt.return (check_message_1 && check_message_2)
     end;
 
     test "test_connect_random" begin fun () ->
@@ -142,6 +142,12 @@ let messaging_tests = suite "messaging tests" [
         | Some peer -> Lwt.return false
         | None -> Lwt.return true;
       in close_all nodes >> Lwt.return check_connection
+    end;
+
+    test "peer_sync_test" begin fun () ->
+    let%lwt node_a = P2p.create ~port:4444 "nodes/node_a.peers" in
+    P2p.set_log_level node_a P2p.INFO;
+    Lwt_unix.sleep 10. >> Lwt.return_true 
     end
   ]
 

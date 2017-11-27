@@ -80,6 +80,7 @@ let rec pp_manage_manage_t fmt (v:Message_types.manage_manage_t) =
   match v with
   | Message_types.Ping -> Format.fprintf fmt "Ping"
   | Message_types.Pong -> Format.fprintf fmt "Pong"
+  | Message_types.Peer_d -> Format.fprintf fmt "Peer_d"
   | Message_types.Peer_p -> Format.fprintf fmt "Peer_p"
   | Message_types.Data_p -> Format.fprintf fmt "Data_p"
 

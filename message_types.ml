@@ -51,6 +51,7 @@ type peer = {
 type manage_manage_t =
   | Ping 
   | Pong 
+  | Peer_d 
   | Peer_p 
   | Data_p 
 
