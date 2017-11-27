@@ -26,11 +26,11 @@ module type S = sig
   (* [get t s] takes in a database [t] and the SHA-256 hash [s] of an value, and
    * returns the value with that hash. Throws an exception if the value isn't
    * present. *)
-  val get : t -> string -> value
+  val get : t -> string -> value Lwt.t
 
   (* [get t s] takes in a database [t] and the SHA-256 hash [s] of a value,
    * returns the an option for value with that hash. *)
-  val get_opt : t -> string -> value option
+  val get_opt : t -> string -> value option Lwt.t
       
   (* [create s] makes an object representing the database from the location of the
    * database [s]. *)

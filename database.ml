@@ -16,9 +16,9 @@ module type S = sig
 
   val put : t -> value -> unit Lwt.t
 
-  val get : t -> string -> value
+  val get : t -> string -> value Lwt.t
 
-  val get_opt : t -> string -> value option
+  val get_opt : t -> string -> value option Lwt.t
       
   val create : string -> t
 
@@ -41,22 +41,22 @@ module Make(Value : Hashable) : S = struct
     Lwt_preemptive.detach f (db, v)
 
   let get db v = 
-    let f (db, v) = Value.deserialize (LevelDB.get_exn db (Value.hash v)) in
+    let f (db, v) = Value.deserialize (LevelDB.get_exn db v) in
     Lwt_preemptive.detach f (db, v)
 
   let get_opt db v = 
     let f (db, v) =
-      match LevelDB.get db (Value.hash v) with 
+      match LevelDB.get db v with 
       | None -> None
-      | Some s -> Value.deserialize s in
+      | Some s -> Some (Value.deserialize s) in
     Lwt_preemptive.detach f (db, v)
 
   let mem db v = 
-    let f (db, v) = LevelDB.mem db (Value.hash v) in
+    let f (db, v) = LevelDB.mem db v in
     Lwt_preemptive.detach f (db, v)
 
   let remove db v =
-    let f (db, v) = LevelDB.delete db (Value.hash v) in
+    let f (db, v) = LevelDB.delete db v in
     Lwt_preemptive.detach f (db, v)
 
 end

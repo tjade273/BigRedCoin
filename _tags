@@ -1,4 +1,4 @@
-true: package(lwt), package(ocaml-protoc)
+true: package(lwt), package(ocaml-protoc), package(leveldb), package(lwt.unix)
 <crypto*>: package(nocrypto), package(nocrypto.unix), package(secp256k1), package(hex), package(yojson), package(scrypt-kdf)
 <*test.*>: package(oUnit)
 "secp256k1": -traverse
