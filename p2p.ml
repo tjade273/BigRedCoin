@@ -687,12 +687,12 @@ let rec do_peer_sync p2p () =
           handle_sync_peer (fun peer ->
               let send_peers = 
                 let peer_sync_data = (BRCMessageHelper.make_peer_sync_msg p2p) in
-                (match%lwt send_for_time peer.oc 2. peer_sync_data with 
+                (match%lwt send_for_time peer.oc 1. peer_sync_data with 
                  | Some _ -> log ("Sucessfully sent peer sync data") p2p 
                  | None -> log ("Failed to send peer sync data") p2p)
               in 
               let recieve_peers =
-                (match%lwt read_for_time peer.ic 2. with 
+                (match%lwt read_for_time peer.ic 1. with 
                  | Some msg -> 
                    let peer_list = BRCMessageHelper.extract_peer_list msg p2p in 
                    List.iter(fun e -> 
