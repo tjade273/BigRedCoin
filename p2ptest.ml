@@ -103,7 +103,6 @@ let messaging_tests = suite "messaging tests" [
     test "simple_message_back_forth" begin fun () -> 
       let%lwt node_a = P2p.create ~port:4443 "nodes/node_a.peers" in
       let%lwt node_b = P2p.create ~port:4445 "nodes/node_b.peers" in
-      P2p.set_log_level node_a P2p.INFO;
       P2p.broadcast data_preamble node_b  >> 
       P2p.broadcast simple_data_msg node_b >>
       let%lwt check_message_1 = message_check_thread node_a in       
@@ -147,6 +146,7 @@ let messaging_tests = suite "messaging tests" [
 
     test "peer_sync_test_explicit" begin fun () ->
       let%lwt nodes = create_n_linked_nodes ~start_port:4000 2 in
+      P2p.set_log_level nodes.(1) P2p.INFO;      
       Lwt_unix.sleep 8. >> 
       let string_sort e1 e2 = 
         if e1 < e2 then (~-1) else if e1 > e2 then 1 else 0 in
@@ -163,7 +163,7 @@ let messaging_tests = suite "messaging tests" [
       let%lwt node_a = P2p.create ~port:4443 "nodes/node_a.peers" in
       let%lwt node_b = P2p.create ~port:4445 "nodes/node_b.peers" in 
       P2p.set_log_level node_b P2p.INFO;     
-      Lwt_unix.sleep 10. >> 
+      Lwt_unix.sleep 8. >> 
       let string_sort e1 e2 = 
         if e1 < e2 then (~-1) else if e1 > e2 then 1 else 0 in
       let known_peers_a = List.sort string_sort

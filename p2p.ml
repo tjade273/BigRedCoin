@@ -90,10 +90,10 @@ type output = Lwt_io.output Lwt_io.channel
     Lwt.pick[timeout;read]
 
   let read ic =
-    
-      match%lwt read_raw_msg ic with
-      | (0,_) -> Lwt.return_none
-      | (_,buf) ->
+
+    match%lwt read_raw_msg ic with
+    | (0,_) -> Lwt.return_none
+    | (_,buf) ->
       try
         Lwt.return_some (Message_pb.decode_message (Pbrt.Decoder.of_bytes buf))
       with
@@ -432,9 +432,29 @@ let initiate_connection peer_addr p2p =
       Lwt.return_some {addr=peer_addr;ic=ic;oc=oc})
     (fun e -> Lwt.return_none)
 
+
+
+(* [read_till_success conn msg] sends the given message [msg] through the given
+ * peer connection [conn] and keeps trying until successful. *)
+let rec read_till_success conn =
+  Lwt_unix.sleep 0.0 >>
+  match%lwt BRCMessage_channel.read conn with 
+  | Some msg -> Lwt.return_some msg 
+  | None -> read_till_success conn
+
+
+(* [read_for_time conn time] is the message read from the given connection. it
+ * times out aftom [time] seconds, in which case, None is returned. *)
+let read_for_time conn time =
+  let timeout = Lwt_unix.sleep time >> Lwt.return None in
+  match%lwt Lwt.pick[read_till_success conn;timeout] with
+  | Some msg -> Lwt.return_some msg
+  | None -> Lwt.return_none
+  | exception Lwt_io.Channel_closed s -> Lwt.return_none
+
 (* [read_for_manage_ping conn] reads for an initial connection ping. *)
 let rec read_for_manage_ping conn p2p =
-  match%lwt BRCMessage_channel.read (ic conn) with
+  match%lwt read_for_time (conn.ic) 2.0 with
   | Some msg ->
     (match msg.method_ with
      | Manage ->
@@ -446,15 +466,6 @@ let rec read_for_manage_ping conn p2p =
      | _ -> log ("Not a manage frame. Expected ping.") p2p >> Lwt.return_none
     )
   | None -> Lwt.return_none
-
-
-(* [read_till_success conn msg] sends the given message [msg] through the given
- * peer connection [conn] and keeps trying until successful. *)
-let rec read_till_success conn =
-  Lwt_unix.sleep 0.0 >>
-  match%lwt BRCMessage_channel.read conn with 
-  | Some msg -> Lwt.return_some msg 
-  | None -> read_till_success conn
 
 (* [send_till_success conn msg] sends the given message [msg] through the given
  * peer connection [conn] and keeps trying until successful. *)
@@ -555,7 +566,7 @@ let handle_new_peer_connection p2p addr (ic,oc) =
     let timeout = Lwt_unix.sleep 2.0 >> Lwt.return None in
     (match%lwt Lwt.pick [timeout;(send_till_success conn.oc ping_msg)] with
      | Some _ -> ConnTbl.add p2p.connections conn >>
-       (match%lwt read_for_time (BRCPeer.ic conn) 2. with
+       (match%lwt read_for_time (BRCPeer.ic conn) 1. with
         | Some msg ->
           (match msg.method_ with
            | Manage ->
@@ -584,7 +595,7 @@ let handle_new_peer_connection p2p addr (ic,oc) =
  * List is given. After a succesful connection, the specified preabmle [preamble] 
  * is sent to specify what type of communication channel the peer should expect. 
 *)
-let rec connect_to_a_peer p2p peers preamble () = 
+let rec connect_to_a_peer p2p peers preamble () =
   if PeerList.length peers = 0 then
     Lwt.return_none
   else
@@ -676,12 +687,12 @@ let rec do_peer_sync p2p () =
           handle_sync_peer (fun peer ->
               let send_peers = 
                 let peer_sync_data = (BRCMessageHelper.make_peer_sync_msg p2p) in
-                (match%lwt send_for_time peer.oc 4. peer_sync_data with 
+                (match%lwt send_for_time peer.oc 0.25 peer_sync_data with 
                  | Some _ -> log ("Sucessfully sent peer sync data") p2p 
                  | None -> log ("Failed to send peer sync data") p2p)
               in 
               let recieve_peers =
-                (match%lwt read_for_time peer.ic 4. with 
+                (match%lwt read_for_time peer.ic 1. with 
                  | Some msg -> 
                    let peer_list = BRCMessageHelper.extract_peer_list msg p2p in 
                    List.iter(fun e -> 
@@ -696,19 +707,19 @@ let rec do_peer_sync p2p () =
     with 
       _ -> log ("Exception in sync.") p2p
   else
-  log ("Ending Sync Daemon......") p2p 
+    log ("Ending Sync Daemon......") p2p 
 
 let create_from_list ?port:(p=4000) peer_list =
   Lwt.async_exception_hook := handle_async_exception;
   let peers = Array.of_list (List.map
-  (fun (i,p,tm) ->
-    let time = match tm with None -> 0. | Some a -> (fst (Unix.mktime a)) in
-    {
-      address = i;
-      port = p;
-      last_seen = int_of_float time
-    })
-  peer_list) in
+                               (fun (i,p,tm) ->
+                                  let time = match tm with None -> 0. | Some a -> (fst (Unix.mktime a)) in
+                                  {
+                                    address = i;
+                                    port = p;
+                                    last_seen = int_of_float time
+                                  })
+                               peer_list) in
   let p2p = {
     server= None;
     port = p;
