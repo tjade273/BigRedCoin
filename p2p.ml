@@ -680,19 +680,19 @@ let rec do_peer_sync p2p () =
   if p2p.enabled then
     try 
       log ("Syncing Peers....") p2p >>
-      Lwt_unix.sleep 2. >> 
+      Lwt_unix.sleep 0.25 >> 
       let sync = 
         match %lwt Lwt_stream.get(peer_sync_stream p2p) with 
         | Some peer -> log ("Attempting to sync with: " ^ (str peer)) p2p >>
           handle_sync_peer (fun peer ->
               let send_peers = 
                 let peer_sync_data = (BRCMessageHelper.make_peer_sync_msg p2p) in
-                (match%lwt send_for_time peer.oc 0.25 peer_sync_data with 
+                (match%lwt send_for_time peer.oc 2. peer_sync_data with 
                  | Some _ -> log ("Sucessfully sent peer sync data") p2p 
                  | None -> log ("Failed to send peer sync data") p2p)
               in 
               let recieve_peers =
-                (match%lwt read_for_time peer.ic 1. with 
+                (match%lwt read_for_time peer.ic 2. with 
                  | Some msg -> 
                    let peer_list = BRCMessageHelper.extract_peer_list msg p2p in 
                    List.iter(fun e -> 
