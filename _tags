@@ -1,3 +1,4 @@
-true: package(lwt), package(ocaml-protoc)
-<crypto*>: package(nocrypto), package(nocrypto.unix), package(secp256k1), package(hex), package(yojson), package(scrypt-kdf)
-<*test.*>: package(oUnit)
+true: package(lwt), package(ocaml-protoc), package(cstruct), package(hex), package(nocrypto), package(nocrypto.unix), package(secp256k1), package(yojson), package(scrypt-kdf)
+"src": include
+"test": include
+<test/*>: package(oUnit)
