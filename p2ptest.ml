@@ -19,11 +19,11 @@ let data_preamble = {
 
 let test name f = 
   Test.test name (fun () -> 
-    Lwt_log.notice("Starting Test: "^ name) >>
-    let%lwt result = f () in
-    Lwt_log.notice("Finished Test: "^name^ "\n") 
-    >> Lwt.return result    
-  )
+      Lwt_log.notice("Starting Test: "^ name) >>
+      let%lwt result = f () in
+      Lwt_log.notice("Finished Test: "^name^ "\n") 
+      >> Lwt.return result    
+    )
 let peer_preable = 
   {method_=(Message_types.Manage);
    get=None;
@@ -43,7 +43,7 @@ let simple_data_msg =
   }
 
 (*Checks to see if any data message is avaiable for reading from the first
- connection in the peer stream*)
+  connection in the peer stream*)
 let message_check_thread node = 
   let%lwt peer = Lwt_stream.get( P2p.peer_stream node) in
   match peer with 
@@ -60,7 +60,7 @@ let close_all (node_lst:P2p.t array) =
 
 let rec create_n_linked_nodes ?start_port:(start_port=4000) n =
   let rec create_nodes_rec p lst =
-    if p > start_port + n then
+    if p >= start_port + n then
       Lwt.return (Array.of_list lst)
     else
       let%lwt new_node =  P2p.create_from_list ~port:p
@@ -76,9 +76,9 @@ let messaging_tests = suite "messaging tests" [
     end;
 
     test "open_server" begin fun () ->
-      try let%lwt p2p = P2p.create_from_list ~port:4444
-              [("127.0.0.1",4445,None)]
-        in  P2p.shutdown p2p >> Lwt.return true
+      try let%lwt p2p = P2p.create_from_list ~port:4449
+              [("127.0.0.1",4450,None)]
+        in close_all [|p2p|] >> Lwt.return true
       with
       | _ -> Lwt.return false
     end;
@@ -101,8 +101,9 @@ let messaging_tests = suite "messaging tests" [
     end;
 
     test "simple_message_back_forth" begin fun () -> 
-      let%lwt node_a = P2p.create ~port:4444 "nodes/node_a.peers" in
+      let%lwt node_a = P2p.create ~port:4443 "nodes/node_a.peers" in
       let%lwt node_b = P2p.create ~port:4445 "nodes/node_b.peers" in
+      P2p.set_log_level node_a P2p.INFO;
       P2p.broadcast data_preamble node_b  >> 
       P2p.broadcast simple_data_msg node_b >>
       let%lwt check_message_1 = message_check_thread node_a in       
@@ -120,7 +121,7 @@ let messaging_tests = suite "messaging tests" [
       P2p.broadcast simple_data_msg node_b >>
       let%lwt check_message_1 = message_check_thread node_a in 
       let%lwt check_message_2 = message_check_thread node_c in
-      close_all [|node_a; node_b;node_c|] >> Lwt.return (check_message_1 && check_message_2)
+      close_all [|node_a; node_b; node_c|] >> Lwt.return (check_message_1 && check_message_2)
     end;
 
     test "test_connect_random" begin fun () ->
@@ -131,7 +132,7 @@ let messaging_tests = suite "messaging tests" [
         | Some peer -> Lwt.return true
         | None -> Lwt.return false;
       in 
-      Lwt_unix.sleep 0.0 >> close_all nodes >> Lwt.return check_connection
+      close_all nodes >> Lwt.return check_connection
     end;
 
     test "test_random_connection_failed" begin fun () -> 
@@ -144,12 +145,38 @@ let messaging_tests = suite "messaging tests" [
       in close_all nodes >> Lwt.return check_connection
     end;
 
-    test "peer_sync_test" begin fun () ->
-    let%lwt node_a = P2p.create ~port:4444 "nodes/node_a.peers" in
-    P2p.set_log_level node_a P2p.INFO;
-    Lwt_unix.sleep 10. >> Lwt.return_true 
-    end
+    test "peer_sync_test_explicit" begin fun () ->
+      let%lwt nodes = create_n_linked_nodes ~start_port:4000 2 in
+      Lwt_unix.sleep 8. >> 
+      let string_sort e1 e2 = 
+        if e1 < e2 then (~-1) else if e1 > e2 then 1 else 0 in
+      let known_peers_b = List.sort string_sort
+          (List.map (fun peer -> (BRCPeer.s_addr peer)) (P2p.known_peers nodes.(1))) 
+      in 
+      close_all nodes >> Lwt.return 
+        (known_peers_b = 
+        ["127.0.0.1:3999";
+          "127.0.0.1:4000"])
+    end;
+
+    test "peer_sync_test_share" begin fun () ->
+      let%lwt node_a = P2p.create ~port:4443 "nodes/node_a.peers" in
+      let%lwt node_b = P2p.create ~port:4445 "nodes/node_b.peers" in 
+      P2p.set_log_level node_b P2p.INFO;     
+      Lwt_unix.sleep 10. >> 
+      let string_sort e1 e2 = 
+        if e1 < e2 then (~-1) else if e1 > e2 then 1 else 0 in
+      let known_peers_a = List.sort string_sort
+          (List.map (fun peer -> (BRCPeer.s_addr peer)) (P2p.known_peers node_a)) 
+      in  
+      let known_peers_b = List.sort string_sort
+          (List.map (fun peer -> (BRCPeer.s_addr peer)) (P2p.known_peers node_b))  
+      in  
+      close_all [|node_a; node_b|] >> Lwt.return (known_peers_a = known_peers_b)
+    end;
+
   ]
+
 
 let suites = suites @ [messaging_tests]
 

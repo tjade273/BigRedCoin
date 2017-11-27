@@ -86,13 +86,6 @@ val create_from_list : ?port:int -> (string * int * (Unix.tm option)) list
  * tuples of an input stream and an output stream.*)
 val peer_stream : t -> BRCPeer.peer_connection Lwt_stream.t
 
-(* [close_peer_connection conn p2p] closes the given peer_connection [conn]
- * in the given [p2p] node. *)
-val close_peer_connection: t -> BRCPeer.peer_connection -> unit Lwt.t
-
-val handle : (BRCPeer.peer_connection -> (bool*('a Lwt.t)) Lwt.t) -> t ->
-  BRCPeer.peer_connection -> 'a Lwt.t
-
 (* [server_port p2p] is the port linked to the [p2p] node. *)
 val server_port : t -> int
 
@@ -106,3 +99,6 @@ val shutdown : t -> unit Lwt.t
 
 (*[set_log_level p2p level] set the log level of a p2p instance to [level]*)
 val set_log_level : t -> log_level -> unit
+
+(*[known_peers p2p]* returns a list of nodes [p2p] known peers*)
+val known_peers : t -> BRCPeer.peer list 
