@@ -17,6 +17,9 @@ module ECDSA : sig
    * Raises: Invalid_key *)
   val of_hex : string -> keypair
 
+  (* [create ()] generates a new random ECDSA keypair *)
+  val create : unit -> keypair
+
   (* [sign key s] creates an ECDSA signature of the message [s] with the keypair
    * [key]. Gets a random nonce from the OS randomness source. *)
   val sign : keypair -> string -> signature
@@ -29,7 +32,8 @@ module ECDSA : sig
    * address [addr] using secp256k1 with SHA256. *)
   val verify : string -> string -> signature -> bool
 
-  (* [to_address pkey] is the hex-encoded address derived from [pkey] *)
+  (* [to_address pkey] is the hex-encoded address derived from [pkey]
+   * The address is the sha256 hash of the first 20 bytes of the public key *)
   val to_address : pubkey -> string
 
   (* [string_of_sig s] is the serialization of the signature [s] as a string *)
