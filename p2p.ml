@@ -2,7 +2,7 @@ open Lwt
 open Csv_lwt
 open Message_types
 
-exception FailedToConnect of string
+let c_MAX_CONNECTIONS = 1024
 
 type log_level =
   | DEBUG
@@ -53,8 +53,6 @@ let ping_msg = {
     )
 }
 
-let c_MAX_CONNECTIONS = 1024
-
 
 module type Message_channel = sig
   type input
@@ -64,7 +62,6 @@ module type Message_channel = sig
   val close_in : input -> unit Lwt.t
   val close_out : output -> unit Lwt.t
 end
-
 
 module BRCMessage_channel : Message_channel with
   type input = Lwt_io.input Lwt_io.channel and
@@ -236,18 +233,18 @@ module ConnTbl = struct
     Lwt.return @@ add tbl (str peer) peer
 end
 
-type t = {
-  mutable connections: (string,peer_connection) ConnTbl.t;
-  mutable data_connections: (string,peer_connection) ConnTbl.t;
-  mutable peer_sync_connections: (string,peer_connection) ConnTbl.t;
-  mutable handled_connections: (string,peer_connection) Hashtbl.t;
-  mutable known_peers: PeerList.t;
-  server: Lwt_io.server option;
-  mutable port: int;
-  peer_file: string;
-  mutable log_level: log_level;
-  mutable enabled : bool
-}
+type t = 
+  {mutable connections: (string,peer_connection) ConnTbl.t;
+   mutable data_connections: (string,peer_connection) ConnTbl.t;
+   mutable peer_sync_connections: (string,peer_connection) ConnTbl.t;
+   mutable handled_connections: (string,peer_connection) Hashtbl.t;
+   mutable known_peers: PeerList.t;
+   server: Lwt_io.server option;
+   mutable port: int;
+   peer_file: string;
+   mutable log_level: log_level;
+   mutable enabled : bool
+  }
 
 
 module BRCMessageHelper = struct 
@@ -279,7 +276,6 @@ let server_port p2p =
 (* [id p2p] is the string id of the [p2p] node, used for logging. *)
 let id p2p =
   string_of_int p2p.port
-
 (*[set_log_level p2p level] set the log level of a p2p instance to [level]*)
 let set_log_level p2p level =
   p2p.log_level <- level
@@ -287,7 +283,7 @@ let set_log_level p2p level =
 let log (msg:string) p2p =
   let msg = ((id p2p) ^ ": " ^ msg) in
   match p2p.log_level with
-  | DEBUG -> Lwt_log.info msg
+  | DEBUG -> Lwt_log.notice msg
   | _ ->  Lwt_log.debug msg
 
 (* [is_conn_open addr p2p] is true iff there is an open connection to the given
@@ -326,7 +322,7 @@ let handle close_func f p2p conn =
 let handle_data_peer f p2p conn=
   handle close_data_peer_connection f p2p conn
 
-let handle_sync_peer  =
+let handle_sync_peer =
   handle close_sync_peer_connection
 
 (* [@<>] operator for [handle]]*)
@@ -592,8 +588,7 @@ let handle_new_peer_connection p2p addr (ic,oc) =
 (* [connect_to_a_peer p2p peers preamble ()] is a peer connection to a random 
  * peers from the list of given [peers] of the [p2p] node, or None if an empty 
  * List is given. After a succesful connection, the specified preabmle [preamble] 
- * is sent to specify what type of communication channel the peer should expect. 
-*)
+ * is sent to specify what type of communication channel the peer should expect. *)
 let rec connect_to_a_peer p2p peers preamble () =
   if PeerList.length peers = 0 then
     Lwt.return_none
@@ -670,9 +665,8 @@ let start_server p2p =
   in
   Lwt.return (server)
 
-(*TODO: Do something with this*)
+(*TODO: Do something with this.*)
 let handle_async_exception (ex:exn) = ()
-
 (*[do_peer_sync p2p] on each iteration an attempt is made to sync with a
   random peer known to [p2p]. Loops continuously.*)
 let rec do_peer_sync p2p () = 
@@ -711,14 +705,14 @@ let rec do_peer_sync p2p () =
 let create_from_list ?port:(p=4000) peer_list =
   Lwt.async_exception_hook := handle_async_exception;
   let peers = Array.of_list (List.map
-  (fun (i,p,tm) ->
-    let time = match tm with None -> 0. | Some a -> (fst (Unix.mktime a)) in
-    {
-      address = i;
-      port = p;
-      last_seen = int_of_float time
-    })
-peer_list) in
+                               (fun (i,p,tm) ->
+                                  let time = match tm with None -> 0. | Some a -> (fst (Unix.mktime a)) in
+                                  {
+                                    address = i;
+                                    port = p;
+                                    last_seen = int_of_float time
+                                  })
+                               peer_list) in
   let p2p = {
     server= None;
     port = p;
@@ -762,11 +756,11 @@ let shutdown ?save:(save=true) p2p =
   if save then 
     save_peers p2p.peer_file p2p
   else Lwt.return_unit 
-  >>
-  match p2p.server with
-  | Some server -> p2p.enabled <- false; log ("Shutting down....") p2p >>      
-    Lwt_io.shutdown_server server 
-  | None -> Lwt.return_unit
+    >>
+    match p2p.server with
+    | Some server -> p2p.enabled <- false; log ("Shutting down....") p2p >>      
+      Lwt_io.shutdown_server server 
+    | None -> Lwt.return_unit
 
 let known_peers p2p = 
   Array.to_list p2p.known_peers

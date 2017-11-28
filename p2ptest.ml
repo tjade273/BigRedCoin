@@ -158,11 +158,9 @@ let messaging_tests = suite "messaging tests" [
           "127.0.0.1:4000"])
     end;
 
-    (*TODO Rewrite this test to use temp peer files*)
     test "peer_sync_test_share" begin fun () ->
       let%lwt node_a = P2p.create ~port:4443 "nodes/node_a.peers" in
       let%lwt node_b = P2p.create ~port:4445 "nodes/node_b.peers" in 
-      P2p.set_log_level node_b P2p.DEBUG;
       Lwt_unix.sleep 8. >> 
       let string_sort e1 e2 = 
         if e1 < e2 then (~-1) else if e1 > e2 then 1 else 0 in
@@ -178,3 +176,4 @@ let messaging_tests = suite "messaging tests" [
   ]
 
 let tests = suites @ [messaging_tests]
+let () = Test.run "all_tests" tests
