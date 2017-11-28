@@ -1,1 +1,4 @@
-PKG lwt
+PKG lwt secp256k1 cryptokit scrypt-kdf hex yojson oUnit
+B _build
+S src
+S test

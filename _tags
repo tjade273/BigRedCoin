@@ -1,1 +1,4 @@
-true: package(lwt), package(ocaml-protoc)
+true: package(lwt), package(ocaml-protoc), package(cstruct), package(hex), package(nocrypto), package(nocrypto.unix), package(secp256k1), package(yojson), package(scrypt-kdf)
+"src": include
+"test": include
+<test/*>: package(oUnit)
