@@ -712,14 +712,14 @@ let rec do_peer_sync p2p () =
 let create_from_list ?port:(p=4000) peer_list =
   Lwt.async_exception_hook := handle_async_exception;
   let peers = Array.of_list (List.map
-                               (fun (i,p,tm) ->
-                                  let time = match tm with None -> 0. | Some a -> (fst (Unix.mktime a)) in
-                                  {
-                                    address = i;
-                                    port = p;
-                                    last_seen = int_of_float time
-                                  })
-                               peer_list) in
+(fun (i,p,tm) ->
+  let time = match tm with None -> 0. | Some a -> (fst (Unix.mktime a)) in
+  {
+    address = i;
+    port = p;
+    last_seen = int_of_float time
+  })
+peer_list) in
   let p2p = {
     server= None;
     port = p;
