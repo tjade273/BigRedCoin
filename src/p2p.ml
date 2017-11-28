@@ -6,7 +6,7 @@ let c_MAX_CONNECTIONS = 1024
 
 type log_level =
   | DEBUG
-  | INFO
+  | SILENT
 
 let data_preamble = {
   method_ = Manage;
@@ -722,7 +722,7 @@ let create_from_list ?port:(p=4000) peer_list =
     data_connections = (ConnTbl.create 20);
     peer_sync_connections = ConnTbl.create 20;    
     peer_file = "nodes/brc" ^ (string_of_int p) ^ ".peers";
-    log_level = DEBUG;
+    log_level = SILENT;
     enabled = true
   } in
   let%lwt server = start_server p2p in
@@ -742,7 +742,7 @@ let create ?port:(p=4000) f =
     data_connections = (ConnTbl.create 20);
     known_peers= peers;
     peer_file = f;
-    log_level = DEBUG;
+    log_level = SILENT;
     enabled = true;
   } in
   let%lwt server = start_server p2p in

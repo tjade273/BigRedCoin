@@ -3,7 +3,7 @@ open Lwt_io
 
 type log_level = 
   | DEBUG
-  | INFO
+  | SILENT
 
 module type Message_channel = sig
   (* The type of an input message channel. *)
