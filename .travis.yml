@@ -1,28 +1,12 @@
 language: c
-script: bash -ex travis-ci.sh
-env:
-  global:
-    - CODECOV_TOKEN=e4c1607f-d6ac-48d8-97f6-c6761d8a434b
-  matrix:
-    - OCAML_VERSION=4.05 OPAM_VERSION=1.2.2 INSTALL=false PACKAGE=big_red_coin
+sudo: required
+before_install:
+  - sudo add-apt-repository ppa:tah83/secp256k1 -y
+  - sudo apt-get update -q
 
+install: wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-opam.sh
+script: bash -ex .travis-opam.sh
+env:
+  - OCAML_VERSION=4.05 TESTS=false
 os:
   - linux
-
-sudo: false
-
-cache:
-  directories:
-    $HOME/.opam
-
-addons:
-  apt:
-    sources:
-      - avsm
-    packages:
-      - ocaml
-      - opam
-      - jq
-      - libleveldb-dev
-      - libsnappy-dev
-

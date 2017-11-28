@@ -32,7 +32,8 @@ module ECDSA : sig
    * address [addr] using secp256k1 with SHA256. *)
   val verify : string -> string -> signature -> bool
 
-  (* [to_address pkey] is the hex-encoded address derived from [pkey] *)
+  (* [to_address pkey] is the hex-encoded address derived from [pkey]
+   * The address is the sha256 hash of the first 20 bytes of the public key *)
   val to_address : pubkey -> string
 
   (* [string_of_sig s] is the serialization of the signature [s] as a string *)

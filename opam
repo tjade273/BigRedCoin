@@ -7,17 +7,17 @@ homepage: "https://github.com/tjade273/BigRedCoin"
 dev-repo: "https://github.com/tjade273/BigRedCoin"
 bug-reports: "https://github.com/tjade273/BigRedCoin"
 build: [
-  "make"
+  make
 ]
 depends: [
-  "ocamlfind" {build}
-  "ocaml-protoc" {build}
-  "lwt" {build}
-  "leveldb" {build}
-  "nocrypto" {build}
-  "yojson" {build}
-  "secp256k1" {build}
-  "hex" {build}
-  "scrypt-kdf" {build}
-  "ounit" {test}
+  "ocamlfind"
+  "ocaml-protoc"
+  "lwt"
+  "leveldb"
+  "nocrypto"
+  "yojson"
+  "secp256k1" {= "0.3.1"}
+  "hex"
+  "scrypt-kdf" {= "0.4.0"}
+  "ounit"
 ]

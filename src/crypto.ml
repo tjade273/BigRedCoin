@@ -30,12 +30,19 @@ module ECDSA = struct
 
   let to_address pubkey =
     let pubkey_hash = pubkey
-                      |> Secp256k1.Public.to_bytes context
+                      |> Secp256k1.Public.to_bytes ~compress:false context
                       |> Cstruct.of_bigarray
+                      |> fun s -> Cstruct.shift s 1
                       |> Nocrypto.Hash.SHA256.digest
     in
     let (addr, _) = Cstruct.split pubkey_hash 20 in
-    Cstruct.to_string addr
+    Hex.of_cstruct addr |> Hex.show
+
+  let create () =
+    let prv = Nocrypto.Rng.generate 32 |> Cstruct.to_bigarray in
+    let secret = Secret.of_bytes_exn context prv in
+    let public = Public.of_secret context secret in
+    (public, secret)
 
   let create () =
     let prv = Nocrypto.Rng.generate 32 |> Cstruct.to_bigarray in
@@ -44,7 +51,7 @@ module ECDSA = struct
     (public, secret)
 
   let of_hex s =
-    let buf = s |> Hex.of_string |> Hex.to_cstruct |> Cstruct.to_bigarray in
+    let buf = `Hex s |> Hex.to_cstruct |> Cstruct.to_bigarray in
     let privkey = Secret.of_bytes_exn context buf in
     let pubkey = Public.of_secret context privkey in
     (pubkey, privkey)
@@ -62,7 +69,8 @@ module ECDSA = struct
 
   let string_of_sig s =
     let (s, v) = RecoverableSign.to_compact context s in
-    let buf = Cstruct.add_len (Cstruct.of_bigarray s) 1 in
+    let buf = Cstruct.create 65 in
+    Cstruct.blit (Cstruct.of_bigarray s) 0 buf 0 64;
     Cstruct.set_uint8 buf 64 v; Cstruct.to_string buf
 
   let sig_of_string s =
@@ -91,7 +99,7 @@ module AES = struct
       let iv = Util.member "IV" json |> from_hex in
       let salt = Util.member "salt" json |> from_hex in
       let ciphertext = Util.member "private key" json |> from_hex in
-      if Cstruct.len iv = 32 &&
+      if Cstruct.len iv = 16 &&
          Cstruct.len salt = 32 &&
          String.length address = 40
       then Some {address; iv; salt; ciphertext} else None
@@ -130,7 +138,7 @@ module AES = struct
   let encrypt (pubkey, privkey) pswd =
     let salt = Nocrypto.Rng.generate 32 in
     let stretched = scrypt salt pswd in
-    let iv = Nocrypto.Rng.generate 32 in
+    let iv = Nocrypto.Rng.generate 16 in
     let plaintext = Secp256k1.Secret.to_bytes privkey |> Cstruct.of_bigarray in
     let address = ECDSA.to_address pubkey in
     let ciphertext = encrypt ~key:(of_secret stretched) ~iv:iv plaintext in

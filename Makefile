@@ -1,10 +1,12 @@
+.PHONY: all test clean
+
 all: test
 
-secp256k1/Makefile: secp256k1/autogen.sh
-	cd secp256k1 && ./autogen.sh && ./configure
+src/message_pb.ml:
+	cd src && ocaml-protoc -binary -int32_type int_t -int64_type int_t -ml_out . message.proto
 
-build_libs: secp256k1/Makefile
-	$(MAKE) -C ./secp256k1
+test: src/message_pb.ml
+	ocamlbuild -use-ocamlfind run_tests.byte && ./run_tests.byte
 
-test: build_libs
-	ocamlbuild -use-ocamlfind crypto_test.byte && ./crypto_test.byte
+clean:
+	rm -rf _build *.native *.byte
