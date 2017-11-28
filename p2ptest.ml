@@ -56,7 +56,7 @@ let message_check_thread node =
 
 let close_all (node_lst:P2p.t array) = 
   Array.fold_left (fun acc node -> 
-      (P2p.shutdown node)<&>acc) Lwt.return_unit node_lst 
+      (P2p.shutdown ~save:false node)<&>acc) Lwt.return_unit node_lst 
 
 let rec create_n_linked_nodes ?start_port:(start_port=4000) n =
   let rec create_nodes_rec p lst =
@@ -101,7 +101,7 @@ let messaging_tests = suite "messaging tests" [
     end;
 
     test "simple_message_back_forth" begin fun () -> 
-      let%lwt node_a = P2p.create ~port:4443 "nodes/node_a.peers" in
+      let%lwt node_a = P2p.create ~port:4444 "nodes/node_a.peers" in
       let%lwt node_b = P2p.create ~port:4445 "nodes/node_b.peers" in
       P2p.broadcast data_preamble node_b  >> 
       P2p.broadcast simple_data_msg node_b >>
@@ -146,8 +146,7 @@ let messaging_tests = suite "messaging tests" [
 
     test "peer_sync_test_explicit" begin fun () ->
       let%lwt nodes = create_n_linked_nodes ~start_port:4000 2 in
-      P2p.set_log_level nodes.(1) P2p.INFO;      
-      Lwt_unix.sleep 20. >> 
+      Lwt_unix.sleep 8. >> 
       let string_sort e1 e2 = 
         if e1 < e2 then (~-1) else if e1 > e2 then 1 else 0 in
       let known_peers_b = List.sort string_sort
@@ -159,9 +158,11 @@ let messaging_tests = suite "messaging tests" [
           "127.0.0.1:4000"])
     end;
 
+    (*TODO Rewrite this test to use temp peer files*)
     test "peer_sync_test_share" begin fun () ->
       let%lwt node_a = P2p.create ~port:4443 "nodes/node_a.peers" in
       let%lwt node_b = P2p.create ~port:4445 "nodes/node_b.peers" in 
+      P2p.set_log_level node_b P2p.DEBUG;
       Lwt_unix.sleep 8. >> 
       let string_sort e1 e2 = 
         if e1 < e2 then (~-1) else if e1 > e2 then 1 else 0 in
@@ -176,7 +177,4 @@ let messaging_tests = suite "messaging tests" [
 
   ]
 
-
-let suites = suites @ [messaging_tests]
-
-let () = Test.run "all_test" suites
+let tests = suites @ [messaging_tests]

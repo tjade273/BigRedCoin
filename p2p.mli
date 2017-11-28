@@ -91,11 +91,11 @@ val server_port : t -> int
 
 (* [(p2p,conn) @<> f] is syntactic sugar for [handle f p2p conn]. *)
 val (@<>) : (t*BRCPeer.peer_connection) -> (BRCPeer.peer_connection ->
-                                            (bool*('a Lwt.t)) Lwt.t) -> 'a Lwt.t
+                (bool*('a Lwt.t)) Lwt.t) -> 'a Lwt.t
 
 (* [shutdown p2p] shuts down the given [p2p] node by closing all its connections,
  * saving the updated list of known peers to file, and shuting down the server. *)
-val shutdown : t -> unit Lwt.t
+val shutdown : ?save:bool -> t -> unit Lwt.t
 
 (*[set_log_level p2p level] set the log level of a p2p instance to [level]*)
 val set_log_level : t -> log_level -> unit

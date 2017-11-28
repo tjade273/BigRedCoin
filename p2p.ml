@@ -287,8 +287,8 @@ let set_log_level p2p level =
 let log (msg:string) p2p =
   let msg = ((id p2p) ^ ": " ^ msg) in
   match p2p.log_level with
-  | DEBUG -> Lwt_log.debug msg
-  | _ ->  Lwt_log.notice msg
+  | DEBUG -> Lwt_log.info msg
+  | _ ->  Lwt_log.debug msg
 
 (* [is_conn_open addr p2p] is true iff there is an open connection to the given
  * address [addr] in the given [p2p] node *)
@@ -317,22 +317,21 @@ let close_sync_peer_connection p2p (peer:peer_connection) =
 (* [handle f p2p conn] adds a connection tow the [handled_connections table]
  * and handles the conneuction using [f]. Connections currently being handled
  * will not be exposed via the peer stream. *)
-let handle_data_peer f p2p conn  =
+let handle close_func f p2p conn = 
   Hashtbl.add p2p.handled_connections (str conn) conn;
   let%lwt (close,res) = f conn in
-  if close then close_data_peer_connection p2p conn >> res
+  if close then close_func p2p conn >> res
   else remove_handle_connection conn p2p >> res
 
-let handle_sync_peer f p2p conn  =
-  Hashtbl.add p2p.handled_connections (str conn) conn;
-  let%lwt (close,res) = f conn in
-  if close then close_sync_peer_connection p2p conn >> res
-  else remove_handle_connection conn p2p >> res
+let handle_data_peer f p2p conn=
+  handle close_data_peer_connection f p2p conn
+
+let handle_sync_peer  =
+  handle close_sync_peer_connection
 
 (* [@<>] operator for [handle]]*)
 let (@<>) (p2p,conn) f =
   handle_data_peer f p2p conn
-
 (* [add_new_peer (addr,port) p2p] adds a peer with given [addr] and [port] to
  * the list of known peers of the [p2p] node *)
 let add_new_peer (addr,port) p2p =
@@ -712,13 +711,13 @@ let rec do_peer_sync p2p () =
 let create_from_list ?port:(p=4000) peer_list =
   Lwt.async_exception_hook := handle_async_exception;
   let peers = Array.of_list (List.map
-(fun (i,p,tm) ->
-  let time = match tm with None -> 0. | Some a -> (fst (Unix.mktime a)) in
-  {
-    address = i;
-    port = p;
-    last_seen = int_of_float time
-  })
+  (fun (i,p,tm) ->
+    let time = match tm with None -> 0. | Some a -> (fst (Unix.mktime a)) in
+    {
+      address = i;
+      port = p;
+      last_seen = int_of_float time
+    })
 peer_list) in
   let p2p = {
     server= None;
@@ -757,10 +756,13 @@ let create ?port:(p=4000) f =
   Lwt.async(do_peer_sync p2p); (*Start peer sync background thread*)
   Lwt.return p2p 
 
-let shutdown p2p =
+let shutdown ?save:(save=true) p2p =
   Hashtbl.fold (fun _ a _ ->
       ignore ( (close_data_peer_connection p2p a) >> close_sync_peer_connection p2p a)) (p2p.connections) ();
-  save_peers p2p.peer_file p2p >>
+  if save then 
+    save_peers p2p.peer_file p2p
+  else Lwt.return_unit 
+  >>
   match p2p.server with
   | Some server -> p2p.enabled <- false; log ("Shutting down....") p2p >>      
     Lwt_io.shutdown_server server 
