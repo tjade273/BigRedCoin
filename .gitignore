@@ -1,5 +1,9 @@
 _build/*
+<<<<<<< HEAD
 Makefile
 *.byte
 nodes/brc*.peers
 brc*.peers
+=======
+*.byte
+>>>>>>> master

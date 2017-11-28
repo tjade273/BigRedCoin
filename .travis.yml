@@ -1,0 +1,12 @@
+language: c
+sudo: required
+before_install:
+  - sudo add-apt-repository ppa:tah83/secp256k1 -y
+  - sudo apt-get update -q
+
+install: wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-opam.sh
+script: bash -ex .travis-opam.sh
+env:
+  - OCAML_VERSION=4.05 TESTS=false
+os:
+  - linux

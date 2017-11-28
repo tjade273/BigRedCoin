@@ -1,6 +1,13 @@
+<<<<<<< HEAD
 B _build
 PKG lwt
 PKG lwt.ppx
 PKG ocaml-protoc
 PKG oUnit
 PKG csv-lwt
+=======
+PKG lwt secp256k1 cryptokit scrypt-kdf hex yojson oUnit
+B _build
+S src
+S test
+>>>>>>> master
