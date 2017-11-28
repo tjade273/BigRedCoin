@@ -1,4 +1,4 @@
-true: package(lwt), package(ocaml-protoc), package(cstruct), package(hex), package(nocrypto), package(nocrypto.unix), package(secp256k1), package(yojson), package(scrypt-kdf)
+true: package(lwt), package(ocaml-protoc), package(cstruct), package(hex), package(nocrypto), package(nocrypto.unix), package(secp256k1), package(yojson), package(scrypt-kdf), package(leveldb), package(lwt.unix), thread, package(lwt.preemptive), package(lwt.ppx)
 "src": include
 "test": include
 <test/*>: package(oUnit)

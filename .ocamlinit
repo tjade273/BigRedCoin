@@ -14,3 +14,4 @@ let () =
 #require "scrypt-kdf";;
 #require "hex";;
 #require "yojson";;
+#require "lwt";;
