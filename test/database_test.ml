@@ -1,9 +1,8 @@
-let suites : Test.suite list = []
-open Test
-open Database
+let suites : Lwt_test.suite list = []
+open Lwt_test
 
-let test name f
-  Test.test name (fun () ->
+let test name f =
+  Lwt_test.test name (fun () ->
     Lwt_log.notice("Starting Test: "^ name) >>
     let%lwt result = f () in
     Lwt_log.notice("Finished Test: "^name^"\n")
@@ -22,11 +21,14 @@ module StringValue = struct
 
 end
 
-let db1 = Database.create "test1"
+module StringDB = Database.Make(StringValue)
+open StringDB
+
+let db1 = create "test1.db"
 
 let value1 = "value1"
 
-let database_tests = sutie "database tests" [
+let database_tests = suite "database tests" [
   
   test "write_and_read" begin fun () ->
     put db1 value1;
@@ -36,6 +38,6 @@ let database_tests = sutie "database tests" [
     
 ]
 
-let suites = suites @ [database_tests]
+let tests = suites @ [database_tests]
 
-let () = Test.run "all_test" suites
+let () = Lwt_test.run "all_test" suites
