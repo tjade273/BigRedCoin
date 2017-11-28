@@ -71,7 +71,7 @@ let database_tests = suite "database tests" [
   test "make_second_database" begin fun () ->
     Lwt.catch begin
       fun () -> (
-        let db2 = create db1location in
+        ignore(create db1location);
         Lwt.return false
       )
     end (fun exn -> Lwt.return true)
