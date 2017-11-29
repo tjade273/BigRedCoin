@@ -38,15 +38,16 @@ module ECDSA = struct
     let (addr, _) = Cstruct.split pubkey_hash 20 in
     Hex.of_cstruct addr |> Hex.show
 
-  let create () =
+  let rec create () =
     let prv = Nocrypto.Rng.generate 32 |> Cstruct.to_bigarray in
-    let secret = Secret.of_bytes_exn context prv in
-    let public = Public.of_secret context secret in
-    (public, secret)
+    let secret = Secret.read context prv in
+    match secret with
+    | None -> create ()
+    | Some s -> (Public.of_secret context s, s)
 
   let of_hex s =
     let buf = `Hex s |> Hex.to_cstruct |> Cstruct.to_bigarray in
-    let privkey = Secret.of_bytes_exn context buf in
+    let privkey = Secret.read_exn context buf in
     let pubkey = Public.of_secret context privkey in
     (pubkey, privkey)
 
@@ -54,7 +55,7 @@ module ECDSA = struct
     RecoverableSign.sign context ~seckey:priv (hash_msg msg)
 
   let recover msg signature =
-    Some(RecoverableSign.recover context signature (hash_msg msg))
+    RecoverableSign.recover context signature (hash_msg msg)
 
   let verify address msg signature =
     match recover msg signature with
@@ -71,8 +72,10 @@ module ECDSA = struct
     try
       let b = Cstruct.of_string s in
       let v = Cstruct.get_uint8 b 64 in
-      RecoverableSign.of_compact ~recid:v context (Cstruct.to_bigarray b)
-    with Invalid_argument _ -> None
+      if v >= 0 && v <= 3 then
+        RecoverableSign.of_compact ~recid:v context (Cstruct.to_bigarray b)
+      else None
+    with Invalid_argument _ | Unix.Unix_error _ -> None
 end
 
 module AES = struct
@@ -122,7 +125,7 @@ module AES = struct
     let key = of_secret stretched in
     let plaintext= decrypt ~key:key ~iv:iv ciphertext |> Cstruct.to_bigarray in
     try
-      let privkey = Secp256k1.Secret.of_bytes_exn context plaintext in
+      let privkey = Secp256k1.Secret.read_exn context plaintext in
       let pubkey = Secp256k1.Public.of_secret context privkey in
       if ECDSA.to_address pubkey = address
       then Some (pubkey, privkey)

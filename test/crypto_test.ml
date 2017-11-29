@@ -21,7 +21,11 @@ let ecdsa_tests =
     "fake_msg" >:: (fun _ -> assert_bool "Fake signature"  @@ not (ECDSA.verify (ECDSA.to_address pubkey) "hello world" (ECDSA.sign (pubkey,privkey) "it's a trap!")));
     "hex" >:: (fun _ -> assert_equal hexpub (ECDSA.to_address (ECDSA.of_hex hexpriv |> fst)));
     "toaddr" >:: (fun _ -> assert_equal hexaddr (ECDSA.to_address (fst @@ ECDSA.of_hex hexpriv)));
-    "sig_string" >:: (fun _ -> assert_equal ~cmp:cmp_sig testsig (testsig |> ECDSA.string_of_sig |> ECDSA.sig_of_string |> opt_exn))
+    "sig_string" >:: (fun _ -> assert_equal ~cmp:cmp_sig testsig (testsig |> ECDSA.string_of_sig |> ECDSA.sig_of_string |> opt_exn));
+    "bad_sig" >:: (fun _ -> assert_equal None (ECDSA.sig_of_string (String.make 65 '\xab')));
+    "short_sig" >:: (fun _ -> assert_equal None (ECDSA.sig_of_string (String.make 60 '\xab')));
+    "zero_prv" >:: (fun _ -> assert_raises (Failure "Secret.of_bytes_exn") (fun () -> ECDSA.of_hex (String.make 64 '0')));
+    "large_prv" >:: (fun _ -> assert_raises (Failure "Secret.of_bytes_exn") (fun () -> ECDSA.of_hex (String.make 64 'F')));
   ]
 
 
