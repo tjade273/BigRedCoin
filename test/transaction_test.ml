@@ -19,7 +19,7 @@ let sig_1 = Crypto.ECDSA.sign (pub,priv) (serialize_transaction tx_1)
 
 let addr_1 = Crypto.ECDSA.to_address pub
 
-let merkle = (Crypto.sha256 (serialize_transaction tx_1)) ^ (Crypto.sha256 (serialize_transaction tx_2)) |> Crypto.sha256
+let merkle = txid tx_1 ^ txid tx_2 |> Crypto.sha256
 
 let hex_printer s = Hex.of_string s |> Hex.show
 

@@ -56,8 +56,7 @@ let signers ({outs; ins; sigs} as t) =
   with _ -> None
 
 let merkle_root txs =
-  let sha tx = Crypto.sha256 (serialize_transaction tx) in
-  let tx_hashes = List.map sha txs in
+  let tx_hashes = List.map txid txs in
   let rec pair = function
     | [] -> []
     | x :: [] -> Crypto.sha256(x^x)::[]
