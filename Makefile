@@ -10,3 +10,6 @@ test: src/message_pb.ml
 
 clean:
 	rm -rf _build *.native *.byte *.db 
+	
+repl:
+	ocamlbuild -use-ocamlfind brc_repl.byte && ./brc_repl.byte
