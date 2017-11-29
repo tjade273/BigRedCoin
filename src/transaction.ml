@@ -6,13 +6,13 @@ type output = {
 
 type input = {
   txid : string;
-  out_index : int;
+  out_index : int
 }
 
 type transaction = {
   outs : output list;
   ins : input list;
-  sigs : string list;
+  sigs : string list option
 }
 
 let serialize_output {amount; address} =
@@ -37,11 +37,14 @@ let txid tx =
   Crypto.sha256 s
 
 let signers ({outs; ins; sigs} as t) =
+  match sigs with
+  | None -> None
+  | Some s ->
   try
     let force f = function Some x -> f x | None -> invalid_arg "None" in
     let msg = serialize_transaction t in
-    let sigs = List.map (Crypto.ECDSA.sig_of_string) sigs in
-    let addrs = List.map (force (Crypto.ECDSA.recover msg)) sigs in
+    let rec_sigs = List.map (Crypto.ECDSA.sig_of_string) s in
+    let addrs = List.map (force (Crypto.ECDSA.recover msg)) rec_sigs in
     Some (List.map (force Crypto.ECDSA.to_address) addrs)
   with _ -> None
 

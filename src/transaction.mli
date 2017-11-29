@@ -21,7 +21,7 @@ type input = {
 type transaction = {
   outs : output list;
   ins : input list;
-  sigs : string list
+  sigs : string list option
 }
 
 (* [serialize_output o] is a simple deterministic encoding of [o] as a string *)
