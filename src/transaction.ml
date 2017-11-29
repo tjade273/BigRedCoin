@@ -9,38 +9,45 @@ type input = {
   out_index : int
 }
 
-type transaction = {
+type t = {
   outs : output list;
   ins : input list;
   sigs : string list option
 }
 
-let serialize_output {amount; address} =
-  let buffer = Cstruct.create 28 in
-  Cstruct.LE.set_uint64 buffer 0 (Int64.of_int amount);
-  Cstruct.blit_from_string address 0 buffer 8 20;
-  Cstruct.to_string buffer
-
-let serialize_input {txid; out_index} =
-  let buffer = Cstruct.create 36 in
-  Cstruct.blit_from_string txid 0 buffer 0 32;
-  Cstruct.LE.set_uint32 buffer 32 (Int32.of_int out_index);
-  Cstruct.to_string buffer
-
-let serialize_transaction {outs; ins; _} =
-  let encode_int i =
-    let buf = Cstruct.create 4 in
-    Cstruct.LE.set_uint32 buf 0 (Int32.of_int i);
-    Cstruct.to_string buf
+let serialize {outs; ins; _} =
+  let outs = List.map (
+      fun {amount; address} ->
+        Message_types.({address = Bytes.of_string address; amount})
+    ) outs
   in
-  let out_s = List.map serialize_output outs in
-  let in_s = List.map serialize_input ins in
-  let out_count = encode_int (List.length ins) in
-  let in_ount = encode_int (List.length outs) in
-  List.fold_left (^) "" ((out_count::out_s) @ (in_ount::in_s))
+  let ins = List.map (
+      fun {txid; out_index} ->
+        Message_types.({txid = Bytes.of_string txid; out_index})
+    ) ins
+  in
+  let tx = Message_types.({outs; ins; sigs=[]}) in
+  let encoder = Pbrt.Encoder.create () in
+  Message_pb.encode_transaction tx encoder;
+  Pbrt.Encoder.to_bytes encoder
 
-let txid tx =
-  let s = serialize_transaction tx in
+let deserialize s =
+  let decoder = Pbrt.Decoder.of_bytes s in
+  let {Message_types.outs; ins; _} = Message_pb.decode_transaction decoder in
+  let outs = List.map (
+      fun {Message_types.amount; address} ->
+        ({address = Bytes.to_string address; amount})
+    ) outs
+  in
+  let ins = List.map (
+      fun {Message_types.txid; out_index} ->
+        ({txid = Bytes.to_string txid; out_index})
+    ) ins
+  in
+  {outs; ins; sigs = None}
+
+let hash tx =
+  let s = serialize tx in
   Crypto.sha256 s
 
 let signers ({outs; ins; sigs} as t) =
@@ -49,14 +56,14 @@ let signers ({outs; ins; sigs} as t) =
   | Some s ->
   try
     let force f = function Some x -> f x | None -> invalid_arg "None" in
-    let msg = serialize_transaction t in
+    let msg = serialize t in
     let rec_sigs = List.map (Crypto.ECDSA.sig_of_string) s in
     let addrs = List.map (force (Crypto.ECDSA.recover msg)) rec_sigs in
     Some (List.map (force Crypto.ECDSA.to_address) addrs)
   with _ -> None
 
 let merkle_root txs =
-  let tx_hashes = List.map txid txs in
+  let tx_hashes = List.map hash txs in
   let rec pair = function
     | [] -> []
     | x :: [] -> Crypto.sha256(x^x)::[]
