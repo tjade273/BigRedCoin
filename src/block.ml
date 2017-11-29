@@ -1,3 +1,6 @@
+let TARGET_BLOCK_TIME = 30
+let BLOCKS_PER_RECALCULATION = 2016
+
 type header = {
   version : int;
   prev_hash : string;
@@ -13,6 +16,7 @@ type block = {
   transactions_count : int
 }
 
+(* Based on the bitcoin developer reference. *)
 let target nbits =
   if (nbits < 0) then 
     "0x000000000000000000000000000000000000000000000000"
@@ -21,10 +25,16 @@ let target nbits =
     let zeros = String.make (nbits/24) '0'
     "0x" ^ significant ^ zeros
 
-(* [difficulty nbits] is the "reciprocal" of the target, a measure of the 
- * proportion of the maximum possible difficulty. *)
-val difficulty : int -> int
+(* Based on the algorithm from the bitcoin wiki. *)
+let difficulty nbits = 
+  let b = log10 (0x00ffff) in
+  let s = log10 256.0 in
+  10.0**(b-.log10 (land 0x00ffffff nbits) + 
+         .s*.(float_of_int (0x1d-.(lsr (land nbits 0xff000000) 24))))
 
-(* [next_target header] is the compressed form of the target for the next block,
- * given the timestamp and difficulty of the previous block. *)
-val next_difficulty : header -> int
+(* Based on the bitcoin difficulty update scheme. *)
+let next_difficulty header =
+  let t = float_of_int (TARGET_BLOCK_TIME*BLOCKS_PER_RECALCULATION)
+  let f_nbits = float_of_int header.nbits in
+  let next_t = f_nbits *. (float_of_int (Unix.time - header.timestamp)/.t in
+  if next_t < 4 then next_t else 4
