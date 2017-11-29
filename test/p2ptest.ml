@@ -22,7 +22,7 @@ let test name f =
       Lwt_log.notice("Starting Test: "^ name) >>
       let%lwt result = f () in
       Lwt_log.notice("Finished Test: "^name^ "\n") 
-      >> Lwt.return result    
+      >>  Lwt_unix.sleep 0.001 >>Lwt.return result    
     )
 let peer_preable = 
   {method_=(Message_types.Manage);
@@ -50,9 +50,9 @@ let message_check_thread node =
   | Some peer -> 
     (node,peer) @<> (fun peer ->
         (match%lwt BRCMessage_channel.read (BRCPeer.ic peer) with
-         | Some msg -> Lwt.return (true,Lwt.return true)
-         | None -> Lwt.return (true,Lwt.return false))) 
-  |None -> Lwt.return_false 
+         | Some msg ->  Lwt.return (true,Lwt.return true)
+         | None -> Lwt_log.notice "No message" >> Lwt.return (true,Lwt.return false))) 
+  |None -> Lwt_log.notice "No peer" >> Lwt.return_false 
 
 let close_all (node_lst:P2p.t array) = 
   Array.fold_left (fun acc node -> 
@@ -83,10 +83,29 @@ let messaging_tests = suite "messaging tests" [
       | _ -> Lwt.return false
     end;
 
-    test "simple_message_peer_list" begin fun () -> 
+    test "test_random_connection_failed" begin fun () -> 
+      let%lwt nodes = create_n_linked_nodes ~start_port:4000 1 in
+      let peer_opt = Lwt_stream.get (P2p.peer_stream nodes.(0)) in
+      let%lwt check_connection =
+        match%lwt peer_opt with
+        | Some peer -> Lwt.return false
+        | None -> Lwt.return true;
+      in close_all nodes >> Lwt.return check_connection
+    end;
+
+    test "test_random_connection_passed" begin fun () -> 
+    let%lwt nodes = create_n_linked_nodes ~start_port:4000 2 in
+    let peer_opt = Lwt_stream.get (P2p.peer_stream nodes.(1)) in
+    let%lwt check_connection =
+      match%lwt peer_opt with
+      | Some peer -> Lwt.return true
+      | None -> Lwt.return false;
+    in close_all nodes >> Lwt.return check_connection
+  end;
+
+   test "simple_message_peer_list" begin fun () -> 
       let%lwt nodes = create_n_linked_nodes ~start_port:4000 2 in
-      P2p.broadcast data_preamble nodes.(1) >>
-      P2p.broadcast simple_data_msg nodes.(1) >>
+      P2p.broadcast simple_data_msg nodes.(1) >> 
       let%lwt check_message = message_check_thread nodes.(0)      
       in close_all nodes >> Lwt.return check_message
     end;
@@ -94,19 +113,16 @@ let messaging_tests = suite "messaging tests" [
     test "simple_message_peer_file" begin fun () -> 
       let%lwt node_a = P2p.create ~port:4444 "nodes/node_a.peers" in
       let%lwt node_b = P2p.create ~port:4445 "nodes/node_b.peers" in
-      P2p.broadcast data_preamble node_b  >> 
       P2p.broadcast simple_data_msg node_b >>
       let%lwt check_message = message_check_thread node_a
       in close_all [|node_a;node_b|] >> Lwt.return (check_message)
     end;
 
     test "simple_message_back_forth" begin fun () -> 
-      let%lwt node_a = P2p.create ~port:4444 "nodes/node_a.peers" in
-      let%lwt node_b = P2p.create ~port:4445 "nodes/node_b.peers" in
-      P2p.broadcast data_preamble node_b  >> 
+      let%lwt node_a = P2p.create ~peer_share:false ~port:4444 "nodes/node_a.peers" in
+      let%lwt node_b = P2p.create ~peer_share:false ~port:4445 "nodes/node_b.peers" in
       P2p.broadcast simple_data_msg node_b >>
       let%lwt check_message_1 = message_check_thread node_a in       
-      P2p.broadcast data_preamble node_a  >> 
       P2p.broadcast simple_data_msg node_a >>
       let%lwt check_message_2 = message_check_thread node_b  
       in close_all [|node_a;node_b|] >> Lwt.return (check_message_1 && check_message_2)
@@ -116,37 +132,15 @@ let messaging_tests = suite "messaging tests" [
       let%lwt node_a = P2p.create ~port:4444 "nodes/node_a.peers" in
       let%lwt node_b = P2p.create ~port:4445 "nodes/node_b.peers" in
       let%lwt node_c = P2p.create ~port:4446 "nodes/node_c.peers" in
-      P2p.broadcast data_preamble node_b  >> 
       P2p.broadcast simple_data_msg node_b >>
       let%lwt check_message_1 = message_check_thread node_a in 
       let%lwt check_message_2 = message_check_thread node_c in
       close_all [|node_a; node_b; node_c|] >> Lwt.return (check_message_1 && check_message_2)
     end;
 
-    test "test_connect_random" begin fun () ->
-      let%lwt nodes = create_n_linked_nodes ~start_port:5000 2 in
-      let peer_opt = Lwt_stream.get (P2p.peer_stream nodes.(1)) in
-      let%lwt check_connection =
-        match%lwt peer_opt with
-        | Some peer -> Lwt.return true
-        | None -> Lwt.return false;
-      in 
-      close_all nodes >> Lwt.return check_connection
-    end;
-
-    test "test_random_connection_failed" begin fun () -> 
-      let%lwt nodes = create_n_linked_nodes ~start_port:4000 2 in
-      let peer_opt = Lwt_stream.get (P2p.peer_stream nodes.(0)) in
-      let%lwt check_connection =
-        match%lwt peer_opt with
-        | Some peer -> Lwt.return false
-        | None -> Lwt.return true;
-      in close_all nodes >> Lwt.return check_connection
-    end;
-
     test "peer_sync_test_explicit" begin fun () ->
       let%lwt nodes = create_n_linked_nodes ~start_port:4000 2 in
-      Lwt_unix.sleep 8. >> 
+      Lwt_unix.sleep 10. >> 
       let string_sort e1 e2 = 
         if e1 < e2 then (~-1) else if e1 > e2 then 1 else 0 in
       let known_peers_b = List.sort string_sort
@@ -154,14 +148,14 @@ let messaging_tests = suite "messaging tests" [
       in 
       close_all nodes >> Lwt.return 
         (known_peers_b = 
-        ["127.0.0.1:3999";
+         ["127.0.0.1:3999";
           "127.0.0.1:4000"])
     end;
 
-    test "peer_sync_test_share" begin fun () ->
+    (*test "peer_sync_test_share" begin fun () ->
       let%lwt node_a = P2p.create ~port:4443 "nodes/node_a.peers" in
       let%lwt node_b = P2p.create ~port:4445 "nodes/node_b.peers" in 
-      Lwt_unix.sleep 8. >> 
+      Lwt_unix.sleep 10. >> 
       let string_sort e1 e2 = 
         if e1 < e2 then (~-1) else if e1 > e2 then 1 else 0 in
       let known_peers_a = List.sort string_sort
@@ -171,7 +165,7 @@ let messaging_tests = suite "messaging tests" [
           (List.map (fun peer -> (BRCPeer.s_addr peer)) (P2p.known_peers node_b))  
       in  
       close_all [|node_a; node_b|] >> Lwt.return (known_peers_a = known_peers_b)
-    end;
+    end;*)
 
   ]
 

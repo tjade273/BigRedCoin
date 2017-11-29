@@ -16,7 +16,7 @@ module type Message_channel = sig
   val write : output -> Message_types.message -> int Lwt.t
 
   (* [read ic] reads a message from the given input channel [ic]. *)
-  val read : input -> Message_types.message option Lwt.t
+  val read : ?timeout:float -> input -> Message_types.message option Lwt.t
 
   (* [close_in ic] closes the given input channel [ic]. *)
   val close_in : input -> unit Lwt.t
@@ -75,11 +75,11 @@ val broadcast : Message_types.message -> t -> unit Lwt.t
 
 (* [create p f] makes a p2p node with the port [p] and the a list of peers
  * in the file with name [f]. *)
-val create : ?port:int -> string -> t Lwt.t
+val create : ?peer_share:bool -> ?port:int -> string -> t Lwt.t
 
 (* [create_from_list p peers] makes a p2p node with port [p] and the list of
  * [peers] *)
-val create_from_list : ?port:int -> (string * int * (Unix.tm option)) list
+val create_from_list : ?peer_share:bool -> ?port:int -> (string * int * (Unix.tm option)) list
   -> t Lwt.t
 
 (* [peer_stream p2p] is a stream of peers of [t]. Elements of the stream are
