@@ -1,10 +1,10 @@
 open Lwt
 open Message_types
 open P2p
+open Lwt_test
 
-let suites : Test.suite list = []
+let suites : Lwt_test.suite list = []
 
-open Test
 
 let data_preamble = {
   method_= Manage;
@@ -18,7 +18,7 @@ let data_preamble = {
 }
 
 let test name f = 
-  Test.test name (fun () -> 
+  Lwt_test.test name (fun () -> 
       Lwt_log.notice("Starting Test: "^ name) >>
       let%lwt result = f () in
       Lwt_log.notice("Finished Test: "^name^ "\n") 
@@ -140,7 +140,7 @@ let messaging_tests = suite "messaging tests" [
 
     test "peer_sync_test_explicit" begin fun () ->
       let%lwt nodes = create_n_linked_nodes ~start_port:4000 2 in
-      Lwt_unix.sleep 10. >> 
+      Lwt_unix.sleep 20. >> 
       let string_sort e1 e2 = 
         if e1 < e2 then (~-1) else if e1 > e2 then 1 else 0 in
       let known_peers_b = List.sort string_sort
@@ -152,10 +152,10 @@ let messaging_tests = suite "messaging tests" [
           "127.0.0.1:4000"])
     end;
 
-    (*test "peer_sync_test_share" begin fun () ->
+    test "peer_sync_test_share" begin fun () ->
       let%lwt node_a = P2p.create ~port:4443 "nodes/node_a.peers" in
       let%lwt node_b = P2p.create ~port:4445 "nodes/node_b.peers" in 
-      Lwt_unix.sleep 10. >> 
+      Lwt_unix.sleep 20. >> 
       let string_sort e1 e2 = 
         if e1 < e2 then (~-1) else if e1 > e2 then 1 else 0 in
       let known_peers_a = List.sort string_sort
@@ -165,9 +165,9 @@ let messaging_tests = suite "messaging tests" [
           (List.map (fun peer -> (BRCPeer.s_addr peer)) (P2p.known_peers node_b))  
       in  
       close_all [|node_a; node_b|] >> Lwt.return (known_peers_a = known_peers_b)
-    end;*)
+    end;
 
   ]
 
 let tests = suites @ [messaging_tests]
-let () = Test.run "all_tests" tests
+let () = Lwt_test.run "all_tests" tests

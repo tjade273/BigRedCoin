@@ -38,8 +38,8 @@ message Block {
 
 message Peer {
     required string address = 1;
-    required uint32 port = 2 [(ocaml_type) = int_t];;
-    required uint64 last_seen = 3 [(ocaml_type) = int_t];;
+    required uint32 port = 2;;
+    required uint64 last_seen = 3;;
 }
 
 message Manage 

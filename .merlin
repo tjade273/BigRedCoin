@@ -1,5 +1,4 @@
 PKG lwt secp256k1 cryptokit scrypt-kdf hex yojson oUnit lwt.ppx ocaml-protoc csv-lwt
-B _build/src
-B _build/test
+B _build/**
 S src
 S test
