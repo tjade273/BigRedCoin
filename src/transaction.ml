@@ -28,9 +28,16 @@ let serialize_input {txid; out_index} =
   Cstruct.to_string buffer
 
 let serialize_transaction {outs; ins; _} =
+  let encode_int i =
+    let buf = Cstruct.create 4 in
+    Cstruct.LE.set_uint32 buf 0 (Int32.of_int i);
+    Cstruct.to_string buf
+  in
   let out_s = List.map serialize_output outs in
   let in_s = List.map serialize_input ins in
-  List.fold_left (^) "" (out_s @ in_s)
+  let out_count = encode_int (List.length ins) in
+  let in_ount = encode_int (List.length outs) in
+  List.fold_left (^) "" ((out_count::out_s) @ (in_ount::in_s))
 
 let txid tx =
   let s = serialize_transaction tx in
