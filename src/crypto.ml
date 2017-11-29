@@ -130,7 +130,7 @@ module AES = struct
       if ECDSA.to_address pubkey = address
       then Some (pubkey, privkey)
       else None
-    with Invalid_argument _ -> None
+    with Invalid_argument _ | Failure _ -> None
 
   let encrypt (pubkey, privkey) pswd =
     let salt = Nocrypto.Rng.generate 32 in
