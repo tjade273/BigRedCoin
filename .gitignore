@@ -3,4 +3,6 @@ Makefile
 *.byte
 nodes/brc*.peers
 brc*.peers
+src/message_pb*
+src/message_types*
 *.db

@@ -13,8 +13,9 @@ module ECDSA : sig
   type signature
 
   (* [pf_hex s] is the keypair derived from the private key string [s]
-   * Prerequisite: [s] is a 64-character long hexidecimal ASCII string
-   * Raises: Invalid_key *)
+   * Prerequisites: [s] is a 64-character long hexidecimal ASCII string
+   * and [s] is between 1 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
+   * Raises: [Failure] on key outside range *)
   val of_hex : string -> keypair
 
   (* [create ()] generates a new random ECDSA keypair *)
