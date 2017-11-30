@@ -536,7 +536,7 @@ let rec connect_to_any_peer_for_x connect_fun p2p ?peers:(peers=p2p.known_peers)
   | Some peer -> Lwt.return_some peer
   | None -> 
     let good_peer_lst = PeerList.filter peers (fun p -> p <> peer) in
-    Lwt_unix.sleep 1.0 (*So this thread doesn't stall*)
+    Lwt_unix.sleep 0.25 (*So this thread doesn't stall*)
     >> connect_to_any_peer_for_x connect_fun p2p ~peers:good_peer_lst ()
 
 let connect_to_any_peer_for_time timeout conn_func p2p = 
