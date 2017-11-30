@@ -3,6 +3,8 @@ open Yojson.Basic.Util
 
 
 type command = (string*(string list))
+type command_hook = command -> string option
+
 
 type command_dir = 
   {
@@ -65,18 +67,18 @@ end
 let command_parser = CommandParserImpl.from_command_file "res/commands.json"
 
 type t = {
-  mutable listeners:(command -> string option) list;
+  mutable hooks:(command -> string option) list;
   mutable error_lst:string list;
   mutable data_lst:string list;  
 }
 
 let repl = {
-  listeners = [];
+  hooks = [];
   error_lst = [];
   data_lst = []
 }
 
-
+(*[help_listener (command,args) repl hook that listens for the "help" command]*)
 let help_listener (command,args) = 
   if command = "help" then       
     let fmt = format_of_string "| %s | \n\t %s \n" in
@@ -108,8 +110,9 @@ let print_header () =
   List.iteri(fun n line -> set_cursor 45 (n+1);  print_string [red] line;) header; 
   print_newline ()
 
-let add_listener listener  = 
-  repl.listeners <- listener::repl.listeners
+let add_hook listener  = 
+  repl.hooks <- listener::repl.hooks
+
 let store_error (error:string) = 
   repl.error_lst <- error::repl.error_lst 
 
@@ -122,6 +125,7 @@ let post_errors () =
     print_string [red] error) repl.error_lst;
   repl.error_lst <- []
 
+(*[count_char str ch] counts the number of occurances of [ch] in [str]*)
 let count_char str ch = 
   let count = ref 0 in
   String.iter (fun c -> if c = ch then count := !count+1) str; 
@@ -131,8 +135,10 @@ let post_data () =
   let new_lines = List.fold_left(fun acc data -> acc + (count_char data '\n')) 0 repl.data_lst in
   List.iter (fun data -> 
   ANSITerminal.set_cursor 1 (58-new_lines); 
+  repl.data_lst <- [];
   print_string [white] data) repl.data_lst
 
+(*[handle_input ()] reads input from stdin and attemps to parse into a command.*)
 let handle_input () = 
   ANSITerminal.set_cursor 10 60;    
   print_string [red] "> ";
@@ -143,9 +149,10 @@ let handle_input () =
     List.iter (fun (f:command -> string option) ->
        match (f command) with
        | Some data -> store_data data
-       | None -> ()) repl.listeners
+       | None -> ()) repl.hooks
   | None -> ()
 
+(*[run ()] runs repl continuously*)
 let rec run () = 
   ANSITerminal.erase ANSITerminal.Screen;
   ANSITerminal.resize 200 75;
@@ -156,5 +163,5 @@ let rec run () =
   run ()
 
 let () = 
-  add_listener help_listener;
+  add_hook help_listener;
   run ()
