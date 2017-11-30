@@ -31,5 +31,5 @@ val difficulty : int -> int
  * given the timestamp and difficulty of the previous block. *)
 val next_difficulty : header -> int
 
-(* [blockhash h] is the hash of the block header [h]. *)
-val blockhash : header -> string
+(* [block h] is the hash of the block header [h]. *)
+val hash : header -> string

@@ -1,5 +1,5 @@
-let TARGET_BLOCK_TIME = 30
-let BLOCKS_PER_RECALCULATION = 2016
+let target_block_time = 30
+let blocks_per_recalculation = 2016
 
 type header = {
   version : int;
@@ -22,27 +22,29 @@ let target nbits =
     "0x0"
   else 
     let significant = Printf.sprintf "%X" (nbits mod 24) in
-    let zeros = String.make (nbits/24) '0'
+    let zeros = String.make (nbits/24) '0' in
     "0x" ^ significant ^ zeros
 
 (* Based on the algorithm from the bitcoin wiki. *)
 let difficulty nbits = 
-  let b = log10 (0x00ffff) in
+  let b = log10 (float_of_int 0x00ffff) in
   let s = log10 256.0 in
-  10.0**(b-.log10 (land 0x00ffffff nbits) + 
-         .s*.(float_of_int (0x1d-.(lsr (land nbits 0xff000000) 24))))
-
+  let exp = (b -. (log10 (float_of_int (0x00ffffff land nbits))) 
+            +. s *. float_of_int (0x1d - ((nbits land 0xff000000) lsr 24))) in
+  i int_of_float (10**exp)
 (* Based on the bitcoin difficulty update scheme. *)
 let next_difficulty head =
-  let t = float_of_int (TARGET_BLOCK_TIME*BLOCKS_PER_RECALCULATION)
-  let f_nBits = float_of_int head.nbits in
-  let next_t = f_nBits *. (float_of_int (Unix.time - head.timestamp)/.t in
-  if next_t < 4 then next_t else 4
+  let t = float_of_int (target_block_time*blocks_per_recalculation) in
+  let f_nBits = float_of_int head.nBits in
+  let next_t = f_nBits *. (Unix.time () -. float_of_int head.timestamp)/.t in
+  if next_t < 4.0 then int_of_float next_t else 4
 
-let blockhash head =
+let hash block =
+  let head = block.header in
   let v = string_of_int head.version in
   let n = string_of_int head.nonce in
   let b = string_of_int head.nBits in
   let t = string_of_int head.nBits in
   let s = String.concat ";" [v; head.prev_hash; head.merkle_root; n; b; t] in
-  Crypto.sha256 s
+  Crypto.sha256 (Crypto.sha256 s)
+  
