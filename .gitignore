@@ -3,5 +3,3 @@ Makefile
 *.byte
 nodes/brc*.peers
 brc*.peers
-.db
-src/tmp
