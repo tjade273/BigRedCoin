@@ -24,7 +24,7 @@ type t = {
   sigs : string list option
 }
 
-(* [serialize_transaction t] is the protobuf  encoding of [i] as a string
+(* [serialize t] is the protobuf  encoding of [i] as a string
  * Does not include signature information. The hash of this encoding is the txid.
  * All signatures should be of this as serialization. *)
 val serialize : t -> string
@@ -32,7 +32,7 @@ val serialize : t -> string
 (* [deserialize s] is [tx] where [serialize tx = s] *)
 val deserialize : string -> t
 
-(* [txid t] uniquely identifies the transaction [t] *)
+(* [hash t] uniquely identifies the transaction [t] *)
 val hash : t -> string
 
 (* [signers tx] is the list [a_1; a_2; ...; a_n] where a_i is the address of
