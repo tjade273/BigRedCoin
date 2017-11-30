@@ -9,7 +9,8 @@ test: src/message_pb.ml
 	ocamlbuild -use-ocamlfind run_tests.byte && ./run_tests.byte
 
 clean:
-	rm -rf _build *.native *.byte *.db 
+	rm -rf _build *.native *.byte *.db src/message_{pb,types}.ml*
 	
 repl:
 	ocamlbuild -use-ocamlfind run_repl.byte && ./run_repl.byte
+	

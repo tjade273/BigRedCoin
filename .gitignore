@@ -1,2 +1,5 @@
 _build/*
 *.byte
+src/message_pb*
+src/message_types*
+*.db
