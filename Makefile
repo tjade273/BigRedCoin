@@ -13,3 +13,6 @@ clean:
 	
 repl:
 	ocamlbuild -use-ocamlfind brc_repl.byte && ./brc_repl.byte
+
+repl_test:
+	ocamlbuild -use-ocamlfind repl_test.byte && ./repl_test.byte

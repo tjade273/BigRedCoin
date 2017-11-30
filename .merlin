@@ -1,4 +1,4 @@
 PKG lwt secp256k1 cryptokit scrypt-kdf hex yojson oUnit ANSITerminal
-B _build
+B _build/**
 S src
 S test
