@@ -16,8 +16,8 @@ type command_dir =
 module type CommandParser = sig 
   type t
   val parse : ?parse_error_callback:(string -> unit) -> t -> string -> command option
-
   val from_command_file : string -> t
+  val commands : t -> (string*command_dir) list 
 end
 
 module CommandParserImpl = struct 
@@ -62,36 +62,23 @@ module CommandParserImpl = struct
                
     in {commands = commands}
 
-end
 
-let command_parser = CommandParserImpl.from_command_file "res/commands.json"
+    let commands parser = 
+      parser.commands
+end
 
 type t = {
   mutable hooks:(command -> string option) list;
   mutable error_lst:string list;
-  mutable data_lst:string list;  
+  mutable data_lst:string list;
 }
 
 let repl = {
   hooks = [];
   error_lst = [];
-  data_lst = []
+  data_lst = [];
 }
-
-(*[help_listener (command,args) repl hook that listens for the "help" command]*)
-let help_listener (command,args) = 
-  if command = "help" then       
-    let fmt = format_of_string "| %s | \n\t %s \n" in
-    let data  =List.fold_left(fun acc (name,command) ->
-      print_string [blue] name;
-      (Printf.sprintf fmt name command.hint) ^ acc) "" command_parser.commands
-    in 
-      Some data
-  else
-    None
-
   
-
 let header = 
   let ic = open_in "res/logo.txt" in
   let rec read_all (ic:in_channel) lst = 
@@ -132,36 +119,32 @@ let count_char str ch =
   !count
 
 let post_data () = 
-  let new_lines = List.fold_left(fun acc data -> acc + (count_char data '\n')) 0 repl.data_lst in
-  List.iter (fun data -> 
-  ANSITerminal.set_cursor 1 (58-new_lines); 
-  repl.data_lst <- [];
-  print_string [white] data) repl.data_lst
+    let new_lines = List.fold_left(fun acc data -> acc + (count_char data '\n')) 0 repl.data_lst in
+    List.iter (fun data -> 
+    ANSITerminal.set_cursor 1 (58-new_lines); 
+    print_string [white] data) repl.data_lst
+  
 
 (*[handle_input ()] reads input from stdin and attemps to parse into a command.*)
-let handle_input () = 
+let handle_input command_parser() = 
   ANSITerminal.set_cursor 10 60;    
   print_string [red] "> ";
   let input = read_line () in 
   let command = CommandParserImpl.parse command_parser input ~parse_error_callback:(store_error) in
   match command with 
   | Some command -> 
+    repl.data_lst <- [];
     List.iter (fun (f:command -> string option) ->
        match (f command) with
        | Some data -> store_data data
        | None -> ()) repl.hooks
   | None -> ()
-
 (*[run ()] runs repl continuously*)
-let rec run () = 
+let rec run command_parser () = 
   ANSITerminal.erase ANSITerminal.Screen;
   ANSITerminal.resize 200 75;
   print_header ();
   post_errors();
   post_data ();
-  handle_input ();
-  run ()
-
-let () = 
-  add_hook help_listener;
-  run ()
+  handle_input command_parser();
+  run command_parser()

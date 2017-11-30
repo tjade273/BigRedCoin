@@ -16,6 +16,7 @@ module type CommandParser = sig
   type t
   val parse : ?parse_error_callback:(string -> unit) -> t -> string -> command option
   val from_command_file : string -> t
+  val commands : t -> (string*command_dir) list 
 end
 
 module CommandParserImpl : CommandParser
@@ -25,4 +26,4 @@ module CommandParserImpl : CommandParser
 val add_hook : command_hook -> unit
 
 (*[run] runs the repl continuously.*)
-val run : unit -> unit
+val run : CommandParserImpl.t -> unit -> unit
