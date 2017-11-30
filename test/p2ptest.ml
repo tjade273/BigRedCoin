@@ -5,7 +5,6 @@ open Lwt_test
 
 let suites : Lwt_test.suite list = []
 
-
 let data_preamble = {
   method_= Manage;
   get=None;
@@ -19,11 +18,12 @@ let data_preamble = {
 
 let test name f = 
   Lwt_test.test name (fun () -> 
-      Lwt_log.notice("Starting Test: "^ name) >>
+      Lwt_log.debug("Starting Test: "^ name) >>
       let%lwt result = f () in
-      Lwt_log.notice("Finished Test: "^name^ "\n") 
-      >>  Lwt_unix.sleep 0.001 >>Lwt.return result    
+      Lwt_log.debug("Finished Test: "^name^ "\n") 
+      >> Lwt.return result    
     )
+    
 let peer_preable = 
   {method_=(Message_types.Manage);
    get=None;
@@ -170,4 +170,3 @@ let messaging_tests = suite "messaging tests" [
   ]
 
 let tests = suites @ [messaging_tests]
-let () = Lwt_test.run "all_tests" tests
