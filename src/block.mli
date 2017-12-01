@@ -20,6 +20,8 @@ type block = {
   transactions_count : int
 }
 
+type t
+
 (* [target nbits] is the decompressed target that [nbits] represents. *)
 val target : int -> string
 
@@ -31,5 +33,11 @@ val difficulty : int -> int
  * given the timestamp and difficulty of the previous block. *)
 val next_difficulty : header -> int
 
-(* [block h] is the hash of the block header [h]. *)
-val hash : header -> string
+(* [block h] is the hash of the header of the block [b]. *)
+val hash : t -> string
+
+(* [serialize b] is a serialized representation of a block [b]. *)
+val serialize : t -> string
+
+(* [deserialize s] is the block [b] with [serialize b] = [s]. *)
+val deserialize : string -> t
