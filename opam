@@ -20,6 +20,10 @@ depends: [
   "hex"
   "scrypt-kdf" {= "0.4.0"}
   "ounit"
+<<<<<<< HEAD
   "ANSITerminal"
   "str"
+=======
+  "csv-lwt"
+>>>>>>> master
 ]
