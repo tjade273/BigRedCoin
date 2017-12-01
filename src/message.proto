@@ -16,10 +16,10 @@ message Transaction {
     message Input {
         required bytes txid = 1;
         required uint32 out_index = 2;
-        required bytes signature = 3;
     }   
     repeated Output outs = 1;
     repeated Input ins = 2;
+    repeated bytes sigs = 3;
 }
 
 message Block {
