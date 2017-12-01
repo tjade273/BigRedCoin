@@ -1,10 +1,8 @@
 message Get {
     enum Request {
-        PING = 0;
-        PONG = 1;
-        PEER = 2;
-        MEMPOOL = 3;
-        BLOCKS = 4;
+        PEER = 0;
+        MEMPOOL = 1;
+        BLOCKS = 2;
     }
     required Request request = 1;
     optional bytes startblock = 2;
@@ -18,10 +16,10 @@ message Transaction {
     message Input {
         required bytes txid = 1;
         required uint32 out_index = 2;
-        required bytes signature = 3;
     }   
     repeated Output outs = 1;
     repeated Input ins = 2;
+    repeated bytes sigs = 3;
 }
 
 message Block {
@@ -40,22 +38,36 @@ message Block {
 
 message Peer {
     required string address = 1;
-    required uint32 port = 2;
-    required uint64 last_seen = 3;
+    required uint32 port = 2;;
+    required uint64 last_seen = 3;;
+}
+
+message Manage 
+{
+    enum Manage_T {
+        PING = 0;
+        PONG = 1;
+        PEER_D = 2;
+        PEER_P = 3;
+        DATA_P = 4;
+    }
+    required Manage_T manage_type = 0;
+    repeated Peer peers = 1; 
 }
 
 message Post {
     repeated Transaction transactions = 1;
     repeated Block blocks = 2;
-    repeated Peer peers = 3;
 }
 
 message Message {
     enum Method {
          GET = 0;
          POST = 1;
+         MANAGE = 2;
     }
     required Method method = 1;
     optional Get get = 2;
     optional Post post = 3;
+    optional Manage manage = 4;
 }

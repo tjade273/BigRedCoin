@@ -3,9 +3,9 @@ open Lwt_test
 
 let test name f =
   Lwt_test.test name (fun () ->
-    Lwt_log.notice("Starting Test: "^ name) >>
+    Lwt_log.debug("Starting Test: "^ name) >>
     let%lwt result = f () in
-    Lwt_log.notice("Finished Test: "^name^"\n")
+    Lwt_log.debug("Finished Test: "^name^"\n")
     >> Lwt.return result
   )
 
