@@ -300,7 +300,7 @@ let log (msg:string) p2p =
  * address [addr] in the given [p2p] node *)
 let is_conn_open addr p2p =
   ConnTbl.mem p2p.connections addr
-let is_conn_handled addr p2p = 
+let is_conn_handled addr p2p =
   ConnTbl.mem p2p.handled_connections addr
 (* [get_connection addr p2p] is the peer connection with the given address
  * [addr] in the given [p2p] node.*)

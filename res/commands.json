@@ -1,0 +1,24 @@
+{
+    "commands":[
+        {
+            "name": "help",
+            "regex": ["help$"],
+            "hint":"help : displays information about available commands"
+        },
+        {
+            "name": "get_block",
+            "regex": ["get_block [a-z0-9]+$"],
+            "hint": "get_block <hash> : returns details of block with hash"
+        },
+        {
+            "name": "send",
+            "regex": ["send [0-9]+ [a-z0-9]+$"],
+            "hint": "send <amount> <address> : sends specified amout to peer with given addresss"
+        },
+        {
+            "name": "balance",
+            "regex": ["balance [a-z0-9]+$"],
+            "hint": "balance <address> : returns current balance of peer with given address"
+        }
+    ]
+}
