@@ -111,16 +111,16 @@ let messaging_tests = suite "messaging tests" [
     end;
 
     test "simple_message_peer_file" begin fun () -> 
-      let%lwt node_a = P2p.create ~port:4444 "nodes/node_a.peers" in
-      let%lwt node_b = P2p.create ~port:4445 "nodes/node_b.peers" in
+      let%lwt node_a = P2p.create ~port:4444 "test/nodes/node_a.peers" in
+      let%lwt node_b = P2p.create ~port:4445 "test/nodes/node_b.peers" in
       P2p.broadcast simple_data_msg node_b >>
       let%lwt check_message = message_check_thread node_a
       in close_all [|node_a;node_b|] >> Lwt.return (check_message)
     end;
 
     test "simple_message_back_forth" begin fun () -> 
-      let%lwt node_a = P2p.create ~peer_share:false ~port:4444 "nodes/node_a.peers" in
-      let%lwt node_b = P2p.create ~peer_share:false ~port:4445 "nodes/node_b.peers" in
+      let%lwt node_a = P2p.create ~peer_share:false ~port:4444 "test/nodes/node_a.peers" in
+      let%lwt node_b = P2p.create ~peer_share:false ~port:4445 "test/nodes/node_b.peers" in
       P2p.broadcast simple_data_msg node_b >>
       let%lwt check_message_1 = message_check_thread node_a in       
       P2p.broadcast simple_data_msg node_a >>
@@ -129,9 +129,9 @@ let messaging_tests = suite "messaging tests" [
     end;
 
     test "simple_message_multicast" begin fun () -> 
-      let%lwt node_a = P2p.create ~port:4444 "nodes/node_a.peers" in
-      let%lwt node_b = P2p.create ~port:4445 "nodes/node_b.peers" in
-      let%lwt node_c = P2p.create ~port:4446 "nodes/node_c.peers" in
+      let%lwt node_a = P2p.create ~port:4444 "test/nodes/node_a.peers" in
+      let%lwt node_b = P2p.create ~port:4445 "test/nodes/node_b.peers" in
+      let%lwt node_c = P2p.create ~port:4446 "test/nodes/node_c.peers" in
       P2p.broadcast simple_data_msg node_b >>
       let%lwt check_message_1 = message_check_thread node_a in 
       let%lwt check_message_2 = message_check_thread node_c in
@@ -153,8 +153,8 @@ let messaging_tests = suite "messaging tests" [
     end;
 
     test "peer_sync_test_share" begin fun () ->
-      let%lwt node_a = P2p.create ~port:4443 "nodes/node_a.peers" in
-      let%lwt node_b = P2p.create ~port:4445 "nodes/node_b.peers" in 
+      let%lwt node_a = P2p.create ~port:4443 "test/nodes/node_a.peers" in
+      let%lwt node_b = P2p.create ~port:4445 "test/nodes/node_b.peers" in 
       Lwt_unix.sleep 20. >> 
       let string_sort e1 e2 = 
         if e1 < e2 then (~-1) else if e1 > e2 then 1 else 0 in
