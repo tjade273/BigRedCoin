@@ -31,7 +31,7 @@ module type S = sig
   (* [get t s] takes in a database [t] and the SHA-256 hash [s] of a value,
    * returns the an option for value with that hash. *)
   val get_opt : t -> string -> value option Lwt.t
-      
+
   (* [create s] makes an object representing the database from the location of the
    * database [s]. *)
   val create : string -> t

@@ -20,17 +20,17 @@ type t = {
   transactions_count : int
 }
 
+let serialize = failwith "Unimplemented"
+let deserialize = failwith "Unimplemented"
+let hash = failwith "Unimplemented"
+
 (* [target nbits] is the decompressed target that [nbits] represents. *)
-val target : int -> string
+let target = failwith "Unimplemented"
 
 (* [difficulty nbits] is the "reciprocal" of the target, a measure of the 
  * proportion of the maximum possible difficulty. *)
-val difficulty : int -> int
+let difficulty = failwith "Unimplemented"
 
 (* [next_target header] is the compressed form of the target for the next block,
  * given the timestamp and difficulty of the previous block. *)
-val next_difficulty : header -> int
-
-val serialize : t -> string
-val deserialize : string -> t
-val hash : t -> string
+let next_difficulty = failwith "Unimplemented"
