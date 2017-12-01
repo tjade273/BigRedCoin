@@ -19,4 +19,4 @@ let help_listener (command,args) =
 
 let () = 
   add_hook help_listener;
-  run command_parser ()
+  run command_parser 

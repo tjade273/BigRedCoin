@@ -26,4 +26,4 @@ module CommandParserImpl : CommandParser
 val add_hook : command_hook -> unit
 
 (*[run] runs the repl continuously.*)
-val run : CommandParserImpl.t -> unit -> unit
+val run : CommandParserImpl.t -> unit

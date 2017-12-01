@@ -23,6 +23,4 @@ let command_tests =
                     assert_bool "" (match command with | Some _ -> false | None -> true));
   ]
 
-let tests = "Repl Tests" >::: [command_tests]
-
-let () = run_test_tt_main tests
+ let tests = "Repl Tests" >::: [command_tests]

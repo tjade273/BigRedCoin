@@ -140,11 +140,11 @@ let handle_input command_parser() =
        | None -> ()) repl.hooks
   | None -> ()
 (*[run ()] runs repl continuously*)
-let rec run command_parser () = 
+let rec run command_parser = 
   ANSITerminal.erase ANSITerminal.Screen;
   ANSITerminal.resize 200 75;
   print_header ();
   post_errors();
   post_data ();
   handle_input command_parser();
-  run command_parser()
+  run command_parser

@@ -13,7 +13,7 @@
         {
             "name": "send",
             "regex": ["send [0-9]+ [a-z0-9]+$"],
-            "hint": "send <amount> <address> : returns current balance of peer with given addresss"
+            "hint": "send <amount> <address> : sends specified amout to peer with given addresss"
         },
         {
             "name": "balance",
