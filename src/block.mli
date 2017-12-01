@@ -16,7 +16,7 @@ type header = {
  * of the number of transactions in the block. *)
 type block = {
   header : header;
-  transactions : Transaction.transaction list;
+  transactions : Transaction.t list;
   transactions_count : int
 }
 

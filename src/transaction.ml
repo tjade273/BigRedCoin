@@ -15,7 +15,7 @@ type t = {
   sigs : string list option
 }
 
-let serialize {outs; ins; _} =
+let messageify {outs; ins; _} =
   let outs = List.map (
       fun {amount; address} ->
         Message_types.({address = Bytes.of_string address; amount})
@@ -26,14 +26,15 @@ let serialize {outs; ins; _} =
         Message_types.({txid = Bytes.of_string txid; out_index})
     ) ins
   in
-  let tx = Message_types.({outs; ins; sigs=[]}) in
+  Message_types.({outs; ins; sigs=[]})
+
+let serialize t =
+  let tx = messageify t in
   let encoder = Pbrt.Encoder.create () in
   Message_pb.encode_transaction tx encoder;
   Pbrt.Encoder.to_bytes encoder
 
-let deserialize s =
-  let decoder = Pbrt.Decoder.of_bytes s in
-  let {Message_types.outs; ins; _} = Message_pb.decode_transaction decoder in
+let demessageify {Message_types.outs; ins; _} =
   let outs = List.map (
       fun {Message_types.amount; address} ->
         ({address = Bytes.to_string address; amount})
@@ -46,6 +47,10 @@ let deserialize s =
   in
   {outs; ins; sigs = None}
 
+let deserialize s =
+  let decoder = Pbrt.Decoder.of_bytes s in
+  demessageify (Message_pb.decode_transaction decoder)
+  
 let hash tx =
   let s = serialize tx in
   Crypto.sha256 s

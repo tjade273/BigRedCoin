@@ -12,7 +12,7 @@ type header = {
 
 type block = {
   header : header;
-  transactions : Transaction.transaction list;
+  transactions : Transaction.t list;
   transactions_count : int
 }
 
@@ -33,7 +33,7 @@ let difficulty nbits =
   let s = log10 256.0 in
   let exp = (b -. (log10 (float_of_int (0x00ffffff land nbits))) 
             +. s *. float_of_int (0x1d - ((nbits land 0xff000000) lsr 24))) in
-  int_of_float (10**exp)
+  int_of_float (10.0**exp)
 
 (* Based on the bitcoin difficulty update scheme. *)
 let next_difficulty head =
@@ -42,46 +42,50 @@ let next_difficulty head =
   let next_t = f_nBits *. (Unix.time () -. float_of_int head.timestamp)/.t in
   if next_t < 4.0 then int_of_float next_t else 4
 
+let messageify_header {version;
+                       prev_hash;
+                       merkle_root;
+                       nonce;
+                       nBits;
+                       timestamp} =
+  Message_types.({
+    Message_types.version = version;
+    prev_hash = Bytes.of_string prev_hash;
+    merkle_root = Bytes.of_string merkle_root;
+    nonce = nonce;
+    n_bits = nBits;
+    timestamp = timestamp
+  }) 
+
 let hash b =
-  let head = b.header in
-  let v = string_of_int head.version in
-  let n = string_of_int head.nonce in
-  let b = string_of_int head.nBits in
-  let t = string_of_int head.nBits in
-  let s = String.concat ";" [v; head.prev_hash; head.merkle_root; n; b; t] in
+  let h = messageify_header b.header in
+  let encoder = Pbrt.Encoder.create () in
+  Message_pb.encode_block_header h encoder;
+  let s = Pbrt.Encoder.to_bytes encoder in
   Crypto.sha256 (Crypto.sha256 s)
 
 let serialize b =
-  let h = b.header
-  let header_ser = Message_types.(
-    { version = h.version;
-      prev_hash = Bytes.of_string h.prev_hash;
-      merkle_root = Bytes.of_string h.merkle_root;
-      nonce = h.nonce;
-      nBits = h.nBits;
-      timestamp = h.timestamp
-    }) in
-  let block_ser = Message_types.(
-    { header = header_ser;
-      transactions = Transaction.serialize b.transactions;
-      transactions_count = b.transactions_count
-    }) in
+  let header_ser = messageify_header b.header in
+  let block_ser = Message_types.({ 
+    header = header_ser;
+    txs = List.map Transaction.messageify b.transactions;
+    tx_count = b.transactions_count
+  }) in
   let encoder = Pbrt.Encoder.create () in
-  Message_pb.encode_transaction block_ser encoder;
+  Message_pb.encode_block block_ser encoder;
   Pbrt.Encoder.to_bytes encoder
   
 let deserialize s =
   let decoder = Pbrt.Decoder.of_bytes s in
-  let Message_types.({h; tx; tx_count}) = Message_pb.decode_transaction decoder in
+  let Message_types.({header; txs; tx_count}) = 
+    Message_pb.decode_block decoder in
   let head = {
-    version = h.version;
-    prev_hash = Bytes.to_string h.prev_hash;
-    merkle_root = Bytes.to_string h.merkle_root;
-    nonce = h.nonce;
-    nBits = h.nBits;
-    timestamp = h.timestamp
+    version = header.version;
+    prev_hash = Bytes.to_string header.prev_hash;
+    merkle_root = Bytes.to_string header.merkle_root;
+    nonce = header.nonce;
+    nBits = header.n_bits;
+    timestamp = header.timestamp
   } in
-  let txs = Transaction.deserialize tx in
-  {head; txs; tx_count}
-
-
+  let trans = List.map Transaction.demessageify txs in
+  {header = head; transactions = trans; transactions_count = tx_count}
