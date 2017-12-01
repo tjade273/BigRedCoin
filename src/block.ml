@@ -50,4 +50,38 @@ let hash b =
   let t = string_of_int head.nBits in
   let s = String.concat ";" [v; head.prev_hash; head.merkle_root; n; b; t] in
   Crypto.sha256 (Crypto.sha256 s)
+
+let serialize b =
+  let h = b.header
+  let header_ser = Message_types.(
+    { version = h.version;
+      prev_hash = Bytes.of_string h.prev_hash;
+      merkle_root = Bytes.of_string h.merkle_root;
+      nonce = h.nonce;
+      nBits = h.nBits;
+      timestamp = h.timestamp
+    }) in
+  let block_ser = Message_types.(
+    { header = header_ser;
+      transactions = Transaction.serialize b.transactions;
+      transactions_count = b.transactions_count
+    }) in
+  let encoder = Pbrt.Encoder.create () in
+  Message_pb.encode_transaction block_ser encoder;
+  Pbrt.Encoder.to_bytes encoder
   
+let deserialize s =
+  let decoder = Pbrt.Decoder.of_bytes s in
+  let Message_types.({h; tx; tx_count}) = Message_pb.decode_transaction decoder in
+  let head = {
+    version = h.version;
+    prev_hash = Bytes.to_string h.prev_hash;
+    merkle_root = Bytes.to_string h.merkle_root;
+    nonce = h.nonce;
+    nBits = h.nBits;
+    timestamp = h.timestamp
+  } in
+  let txs = Transaction.deserialize tx in
+  {head; txs; tx_count}
+
+
