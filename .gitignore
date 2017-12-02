@@ -1,7 +1,7 @@
 _build/*
 Makefile
 *.byte
-nodes/brc*.peers
+nodes/*.peers
 brc*.peers
 src/message_pb*
 src/message_types*
