@@ -7,7 +7,8 @@ module type Hashable = sig
   (* [serialize t] is a serialized representation of [t]. *)
   val serialize : t -> string
 
-  (* [deserialize s] is a data structure obtained by deserializing [s]. *)
+  (* [deserialize s] is the instance of this data structure obtained by
+   * deserializing [s]. Throws an exception if there is no such structure. *)
   val deserialize : string -> t
 
 end
