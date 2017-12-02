@@ -20,12 +20,14 @@ type t = block
 
 (* Based on the bitcoin developer reference. *)
 let target nbits =
-  if (nbits < 0) then 
-    String.make 32 '\x00'
-  else 
-    let significant = Printf.sprintf "%X" (nbits mod 24) in
-    let zeros = String.make (nbits/24) '0' in
-    Hex.to_string (`Hex (significant ^ zeros))
+  if nbits < 0 then String.make 32 '\000'
+  else
+    let exponent = nbits lsr 24 in
+    let nbit_buf = Cstruct.create 4 in
+    let target_buf = Cstruct.create 32 in
+    Cstruct.BE.set_uint32 nbit_buf 0 (Int32.of_int nbits);
+    Cstruct.blit nbit_buf 1 target_buf (32 - exponent) 3;
+    Cstruct.to_string target_buf
 
 (* Based on the algorithm from the bitcoin wiki. *)
 let difficulty nbits = 
@@ -36,12 +38,13 @@ let difficulty nbits =
   int_of_float (10.0**exp)
 
 (* Based on the bitcoin difficulty update scheme. *)
-let next_difficulty head =
-  let t = float_of_int (target_block_time*blocks_per_recalculation) in
-  let f_nBits = float_of_int head.nBits in
-  let next_t = f_nBits *. (Unix.time () -. float_of_int head.timestamp)/.t in
-  if next_t < 4.0 then int_of_float next_t else 4
+let next_difficulty head prev =
+  let t = target_block_time*blocks_per_recalculation in
+  let next_t = (head.nBits * 100 *
+               (head.timestamp - prev.timestamp)/(10000 * t)) in
+  if next_t/head.nBits < 4 then next_t else 4*next_p
 
+(* [messageify_header h] is the protobuf encoded message representing [h]. *)
 let messageify_header {version;
                        prev_hash;
                        merkle_root;
