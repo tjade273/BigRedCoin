@@ -48,7 +48,7 @@ let block_tests =
     "Block Suite" >::: [
       "nbits" >:: (fun _ -> assert_equal ~printer:print (Hex.to_string (`Hex((String.make 16 '0') ^ "1bc330" ^ (String.make 42 '0')))) (target 0x181bc330));
     "Difficulty adjustment" >:: (fun _ -> assert_equal ~printer:string_of_int 200631 (next_difficulty header1 header2));
-    "block_hash" >:: (fun _ -> assert_bool "Check block hash" true);
+    "block_hash" >:: (fun _ -> assert_equal ~msg:"Check block hash" (Hex.to_string (`Hex "5b4f5c17f4337bcf1bdcea9cd639813ab263d54f9cc8eace675059ed31d042ff")) (hash block1));
     "serialize/deserialize" >:: (fun _ -> assert_equal block1 (deserialize (serialize block1)));
   ]
 

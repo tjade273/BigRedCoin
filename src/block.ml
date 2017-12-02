@@ -82,13 +82,13 @@ let deserialize s =
   let decoder = Pbrt.Decoder.of_bytes s in
   let Message_types.({header; txs; tx_count}) = 
     Message_pb.decode_block decoder in
-  let head = {
+  let head = Message_types.({
     version = header.version;
     prev_hash = Bytes.to_string header.prev_hash;
     merkle_root = Bytes.to_string header.merkle_root;
     nonce = header.nonce;
     nBits = header.n_bits;
     timestamp = header.timestamp
-  } in
+  }) in
   let trans = List.map Transaction.demessageify txs in
   {header = head; transactions = trans; transactions_count = tx_count}
