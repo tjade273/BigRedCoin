@@ -20,7 +20,7 @@ type block = {
   transactions_count : int
 }
 
-type t
+type t = block
 
 (* [target nbits] is the decompressed target that [nbits] represents. *)
 val target : int -> string

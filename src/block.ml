@@ -42,7 +42,7 @@ let next_difficulty head prev =
   let t = target_block_time*blocks_per_recalculation in
   let next_t = (head.nBits * 100 *
                (head.timestamp - prev.timestamp)/(10000 * t)) in
-  if next_t/head.nBits < 4 then next_t else 4*next_p
+  if next_t/head.nBits < 4 then next_t else 4*next_t
 
 (* [messageify_header h] is the protobuf encoded message representing [h]. *)
 let messageify_header {version;
