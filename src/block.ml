@@ -21,11 +21,11 @@ type t = block
 (* Based on the bitcoin developer reference. *)
 let target nbits =
   if (nbits < 0) then 
-    "0x0"
+    String.make 32 '\x00'
   else 
     let significant = Printf.sprintf "%X" (nbits mod 24) in
     let zeros = String.make (nbits/24) '0' in
-    "0x" ^ significant ^ zeros
+    Hex.to_string (`Hex (significant ^ zeros))
 
 (* Based on the algorithm from the bitcoin wiki. *)
 let difficulty nbits = 
