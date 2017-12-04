@@ -55,14 +55,6 @@ let extend ({hash; head; height; cache; _} as chain) new_block =
         cache = cache';
       }
 
-let rec create base head =
-  if base.hash = head then Lwt.return_some base
-  else
-    let%lwt {header; _} as block = BlockDB.get base.db head in
-    match%lwt create base header.prev_hash with
-    | None -> Lwt.return_none
-    | Some parent -> extend parent block
-
 let extend_cache {cache; db; _} =
   let no_parent h =
     let (_, {header;_}) = Cache.find h cache in
