@@ -88,3 +88,15 @@ let rec shared_root c1 c2 =
     let%lwt c2' = extend_cache c2 in
     shared_root c1 c2
 
+let rec revert ({hash; head; height; cache; db} as c) h =
+  if hash = h
+  then ([], {c with cache = Cache.empty})
+  else
+    let prev_hash = head.header.prev_hash in
+    let _, parent = Cache.find prev_hash cache in
+    let (blocks, chain) = revert {c with head = parent;
+                                         hash = prev_hash;
+                                         height = (height-1)
+                                 } h
+    in
+    head::blocks, chain
