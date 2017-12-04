@@ -53,11 +53,21 @@ let%lwt c1 = Lwt_list.fold_left_s (fun c b -> (extend c b >|= opt_exn))
     (create db genesis)
     (blockchain |> List.rev |> List.tl)
 
+let new_block = {genesis with header = {genesis.header with prev_hash = hash @@ Chain.head c1}}
+
 let%lwt c2 = extend c1 genesis
+let%lwt c3 = extend c1 new_block
+let%lwt c4 = extend c1 (mine_header new_block.header (Block.target initial_difficulty)) >|= opt_exn
+let%lwt c5 = extend c1 {(Chain.head c4) with header = {(Chain.head c4).header with nBits = initial_difficulty - 1}}
+
+let%lwt b3 = block_at_index c1 3
 
 let tests = "Chain Tests" >::: [
     "mine_genesis" >:: (fun _ -> assert_equal 0 (create db genesis |> height));
     "extend_chain" >:: (fun _ -> assert_equal (Block.hash  (List.hd blockchain)) (Chain.head c1 |> Block.hash));
     "extend_height" >:: (fun _ -> assert_equal 5 (height c1));
-    "extend_out_of_order" >:: (fun _ -> assert_equal None c2)
+    "extend_out_of_order" >:: (fun _ -> assert_equal None c2);
+    "extend_bad_target" >:: (fun _ -> assert_equal None c3);
+    "extend_bad_nbits" >:: (fun _ -> assert_equal None c5);
+    "block_at_index" >:: (fun _ -> assert_equal (List.nth blockchain 2) b3)
   ]
