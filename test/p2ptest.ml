@@ -140,7 +140,7 @@ let messaging_tests = suite "messaging tests" [
 
     test "peer_sync_test_explicit" begin fun () ->
       let%lwt nodes = create_n_linked_nodes ~start_port:4000 2 in
-      let do_sync = Lwt_unix.sleep 3. 
+      let do_sync = Lwt_unix.sleep 5. 
       in 
       do_sync >> close_all nodes >> 
       let string_sort e1 e2 = 
@@ -156,7 +156,7 @@ let messaging_tests = suite "messaging tests" [
     test "peer_sync_test_share" begin fun () ->
       let%lwt node_a = P2p.create ~port:4443 "test/nodes/node_a.peers" in
       let%lwt node_b = P2p.create ~port:4445 "test/nodes/node_b.peers" in 
-      Lwt_unix.sleep 3. >> 
+      Lwt_unix.sleep 5. >> 
       let string_sort e1 e2 = 
         if e1 < e2 then (~-1) else if e1 > e2 then 1 else 0 in
       let known_peers_a = List.sort string_sort
