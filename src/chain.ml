@@ -8,12 +8,10 @@ let cache_size = 2048
 
 type t = {hash : string;
           head : Block.t;
-          genesis : Block.t;
           height : int;
           cache : (int * Block.t) Cache.t;
           db : BlockDB.t}
 
-(* Gets the block at index [i]. [i] cant be negative or more than height *)
 let block_at_index {hash; head; height; cache; db} (n : int) =
   let nth_opt =
     List.find_opt (fun (_, (i,_)) -> i = n) (Cache.bindings cache)
@@ -30,7 +28,8 @@ let block_at_index {hash; head; height; cache; db} (n : int) =
 
 (* doesn't validate txs yet *)
 let extend ({hash; head; height; cache; _} as chain) new_block =
-  let%lwt reference = block_at_index chain (height - 2016) in
+  let adjustment_block = max 0 (height - 2016) in
+  let%lwt reference = block_at_index chain adjustment_block in
   let nbits' = Block.(next_difficulty head.header reference.header) in
   let target = Block.target nbits' in
   let blockhash = Block.hash new_block  in
@@ -103,3 +102,12 @@ let rec revert ({hash; head; height; cache; db} as c) h =
 
 let head {head; _} = head
 let height {height; _} = height
+
+let create db block =
+  let hash = Block.hash block in
+  let cache = Cache.add hash (0,block) Cache.empty in
+  {head = block;
+   hash;
+   height = 0;
+   cache;
+   db}
