@@ -24,10 +24,17 @@ type t = {
   sigs : string list option
 }
 
-(* [serialize t] is the protobuf  encoding of [i] as a string
+(* [messageify t] is [t] turned into a protobuf message. *)
+val messageify : t -> Message_types.transaction 
+
+(* [serialize t] is the protobuf encoding of [i] as a string
  * Does not include signature information. The hash of this encoding is the txid.
  * All signatures should be of this as serialization. *)
 val serialize : t -> string
+
+(* [messageify m] is the protobuf message representing a transaction [m] turned
+ * into a record. *)
+val demessageify : Message_types.transaction -> t
 
 (* [deserialize s] is [tx] where [serialize tx = s] *)
 val deserialize : string -> t
