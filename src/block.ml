@@ -47,10 +47,10 @@ let next_difficulty head prev =
       (n, 0)
   in
   let adjust n expected actual =
-      let mantissa = n land 0xFFFFFF in
-      let exponent = n lsr 24 in
-      let m', e' = normalize @@ (mantissa * expected)/actual in
-      ((exponent + e') lsl 24) land m'
+    let mantissa = n land 0xFFFFFF in
+    let exponent = n lsr 24 in
+    let m', e' = normalize @@ (mantissa * expected)/actual in
+    ((exponent + e') lsl 24) lor m'
   in
   let expected_time = target_block_time*blocks_per_recalculation in
   let actual_time = head.timestamp - prev.timestamp in
