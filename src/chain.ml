@@ -28,12 +28,22 @@ let block_at_index {hash; head; height; cache; db} (n : int) =
 
 (* doesn't validate txs yet *)
 let extend ({hash; head; height; cache; _} as chain) new_block =
-  let adjustment_block = max 0 (height - 2016) in
-  let%lwt reference = block_at_index chain adjustment_block in
-  let nbits' = Block.(next_difficulty head.header reference.header) in
+  let%lwt nbits' =
+    if height + 1 mod 2016 = 0 then
+      let adjustment_block = height - 2016 in
+      let%lwt reference = block_at_index chain adjustment_block in
+      let nbits' = Block.(next_difficulty head.header reference.header) in
+      Lwt.return nbits'
+    else
+      Lwt.return head.header.nBits
+  in
   let target = Block.target nbits' in
   let blockhash = Block.hash new_block  in
-  if blockhash > target then Lwt.return_none
+  if blockhash > target ||
+     new_block.header.nBits <> nbits' ||
+     new_block.header.prev_hash <> hash
+  then
+    Lwt.return_none
   else
     let cache' = Cache.add blockhash (height+1, new_block) cache in
     let cache' = Cache.filter (fun _ (i, _) -> height - i <= 2048) cache' in
