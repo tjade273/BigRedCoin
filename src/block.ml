@@ -30,19 +30,36 @@ let target nbits =
     Cstruct.to_string target_buf
 
 (* Based on the algorithm from the bitcoin wiki. *)
-let difficulty nbits = 
+let difficulty nbits =
   let b = log10 (float_of_int 0x00ffff) in
   let s = log10 256.0 in
-  let exp = (b -. (log10 (float_of_int (0x00ffffff land nbits))) 
+  let exp = (b -. (log10 (float_of_int (0x00ffffff land nbits)))
             +. s *. float_of_int (0x1d - ((nbits land 0xff000000) lsr 24))) in
   int_of_float (10.0**exp)
 
 (* Based on the bitcoin difficulty update scheme. *)
 let next_difficulty head prev =
-  let t = target_block_time*blocks_per_recalculation in
-  let next_t = (head.nBits * 100 *
-               (head.timestamp - prev.timestamp)/(10000 * t)) in
-  if next_t/head.nBits < 4 then next_t else 4*next_t
+  let rec normalize n =
+    if n > 0xFFFFFF then
+      let n', e' = (normalize (n/256)) in
+      (n', e'+1)
+    else
+      (n, 0)
+  in
+  let adjust n expected actual =
+      let mantissa = n land 0xFFFFFF in
+      let exponent = n lsr 24 in
+      let m', e' = normalize @@ (mantissa * expected)/actual in
+      ((exponent + e') lsl 24) land m'
+  in
+  let expected_time = target_block_time*blocks_per_recalculation in
+  let actual_time = head.timestamp - prev.timestamp in
+  if expected_time / (max actual_time 1) > 4 then
+    adjust head.nBits 4 1
+  else if actual_time / expected_time > 4 then
+    adjust head.nBits 1 4
+  else
+    adjust head.nBits expected_time actual_time
 
 (* [messageify_header h] is the protobuf encoded message representing [h]. *)
 let messageify_header {version;
@@ -77,7 +94,7 @@ let serialize b =
   let encoder = Pbrt.Encoder.create () in
   Message_pb.encode_block block_ser encoder;
   Pbrt.Encoder.to_bytes encoder
-  
+
 let deserialize s =
   let decoder = Pbrt.Decoder.of_bytes s in
   let Message_types.({header; txs; tx_count}) = 

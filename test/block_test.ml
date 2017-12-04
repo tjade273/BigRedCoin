@@ -19,7 +19,22 @@ let header2 = {
   merkle_root = "2";
   nonce = 3;
   nBits = 0x181bc330;
-  timestamp = 1512180567 
+  timestamp = 1512180567
+}
+
+let header3 = {
+  header1 with
+  timestamp = header1.timestamp + 30*2016
+}
+
+let header4 = {
+  header1 with
+  timestamp = header1.timestamp + 30*2016*5
+}
+
+let header5 = {
+  header1 with
+  timestamp = header1.timestamp + 30/5*2016
 }
 
 let input1 = {
@@ -46,8 +61,10 @@ let block1 = {
 
 let block_tests =
     "Block Suite" >::: [
-      "nbits" >:: (fun _ -> assert_equal ~printer:print (Hex.to_string (`Hex((String.make 16 '0') ^ "1bc330" ^ (String.make 42 '0')))) (target 0x181bc330));
-    "Difficulty adjustment" >:: (fun _ -> assert_equal ~printer:string_of_int 200631 (next_difficulty header1 header2));
+      "nbits" >:: (fun _ -> assert_equal (Hex.to_string (`Hex((String.make 16 '0') ^ "1bc330" ^ (String.make 42 '0')))) (target 0x181bc330));
+      "difficulty_adjust_1" >:: (fun _ -> assert_equal header3.nBits (next_difficulty header3 header1));
+      "difficulty_adjust_1/4" >:: (fun _ -> assert_equal 0x1806f0cc (next_difficulty header4 header1));
+      "difficulty_adjust_4" >:: (fun _ -> assert_equal 0x186f0cc0 (next_difficulty header5 header1));
     "block_hash" >:: (fun _ -> assert_equal ~msg:"Check block hash" (Hex.to_string (`Hex "5b4f5c17f4337bcf1bdcea9cd639813ab263d54f9cc8eace675059ed31d042ff")) (hash block1));
     "serialize/deserialize" >:: (fun _ -> assert_equal block1 (deserialize (serialize block1)));
   ]
