@@ -83,7 +83,7 @@ type output = Lwt_io.output Lwt_io.channel
     | _ -> Lwt_log.notice ("Failed to write.") >> Lwt.return 0
 
   let rec read_raw_msg_till_sucess ic =
-    Lwt_unix.sleep 0.001 >>
+    Lwt_unix.yield () >>
     let buf = Bytes.create 2048 in
     let read =
       let%lwt sz = Lwt_io.read_into ic buf 0 2048 in Lwt.return(sz,buf)
@@ -543,7 +543,7 @@ let rec connect_to_any_peer_for_x p2p
   | Some peer -> Lwt.return_some peer
   | None ->
       let good_peer_lst = PeerList.filter peers (fun p -> p <> peer) in
-      Lwt_unix.sleep 0.025 (*So this thread doesn't stall*)
+      Lwt_main.yield () (*So this thread doesn't stall*)
       >> connect_to_any_peer_for_x p2p 
       ~peers:good_peer_lst 
        connect_fun
@@ -622,7 +622,7 @@ let broadcast (msg:Message_types.message) (p2p:t) =
       let thread = 
         match%lwt connect_to_peer_for_data p2p peer_desc with 
         | Some peer -> 
-          Lwt_unix.sleep 1.0 >>
+          Lwt_unix.yield () >>
           (match%lwt send_for_time peer.oc 2.0 msg with 
            | Some _ -> log ("Successfully wrote broadcast to: " ^ (str peer)) p2p
            | None -> log ("Failed to write broadcast to: " ^ (str peer)) p2p)
@@ -704,7 +704,7 @@ let rec do_peer_sync p2p () =
       let sync = 
         match %lwt Lwt_stream.get(peer_sync_stream p2p) with 
         | Some p -> log ("Attempting to sync with: " ^ (str p)) p2p >>
-          Lwt_unix.sleep 0.0001 >>
+          Lwt_unix.yield () >>
           handle_sync_peer (fun peer ->
               let send_peers = 
                 let peer_sync_data = (BRCMessageHelper.make_peer_sync_msg p2p) in
