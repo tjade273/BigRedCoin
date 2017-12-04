@@ -14,7 +14,7 @@ type header = {
 
 (* A block consists of its header, the transactions in the block, and a count
  * of the number of transactions in the block. *)
-type t = {
+type block = {
   header : header;
   transactions : Transaction.t list;
   transactions_count : int
