@@ -68,14 +68,23 @@ let messageify_header {version;
                        nonce;
                        nBits;
                        timestamp} =
-  Message_types.({
-    Message_types.version = version;
+  let open Message_types in
+  {version = version;
     prev_hash = Bytes.of_string prev_hash;
     merkle_root = Bytes.of_string merkle_root;
     nonce = nonce;
     n_bits = nBits;
-    timestamp = timestamp
-  }) 
+    timestamp = timestamp}
+
+
+let messageify {header;
+                transactions;
+                transactions_count;} =
+  let open Message_types in
+  {header = messageify_header header;
+   txs = List.map Transaction.messageify transactions;
+   tx_count = transactions_count}
+
 
 let hash b =
   let h = messageify_header b.header in

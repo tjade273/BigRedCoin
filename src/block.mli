@@ -41,3 +41,5 @@ val serialize : t -> string
 
 (* [deserialize s] is the block [b] with [serialize b] = [s]. *)
 val deserialize : string -> t
+
+val messageify : t -> Message_types.block

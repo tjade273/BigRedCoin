@@ -17,6 +17,10 @@ val height : t -> int
 (* [hash chain] is the hash of the highest block in [chain] *)
 val hash : t -> string
 
+val serialize : t -> string
+
+val deserialize : string -> t
+
 (* [block_at_index chain i] is the [i]th block in [chain].
  * Requires: [i <= height chain] *)
 val block_at_index : t -> int -> Block.t Lwt.t
@@ -29,3 +33,5 @@ val block_at_index : t -> int -> Block.t Lwt.t
 (* [extend chain block] is [chain] extended by one block if [block] is a
  * valid head. [chain] is unmodified if [block] is not a valid successor. *)
 val extend : t -> Block.block -> t option Lwt.t
+
+val revert : t -> string -> Block.t list * t
