@@ -55,6 +55,8 @@ let extend ({hash; head; height; cache; _} as chain) new_block =
         cache = cache';
       }
 
+(* [extend_cache chain] represents the same chain of blocks as [chain], but with a
+ * cache extending 25 blocks further into the past. *)
 let extend_cache {cache; db; _} =
   let no_parent h =
     let (_, {header;_}) = Cache.find h cache in
@@ -104,6 +106,7 @@ let rec revert ({hash; head; height; cache; db} as c) h =
 
 let head {head; _} = head
 let height {height; _} = height
+let hash {hash; _ } = hash
 
 let create db block =
   let hash = Block.hash block in
@@ -113,3 +116,22 @@ let create db block =
    height = 0;
    cache;
    db}
+
+(*Format: 8 byte height of chain in big-endian, then 32 byte hash of head block *)
+let serialize {hash; height; _} =
+  let height_str =
+    let int_buf = Cstruct.create 8 in
+    Cstruct.BE.set_uint64 int_buf 0 (Int64.of_int height);
+    Cstruct.to_string int_buf
+  in
+  height_str ^ hash
+
+(* [deserialize (serialize chain)] represents the same chain as chain,
+ * but with a fresh cache of size 25 *)
+let deserialize db s =
+  let buf = Cstruct.of_string s in
+  let height = Cstruct.BE.get_uint64 buf 0 |> Int64.to_int in
+  let hash = Cstruct.copy buf 8 32 in
+  let%lwt head = BlockDB.get db hash in
+  let cache = Cache.add hash (height, head) Cache.empty in
+  extend_cache {height; hash; head; cache; db}

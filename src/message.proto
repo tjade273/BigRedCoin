@@ -5,7 +5,7 @@ message Get {
         BLOCKS = 2;
     }
     required Request request = 1;
-    optional bytes startblock = 2;
+    repeated bytes startblock = 2;
 }
 
 message Transaction {

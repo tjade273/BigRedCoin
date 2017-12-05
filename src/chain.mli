@@ -14,6 +14,9 @@ val head : t -> Block.t
 (* [height chain] is the number of blocks since the genesis in [chain]. *)
 val height : t -> int
 
+(* [hash chain] is the hash of the highest block in [chain] *)
+val hash : t -> string
+
 (* [block_at_index chain i] is the [i]th block in [chain].
  * Requires: [i <= height chain] *)
 val block_at_index : t -> int -> Block.t Lwt.t
