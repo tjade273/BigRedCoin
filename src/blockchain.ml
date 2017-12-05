@@ -86,6 +86,9 @@ let serve_blocks {blockdb; head; forks; _} oc startblocks height =
     let blocks_to_send = List.map Block.messageify (Chain.revert head shared_root |> fst) in
     post_blocks blocks_to_send oc
 
+let insert_blocks bc blocks =
+  failwith "unimplemented"
+
 let handle_message bc (ic,oc) {method_; get; post; _} =
   let handle_get {request; startblocks; block_height} =
     match request with
@@ -99,10 +102,19 @@ let handle_message bc (ic,oc) {method_; get; post; _} =
   | Post, _, Some msg -> handle_post msg
   | _ -> Lwt.return_unit
 
-let sync_with_peer bc (ic, oc) =
-  let start_blocks = List.map (fun c -> Chain.hash c) bc.forks in
+let sync_with_peer ({head; _} as bc) (ic, oc) =
+  let rec checkpoints n  =
+    match n with
+    | 0 -> Lwt.return_nil
+    | _ ->
+      let hash = Chain.block_at_index head (Chain.height head - n) >|= Block.hash in
+      let tl = checkpoints (n - 16) in
+      hash >>= fun h -> tl >|= (List.cons h)
+  in
+  let%lwt block_hashes = checkpoints (16*20) in
   let block_req = {request = Blocks;
-                   startblocks = start_blocks}
+                   startblocks = block_hashes;
+                   block_height = Chain.height head}
   in
   let message = {method_ = Get;
                  get = Some block_req;
