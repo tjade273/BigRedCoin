@@ -134,4 +134,6 @@ let deserialize db s =
   let hash = Cstruct.copy buf 8 32 in
   let%lwt head = BlockDB.get db hash in
   let cache = Cache.add hash (height, head) Cache.empty in
-  extend_cache {height; hash; head; cache; db}
+  let chain = {height; hash; head; cache; db} in
+  let%lwt cache' = extend_cache chain in
+  Lwt.return {chain with cache = cache'}

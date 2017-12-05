@@ -19,7 +19,7 @@ val hash : t -> string
 
 val serialize : t -> string
 
-val deserialize : string -> t
+val deserialize : BlockDB.t -> string -> t Lwt.t
 
 (* [block_at_index chain i] is the [i]th block in [chain].
  * Requires: [i <= height chain] *)
