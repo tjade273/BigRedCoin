@@ -58,12 +58,12 @@ let close_all (node_lst:P2p.t array) =
   Array.fold_left (fun acc node -> 
       (P2p.shutdown ~save:false node)<&>acc) Lwt.return_unit node_lst 
 
-let rec create_n_linked_nodes ?start_port:(start_port=4000) n =
+let rec create_n_linked_nodes ?start_port:(start_port=4000) ?peer_share:(peer_share = true) n =
   let rec create_nodes_rec p lst =
     if p >= start_port + n then
       Lwt.return (Array.of_list lst)
     else
-      let%lwt new_node =  P2p.create_from_list ~port:p
+      let%lwt new_node =  P2p.create_from_list ~port:p ~peer_share:peer_share
           ["127.0.0.1",(p-1),None] in
       create_nodes_rec (p+1) (lst @ [new_node])
   in
@@ -120,7 +120,7 @@ let messaging_tests = suite "messaging tests" [
 
     test "simple_message_back_forth" begin fun () -> 
       let%lwt node_a = P2p.create ~peer_share:false ~port:4444 "test/nodes/node_a.peers" in
-      let%lwt node_b = P2p.create ~peer_share:false ~port:4445 "test/nodes/node_b.peers" in
+      let%lwt node_b = P2p.create ~peer_share:false ~port:4445 "test/nodes/node_b.peers" in     
       P2p.broadcast simple_data_msg node_b >>
       let%lwt check_message_1 = message_check_thread node_a in       
       P2p.broadcast simple_data_msg node_a >>
@@ -140,13 +140,14 @@ let messaging_tests = suite "messaging tests" [
 
     test "peer_sync_test_explicit" begin fun () ->
       let%lwt nodes = create_n_linked_nodes ~start_port:4000 2 in
-      Lwt_unix.sleep 20. >> 
+      let do_sync = Lwt_unix.sleep 5. 
+      in 
+      do_sync >> close_all nodes >> 
       let string_sort e1 e2 = 
         if e1 < e2 then (~-1) else if e1 > e2 then 1 else 0 in
       let known_peers_b = List.sort string_sort
           (List.map (fun peer -> (BRCPeer.s_addr peer)) (P2p.known_peers nodes.(1))) 
-      in 
-      close_all nodes >> Lwt.return 
+      in Lwt.return 
         (known_peers_b = 
          ["127.0.0.1:3999";
           "127.0.0.1:4000"])
@@ -155,7 +156,7 @@ let messaging_tests = suite "messaging tests" [
     test "peer_sync_test_share" begin fun () ->
       let%lwt node_a = P2p.create ~port:4443 "test/nodes/node_a.peers" in
       let%lwt node_b = P2p.create ~port:4445 "test/nodes/node_b.peers" in 
-      Lwt_unix.sleep 20. >> 
+      Lwt_unix.sleep 5. >> 
       let string_sort e1 e2 = 
         if e1 < e2 then (~-1) else if e1 > e2 then 1 else 0 in
       let known_peers_a = List.sort string_sort
