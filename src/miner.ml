@@ -39,9 +39,22 @@ let rec mine r w p =
 (* [manage t b] pulls a block from the blockchain and updates the miners in [t]
  * if the block is not [b]. When a miner finds a block, push it into the push
  * stream in [t]. *)
-(*let manage t b =
+let manage t b =
   let%lwt newb = Blockchain.nextBlock () in
-  if *)
+  if Some newb = b then
+    let check (_, r, _) =
+      let%lwt str = Lwt_io.read r
+      if str = "" then 
+        ()
+      else 
+        try t.push (Block.deserialize str) with
+        | exn n -> ()
+    List.iter check t.pids;
+    manage t (Some b)
+  else
+    let f (_, _, wr) = write (Block.serialize b) w >>= ignore (flush w)
+    List.iter f t.pids;
+    manage t (Some newb)
 
 let start t num =
   let rec start_instance t num =
@@ -56,7 +69,8 @@ let start t num =
       start_instance 
         {t with pids = (t.pids :: (id, open_in (fst r), open_out (snd w)))} 
         (num - 1) in
-  start_instance t num
+  start_instance t num;
+  manage t None
 
 let stop t =
   let f = fun () x -> Unix.kill x Sys.sigterm in
