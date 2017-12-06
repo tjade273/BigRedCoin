@@ -70,21 +70,39 @@ let messageify_header {version;
                        timestamp} =
   let open Message_types in
   {version = version;
-    prev_hash = Bytes.of_string prev_hash;
-    merkle_root = Bytes.of_string merkle_root;
+    prev_hash = prev_hash;
+    merkle_root = merkle_root;
     nonce = nonce;
     n_bits = nBits;
     timestamp = timestamp}
 
+let demessageify_header {Message_types.version;
+                       prev_hash;
+                       merkle_root;
+                       nonce;
+                       n_bits;
+                       timestamp} =
+  {version = version;
+    prev_hash = prev_hash;
+    merkle_root = merkle_root;
+    nonce = nonce;
+    nBits = n_bits;
+    timestamp = timestamp}
 
 let messageify {header;
                 transactions;
-                transactions_count;} =
+                transactions_count} =
   let open Message_types in
   {header = messageify_header header;
    txs = List.map Transaction.messageify transactions;
    tx_count = transactions_count}
 
+let demessageify {Message_types.header;
+                txs;
+                tx_count} =
+  {header = demessageify_header header;
+   transactions = List.map Transaction.demessageify txs;
+   transactions_count = tx_count}
 
 let hash b =
   let h = messageify_header b.header in

@@ -43,3 +43,6 @@ val serialize : t -> string
 val deserialize : string -> t
 
 val messageify : t -> Message_types.block
+
+val demessageify : Message_types.block -> t
+

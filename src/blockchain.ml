@@ -87,7 +87,7 @@ let serve_blocks {blockdb; head; forks; _} oc startblocks height =
     post_blocks blocks_to_send oc
 
 let insert_blocks bc blocks =
-  failwith "unimplemented"
+  failwith "Unimplemented"
 
 let handle_message bc (ic,oc) {method_; get; post; _} =
   let handle_get {request; startblocks; block_height} =
@@ -96,7 +96,8 @@ let handle_message bc (ic,oc) {method_; get; post; _} =
     | Mempool -> failwith "Unimplemented"
     | Blocks -> serve_blocks bc oc startblocks block_height
   in
-  let handle_post {blocks; _} = insert_blocks bc blocks in
+  let handle_post {blocks; _} =
+    insert_blocks bc (List.map Block.demessageify blocks) in
   match method_, get, post with
   | Get, Some msg, _ -> handle_get msg
   | Post, _, Some msg -> handle_post msg
