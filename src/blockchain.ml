@@ -9,8 +9,11 @@ exception Invalid_block
 type t = {blockdb: BlockDB.t;
           head : Chain.t;
           forks: Chain.t list;
-          p2p : P2p.t}
+          p2p : P2p.t;
+          dir : string}
 
+(* [initialize blockdb dir p2p] is a fresh blockchain initialized to the gensesis,
+ * using [blockdb] as a backend and located in [dir] *)
 let initialize blockdb dir p2p =
   let gen_f = (Filename.concat dir "genesis.blk") in
   let chain_f = (Filename.concat dir "chains.dat") in
@@ -19,10 +22,15 @@ let initialize blockdb dir p2p =
   in
   let gen_chain = Chain.create blockdb genesis in
   Lwt_io.(with_file ~mode:output chain_f
-            (fun oc -> write oc (Chain.serialize gen_chain)))
-  >> Lwt.return {blockdb; head=gen_chain; forks = []; p2p}
+            (fun oc -> write oc (Chain.serialize gen_chain))) 
+  >> Lwt.return {blockdb; head=gen_chain; forks = []; p2p; dir}
 
+(* [create dir p2p] is a blockchain with resources stored in [dir], using
+ * [p2p] as a p2p instance. *)
 let create dir p2p =
+  (if%lwt Lwt_unix.file_exists dir >|= not
+   then Lwt_unix.mkdir dir 0o700
+   else Lwt.return_unit) >>
   let absolute = Filename.concat dir in
   let blockdb = BlockDB.create (absolute "blocks") in
   let chain_f = absolute "chains.dat" in
@@ -41,10 +49,20 @@ let create dir p2p =
         (fun c1 c2 -> if Chain.height c1 > Chain.height c2 then c1 else c2)
         (List.hd forks) forks
     in
-    Lwt.return {head; forks; blockdb; p2p}
+    Lwt.return {head; forks; blockdb; p2p; dir}
   else
     initialize blockdb dir p2p
 
+let close_blockchain blockchain =
+  let bc = !blockchain in
+  let absolute = Filename.concat bc.dir in
+  let chain_f = absolute "chains.dat" in
+  Lwt_io.(with_file ~mode:output chain_f
+            (fun oc -> write oc (Chain.serialize bc.head)))
+
+
+(* [post_blocks blocks oc] pushes the list of blocks [blocks] across the
+ * p2p channel [oc], 128 at a time. *)
 let post_blocks blocks oc =
   let post_msg block_list =
     {method_ = Post;
@@ -71,6 +89,10 @@ let post_blocks blocks oc =
   in
   send_n 128 blocks
 
+(* [serve_blocks blockchain oc startblocks height] services a
+ * request by the peer at the end of the channel [oc]. [startblocks] is a list of
+ * block hashes starting at [height] and progressing down the peer's chain in increments
+ * of 16 *)
 let serve_blocks {blockdb; head; forks; _} oc startblocks height =
   let empty_message =  {method_= Post;
                         post = Some {transactions=[]; blocks=[]};
@@ -88,8 +110,13 @@ let serve_blocks {blockdb; head; forks; _} oc startblocks height =
     let blocks_to_send = List.map Block.messageify (Chain.revert head shared_root |> fst) in
     post_blocks blocks_to_send oc
 
-let reorganize_chain _ _ = failwith "Unimplemented"
+let reorganize_chain bc new_chain =
+  Lwt_log.notice "Unimplemented" >>
+  Lwt.return {bc with head = new_chain}
 
+(* [insert_blocks bc blocks] is [bc] after attempting to sequentially
+ * insert [blocks] into the chain. The first element of [blocks] should be
+ * an element of [bc.head] *)
 let insert_blocks bc blocks =
   let open Block in
   Lwt_list.iter_p (BlockDB.put bc.blockdb) blocks >>
@@ -102,6 +129,7 @@ let insert_blocks bc blocks =
       then Lwt.fail Invalid_block
       else
         let _, chain = Chain.revert bc.head (Block.hash root) in
+        print_endline "Hello";
         let try_extend chain block =
           match%lwt Chain.extend chain block with
           | None -> Lwt.fail Invalid_block
@@ -113,6 +141,8 @@ let insert_blocks bc blocks =
         else Lwt.return {bc with forks = new_chain::bc.forks}
     end
 
+(* [handle_message bc (ic, oc) msg] is [bc] after responding to the message [msg]
+ * If [msg] is not a post request, [bc] is unchanged *)
 let handle_message bc (ic,oc) {method_; get; post; _} : t Lwt.t =
   let handle_get {request; startblocks; block_height} =
     match request with
@@ -130,12 +160,17 @@ let handle_message bc (ic,oc) {method_; get; post; _} : t Lwt.t =
   | Post, _, Some msg -> handle_post msg
   | _ -> Lwt.return bc
 
+(* [read_messages (ic, oc) blockchain] is [blockchain] after reading all available
+ * messages from the channel pair*)
 let rec read_messages (ic, oc) bc : t Lwt.t =
   match%lwt read ic with
   | None -> close_in ic >> close_out oc >> Lwt.return bc
   | Some msg -> handle_message bc (ic, oc) msg
     >>= read_messages (ic, oc)
 
+(* After [sync_wit_peer blockchain channel], either [blockchain] is updated
+ * to be closer to the blockchain of the peer at the other side of [channel]
+ * or vice versa *)
 let sync_with_peer ({head; _} as bc) (ic, oc) =
   let rec checkpoints n  =
     match n with
@@ -157,3 +192,24 @@ let sync_with_peer ({head; _} as bc) (ic, oc) =
   in
   write oc message >|= ignore >>
   read_messages (ic, oc) bc
+
+let rec sync blockchain =
+  let bc = !blockchain in
+  let peer_stream = P2p.peer_stream bc.p2p in
+  match%lwt Lwt_stream.get peer_stream with
+  | None -> close_blockchain blockchain
+  | Some peer ->
+    let ic = P2p.BRCPeer.ic peer in
+    let oc = P2p.BRCPeer.oc peer in
+    let%lwt bc' = sync_with_peer bc (ic,oc) in
+    blockchain := bc'; Lwt_main.yield () >>
+    sync blockchain
+
+let push_block blockchain block =
+  let bc = !blockchain in
+  let%lwt bc' = insert_blocks bc [Chain.head bc.head; block] in
+  blockchain := bc';
+  Lwt.return_unit
+
+let head {head; } =
+  Chain.hash head

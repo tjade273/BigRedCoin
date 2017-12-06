@@ -70,4 +70,6 @@ let tests = "Chain Tests" >::: [
     "extend_bad_target" >:: (fun _ -> assert_equal None c3);
     "extend_bad_nbits" >:: (fun _ -> assert_equal None c5);
     "block_at_index" >:: (fun _ -> assert_equal (List.nth blockchain 2) b3);
+    "revert_to_self" >:: (fun _ -> assert_equal [] (fst (Chain.revert c1 (Chain.hash c1))));
+    "revert_two" >:: (fun _ -> assert_equal (Block.hash b3) (Chain.hash (snd (Chain.revert c1 (Block.hash b3)))))
   ]
