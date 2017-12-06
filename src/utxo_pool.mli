@@ -1,6 +1,7 @@
 type t 
+exception Invalid_block
 
-val apply : Transaction.t -> t   
+val apply : Block.t -> t   
 
-val revert : Transaction.t -> t 
+val revert : Block.t -> t 
 
