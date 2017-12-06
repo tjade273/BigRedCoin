@@ -1,5 +1,6 @@
 open Transaction
 open Block
+exception Invalid_block
 
 let output_hash tx_id output_index = 
   Crypto.sha256 (tx_id^(string_of_int output_index))
@@ -52,9 +53,10 @@ let verify transaction =
 
 let revert p (b:Block.t) = 
   let transactions = b.transactions in 
+  List.fold_left (fun acc t -> revert_transaction p t) p transactions
   
 let apply p block = 
   if (List.for_all verify block.transactions) then 
      {pool = List.fold_left put_transaction p.pool block.transactions}
   else
-    p
+    raise Invalid_block
