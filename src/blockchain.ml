@@ -4,6 +4,8 @@ open P2p.BRCMessage_channel
 
 module BlockDB = Chain.BlockDB
 
+exception Invalid_block
+
 type t = {blockdb: BlockDB.t;
           head : Chain.t;
           forks: Chain.t list;
@@ -34,7 +36,7 @@ let create dir p2p =
       then []
       else (String.sub chain_s i 40)::(extract_chain (i+40))
     in
-    let forks = List.map Chain.deserialize (extract_chain 0) in
+    let%lwt forks = Lwt_list.map_p (Chain.deserialize blockdb) (extract_chain 0) in
     let head = List.fold_left
         (fun c1 c2 -> if Chain.height c1 > Chain.height c2 then c1 else c2)
         (List.hd forks) forks
@@ -86,10 +88,32 @@ let serve_blocks {blockdb; head; forks; _} oc startblocks height =
     let blocks_to_send = List.map Block.messageify (Chain.revert head shared_root |> fst) in
     post_blocks blocks_to_send oc
 
-let insert_blocks bc blocks =
-  failwith "Unimplemented"
+let reorganize_chain _ _ = failwith "Unimplemented"
 
-let handle_message bc (ic,oc) {method_; get; post; _} =
+let insert_blocks bc blocks =
+  let open Block in
+  Lwt_list.iter_p (BlockDB.put bc.blockdb) blocks >>
+  match blocks with
+  | [] -> Lwt.return bc
+  | root::heads ->
+    begin
+      let {header; transactions; transactions_count} = root in
+      if List.length transactions <> transactions_count
+      then Lwt.fail Invalid_block
+      else
+        let _, chain = Chain.revert bc.head (Block.hash root) in
+        let try_extend chain block =
+          match%lwt Chain.extend chain block with
+          | None -> Lwt.fail Invalid_block
+          | Some c -> Lwt.return c
+        in
+        let%lwt new_chain = Lwt_list.fold_left_s try_extend chain heads in
+        if Chain.height new_chain > Chain.height bc.head
+        then reorganize_chain bc new_chain
+        else Lwt.return {bc with forks = new_chain::bc.forks}
+    end
+
+let handle_message bc (ic,oc) {method_; get; post; _} : t Lwt.t =
   let handle_get {request; startblocks; block_height} =
     match request with
     | Peer -> Lwt.return_unit
@@ -97,11 +121,20 @@ let handle_message bc (ic,oc) {method_; get; post; _} =
     | Blocks -> serve_blocks bc oc startblocks block_height
   in
   let handle_post {blocks; _} =
-    insert_blocks bc (List.map Block.demessageify blocks) in
+    Lwt.catch (fun () ->
+        insert_blocks bc (List.map Block.demessageify blocks))
+      (fun exn -> Lwt_log.debug "Bad block received\n" >> Lwt.return bc)
+  in
   match method_, get, post with
-  | Get, Some msg, _ -> handle_get msg
+  | Get, Some msg, _ -> handle_get msg >> Lwt.return bc
   | Post, _, Some msg -> handle_post msg
-  | _ -> Lwt.return_unit
+  | _ -> Lwt.return bc
+
+let rec read_messages (ic, oc) bc : t Lwt.t =
+  match%lwt read ic with
+  | None -> close_in ic >> close_out oc >> Lwt.return bc
+  | Some msg -> handle_message bc (ic, oc) msg
+    >>= read_messages (ic, oc)
 
 let sync_with_peer ({head; _} as bc) (ic, oc) =
   let rec checkpoints n  =
@@ -123,6 +156,4 @@ let sync_with_peer ({head; _} as bc) (ic, oc) =
                  manage = None}
   in
   write oc message >|= ignore >>
-  match%lwt read ic with
-  | None -> Lwt.return_unit
-  | Some msg -> handle_message bc (ic,oc) msg
+  read_messages (ic, oc) bc
