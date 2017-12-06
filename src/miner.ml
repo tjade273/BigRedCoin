@@ -1,11 +1,12 @@
-(* A t is a miner with a pull stream of blocks in pull, a push stream of blocks
- * in push, and a list of mining process ids with a read pipe and a write pipe.
- * *)
+(* A t is a miner with a push stream of blocks in push, and a list of mining
+ * process ids with a read pipe and a write pipe. *)
 type t = {
-  pull : Block.header Lwt_stream.t;
   push : Block.header option -> unit;
   pids : (int * Unix.file_descr * Unix.file_descr) list
 }
+
+let create f =
+  {push = f; pids = []}
 
 (* [mine r w p] attempts to mine blocks sourced from the read pipe [r] and writes
  * results to the write pipe [w]. The next block to be mined is in [p]. *)
@@ -40,7 +41,7 @@ let rec mine r w p =
  * if the block is not [b]. When a miner finds a block, push it into the push
  * stream in [t]. *)
 let manage t b =
-  let%lwt newb = Blockchain.nextBlock () in
+  let%lwt newb = Blockchain.next_block () in
   if Some newb = b then
     let check (_, r, _) =
       let%lwt str = Lwt_io.read r
