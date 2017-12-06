@@ -213,3 +213,18 @@ let push_block blockchain block =
 
 let head {head; } =
   Chain.hash head
+
+(* Todo: actually include txs *)
+let next_block {head; _} =
+  let open Block in
+  let prev_hash = Chain.hash head in
+  let%lwt nBits = Chain.next_difficulty head in
+  let header = {
+    version = 0;
+    prev_hash;
+    merkle_root = String.make 32 '\x00';
+    nonce = 0;
+    nBits;
+    timestamp = 0}
+  in
+  Lwt.return {header; transactions = []; transactions_count = 0}

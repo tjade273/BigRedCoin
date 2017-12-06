@@ -35,3 +35,5 @@ val block_at_index : t -> int -> Block.t Lwt.t
 val extend : t -> Block.block -> t option Lwt.t
 
 val revert : t -> string -> Block.t list * t
+
+val next_difficulty : t -> int Lwt.t

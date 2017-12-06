@@ -38,8 +38,8 @@ let genesis = mine_header {
 
 let%lwt () = Lwt_io.with_file ~mode:Lwt_io.output (dir^"genesis.blk") (fun oc -> Lwt_io.write oc (Block.serialize Chain_test.genesis))
 
-let%lwt peer1 = P2p.create_from_list ~port:4000 ["127.0.0.1", 4001, None]
-let%lwt peer2 = P2p.create_from_list ~port:4001 ["127.0.0.1", 4000, None]
+let%lwt peer1 = P2p.create_from_list ~port:3000 ["127.0.0.1", 4001, None]
+let%lwt peer2 = P2p.create_from_list ~port:3001 ["127.0.0.1", 4000, None]
 let%lwt bc = Blockchain.create "test_blockchain" peer1
 
 let%lwt () = Lwt_log.notice ("Genesis hash: "^(Hex.of_string (Blockchain.head bc) |> show))

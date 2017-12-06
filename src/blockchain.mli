@@ -12,3 +12,5 @@ val sync : t ref -> unit Lwt.t
 val push_block : t ref -> Block.t -> unit Lwt.t
 
 val head : t -> string
+
+val next_block : t -> Block.t Lwt.t
