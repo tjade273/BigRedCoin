@@ -10,7 +10,7 @@ type t = {
 (* [mine r w p] attempts to mine blocks sourced from the read pipe [r] and writes
  * results to the write pipe [w]. The next block to be mined is in [p]. *)
 let rec mine r w p =
-  let b = input_line r in
+  let b = Lwt_io.read r in
   if b = "stop" then
     close_in r;
     close_out w;
@@ -23,7 +23,7 @@ let rec mine r w p =
           nonce = b.nonce + 1 mod 2147483647 
         }
         if Block.hash p < Block.target p.nBits then
-          output_string w (Block.serialize p);
+          Lwt_io.write w (Block.serialize p);
           mine r w None
         else
           mine r w next
@@ -36,13 +36,20 @@ let rec mine r w p =
     } in
     mine r w y
 
+(* [manage t b] pulls a block from the blockchain and updates the miners in [t]
+ * if the block is not [b]. When a miner finds a block, push it into the push
+ * stream in [t]. *)
+(*let manage t b =
+  let%lwt newb = Blockchain.nextBlock () in
+  if *)
+
 let start t num =
   let rec start_instance t num =
     if num = 0 then 
       ()
     else
-      let r = Unix.pipe () in
-      let w = Unix.pipe () in
+      let r = Lwt_io.pipe () in
+      let w = Lwt_io.pipe () in
       let id = Unix.fork () in
       if id = 0 then mine (open_in (fst w)) (open_out (snd r)) None
     else
