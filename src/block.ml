@@ -10,13 +10,11 @@ type header = {
   timestamp : int
 }
 
-type block = {
+type t = {
   header : header;
   transactions : Transaction.t list;
   transactions_count : int
 }
-
-type t = block
 
 (* Based on the bitcoin developer reference. *)
 let target nbits =
