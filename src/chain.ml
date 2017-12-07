@@ -4,13 +4,17 @@ open Lwt
 module BlockDB = Database.Make(Block)
 module Cache = Map.Make(String)
 
+(* [cache_size] is the size of the cache for the chain. *)
 let cache_size = 2048
 
-type t = {hash : string;
-          head : Block.t;
-          height : int;
-          cache : (int * Block.t) Cache.t;
-          db : BlockDB.t}
+type t =
+  {
+    hash : string;
+    head : Block.t;
+    height : int;
+    cache : (int * Block.t) Cache.t;
+    db : BlockDB.t
+  }
 
 let block_at_index {hash; head; height; cache; db} (n : int) =
   let nth_opt =
@@ -72,6 +76,8 @@ let extend_cache {cache; db; _} =
   in
   add_parent cache oldest 25
 
+(* [shared_root c1 c2] is the highest block (furthest from the genesis block),
+ * that is shared by both chains [c1] and [c2]. *)
 let rec shared_root c1 c2 =
   let highest_block h (i,b) acc =
     match Cache.find_opt h c2.cache, acc with
@@ -92,8 +98,7 @@ let rec shared_root c1 c2 =
     shared_root c1 c2
 
 let rec revert ({hash; head; height; cache; db} as c) h =
-  if hash = h
-  then ([], c)
+  if hash = h then ([], c)
   else
     let prev_hash = head.header.prev_hash in
     let _, parent = Cache.find prev_hash cache in
@@ -101,8 +106,7 @@ let rec revert ({hash; head; height; cache; db} as c) h =
                                          hash = prev_hash;
                                          height = (height-1)
                                  } h
-    in
-    head::blocks, chain
+    in head::blocks, chain
 
 let head {head; _} = head
 let height {height; _} = height
