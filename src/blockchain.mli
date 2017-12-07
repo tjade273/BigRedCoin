@@ -13,6 +13,8 @@ val push_block : t ref -> Block.t -> unit Lwt.t
 
 val head : t -> string
 
+val chain : t -> Chain.t
+
 val next_block : t -> Block.t Lwt.t
 
 val get_utxos : t -> string -> (Transaction.input * Transaction.output) list

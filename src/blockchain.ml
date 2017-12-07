@@ -249,3 +249,5 @@ let next_block {head; _} =
 
 let get_utxos {utxos; _} address =
   Utxo_pool.filter utxos address
+
+let chain {head; _} = head
