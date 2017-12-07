@@ -40,7 +40,7 @@ let%lwt bc2 = Blockchain.create "test_blockchain2" peer2
 
 let%lwt () = Lwt_log.notice ("Genesis hash: "^(Hex.of_string (Blockchain.head bc) |> show))
 
-let block1 = List.nth Chain_test.blockchain 4
+let block1 = List.nth (List.rev Chain_test.blockchain) 1
 
 let coinbase_tx = Transaction.({ins = []; outs = [{amount = 25; address}]; sigs = Some [Crypto.random 32]})
 let tx1_nosig = Transaction.({outs = [{amount = 12; address}; {amount = 13; address = String.make 32 '\x00'}]; ins = [{txid = Transaction.hash coinbase_tx; out_index = 0}]; sigs = None})
