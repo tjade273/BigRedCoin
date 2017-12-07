@@ -2,7 +2,7 @@ open ANSITerminal
 open Yojson.Basic.Util
 
 
-type command = (string*(string list))
+type command = (string*(string array))
 type command_hook = command -> string option
 
 
@@ -40,7 +40,7 @@ module CommandParserImpl = struct
       if List.exists 
           (fun regex -> Str.string_match regex input 0) command.regexes 
       then
-        (Some (command_head,Str.split (Str.regexp_string " ") command_tail))    
+        (Some (command_head,Array.of_list (Str.split (Str.regexp_string " ") command_tail))) 
       else
         let valid_regex_msg = 
             ("Invalid format for " ^ command_head ^ ": \n\t" ^ command.hint) in 
@@ -61,7 +61,6 @@ module CommandParserImpl = struct
       (name,{name=name;hint=hint;regexes=regexes})) json_commands
                
     in {commands = commands}
-
 
     let commands parser = 
       parser.commands
@@ -124,7 +123,6 @@ let post_data () =
     ANSITerminal.set_cursor 1 (58-new_lines); 
     print_string [white] data) repl.data_lst
   
-
 (*[handle_input ()] reads input from stdin and attemps to parse into a command.*)
 let handle_input command_parser() = 
   ANSITerminal.set_cursor 10 60;    

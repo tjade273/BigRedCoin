@@ -1,6 +1,6 @@
 
 
-type command = (string*(string list))
+type command = (string*(string array))
 type command_hook = command -> string option
 
 
