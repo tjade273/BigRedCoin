@@ -28,7 +28,7 @@ let () = print_endline (Hex.of_string Chain_test.genesis.header.merkle_root |> s
 
 let%lwt peer1 = P2p.create_from_list ~port:4000 ["127.0.0.1", 4001, None]
 let%lwt peer2 = P2p.create_from_list ~port:4001 ["127.0.0.1", 4000, None]
-    
+
 let (pubkey, privkey) = Crypto.ECDSA.create ()
 let address = Crypto.ECDSA.to_address pubkey
 

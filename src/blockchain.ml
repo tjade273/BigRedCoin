@@ -221,6 +221,7 @@ let rec sync blockchain =
   match%lwt Lwt_stream.get peer_stream with
   | None -> close_blockchain blockchain
   | Some peer ->
+    Lwt_log.notice "Syncing with peer..." >> 
     let ic = P2p.BRCPeer.ic peer in
     let oc = P2p.BRCPeer.oc peer in
     let%lwt bc' = sync_with_peer bc (ic,oc) in
