@@ -10,6 +10,20 @@ type t = {
 let create f =
   {push = f; pids = []}
 
+(* [write w s] writes the length of the string [s] followed by [s] to [w]. *)
+let write w s =
+  let len_buffer = Cstruct.create 8 in
+  let len = String.length s in
+  Cstruct.BE.set_uint64 len_buffer 0 (Int64.of_int len);
+  let l = Cstruct.to_string len_buffer in
+  Lwt_io.write w (l^s)
+
+(* [read r] is the next message in [r]. *)
+let read r =
+  let%lwt len_str = Lwt_io.read ~count:8 r in
+  let len = Cstruct.BE.get_uint64 (Cstruct.of_string len_str) 0 in
+  Lwt_io.read ~count:(Int64.to_int len) r
+
 (* [mine r w p] attempts to mine blocks sourced from the read pipe [r] and writes
  * results to the write pipe [w]. The next block to be mined is in [p]. *)
 let rec mine r w p =
