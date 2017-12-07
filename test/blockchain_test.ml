@@ -17,7 +17,8 @@ let () =
 
 let () =
   try
-    Sys.remove (dir^"chains.dat"); Sys.remove (dir^"genesis.blk")
+    Sys.remove (dir^"chains.dat"); Sys.remove (dir^"genesis.blk");
+    Sys.remove (dir2^"chains.dat"); Sys.remove (dir2^"genesis.blk")
   with Sys_error _ -> ()
 
 let%lwt () = Lwt_io.with_file ~mode:Lwt_io.output (dir^"genesis.blk") (fun oc -> Lwt_io.write oc (Block.serialize Chain_test.genesis))
@@ -27,6 +28,7 @@ let () = print_endline (Hex.of_string Chain_test.genesis.header.merkle_root |> s
 
 let%lwt peer1 = P2p.create_from_list ~port:4000 ["127.0.0.1", 4001, None]
 let%lwt peer2 = P2p.create_from_list ~port:4001 ["127.0.0.1", 4000, None]
+    
 let (pubkey, privkey) = Crypto.ECDSA.create ()
 let address = Crypto.ECDSA.to_address pubkey
 
@@ -69,10 +71,15 @@ let block2 = mine_tx_block header1 (Block.target header1.nBits) [coinbase_tx; tx
 
 let blockchain = ref bc
 let blockchain2 = ref bc2
-let (stream1, push1) = Lwt_stream.create ()
-let (stream2, push2) = Lwt_stream.create ()
-let miner1 = Miner.create "lucas" push1 blockchain
-let miner2 = Miner.create "cosmo" push2 blockchain2
+
+let push bc block =
+  match block with
+  | None -> failwith "Miner stream stopped"
+  | Some b -> Lwt.async (fun () -> Lwt_log.notice "Pushing" >> Blockchain.push_block bc b)
+
+
+let miner1 = Miner.create "lucas" (push blockchain) blockchain
+let miner2 = Miner.create "cosmo" (push blockchain2) blockchain2
 
 let tests = [suite "blockchain tests" [
     test "test_sync" begin fun () ->
@@ -97,15 +104,15 @@ let tests = [suite "blockchain tests" [
       let utxos = Blockchain.get_utxos !blockchain address in
       Lwt.return Transaction.(utxos = [({txid = Transaction.hash tx1; out_index = 0}, {amount = 12; address})])
     end;
-    
+
     test "mining sync" begin fun () ->
       Miner.start miner1 >>
       Miner.start miner2 >>
-      Lwt_unix.sleep 180.0 >>
+      Lwt_unix.sleep 18.0 >>
       let chain1 = Blockchain.chain !blockchain in
       let chain2 = Blockchain.chain !blockchain2 in
       let index = Chain.height chain1 - 4 in
-      if (index < 1) then (print_endline "Tried to access index less than 1."; Lwt.return true)
+      if (index < 1) then (print_endline ("Tried to access index less than 1: "^(string_of_int @@ Chain.height chain2)); Lwt.return true)
       else begin
         Miner.stop miner1;
         Miner.stop miner2;

@@ -135,8 +135,8 @@ let miner_tests = suite "miner tests" [
       start miner >>
       Lwt_log.info "started" >>
       Lwt.pick [
-        Lwt_unix.sleep 120.0 >> begin stop miner; print_endline "Warning: block not mined within 120 seconds. Not necessarily a failure."; Lwt.return true end;
-        Lwt_stream.get stream >>= fun x -> begin stop miner; Lwt.return true end;
+        (Lwt_unix.sleep 120.0 >> begin stop miner; print_endline "Warning: block not mined within 120 seconds. Not necessarily a failure."; Lwt.return true end);
+        (Lwt_stream.get stream >>= fun _ -> Lwt_stream.get stream >>= fun x -> (stop miner; Lwt.return true))
       ] >>= fun x -> begin Lwt.return x end
     end;
   ]
