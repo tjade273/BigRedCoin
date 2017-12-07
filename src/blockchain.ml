@@ -39,7 +39,7 @@ let create dir p2p =
    else Lwt.return_unit) >>
   let absolute = Filename.concat dir in
   let blockdb = BlockDB.create (absolute "blocks") in
-  let txdb = TxDB.create (absolute "blocks") in
+  let txdb = TxDB.create (absolute "transactions") in
   let chain_f = absolute "chains.dat" in
   if%lwt Lwt_unix.file_exists chain_f
   then
