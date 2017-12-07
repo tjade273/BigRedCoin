@@ -90,10 +90,6 @@ val peer_stream : t -> BRCPeer.peer_connection Lwt_stream.t
 (* [server_port p2p] is the port linked to the [p2p] node. *)
 val server_port : t -> int
 
-(* [(p2p,conn) @<> f] is syntactic sugar for [handle f p2p conn]. *)
-val (@<>) : (t*BRCPeer.peer_connection) -> (BRCPeer.peer_connection ->
-                (bool*('a Lwt.t)) Lwt.t) -> 'a Lwt.t
-
 (* [shutdown p2p] shuts down the given [p2p] node by closing all its connections,
  * saving the updated list of known peers to file, and shuting down the server. *)
 val shutdown : ?save:bool -> t -> unit Lwt.t
@@ -103,3 +99,7 @@ val set_log_level : t -> log_level -> unit
 
 (*[known_peers p2p]* returns a list of nodes [p2p] known peers*)
 val known_peers : t -> BRCPeer.peer list
+
+(* [(p2p,conn) @<> f] is syntactic sugar for [handle f p2p conn]. *)
+val (@<>) : (t*BRCPeer.peer_connection) -> (BRCPeer.peer_connection ->
+(bool*('a Lwt.t)) Lwt.t) -> 'a Lwt.t
