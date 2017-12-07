@@ -72,7 +72,7 @@ end
 
 module BRCMessage_channel : Message_channel with
   type input = Lwt_io.input Lwt_io.channel and
-  type output = Lwt_io.output Lwt_io.channel
+type output = Lwt_io.output Lwt_io.channel
 = struct
 
   type input = (Lwt_io.input Lwt_io.channel)
@@ -102,7 +102,7 @@ module BRCMessage_channel : Message_channel with
       in Lwt.return (sz,Cstruct.BE.get_uint64 (Cstruct.of_bytes buf) 0)
     in
     match %lwt read_size with
-    |(0,_) -> Lwt_main.yield () >> read_raw_msg_till_sucess ic
+    |(0,_) -> Lwt_unix.sleep 0.0 >> read_raw_msg_till_sucess ic
     | (sz,msg_len) ->
       let msg_len_int = (Int64.to_int msg_len) in
       let buf = Bytes.create msg_len_int in
@@ -121,7 +121,7 @@ module BRCMessage_channel : Message_channel with
     | (0,_) -> Lwt.return_none
     | (sz,bytes) ->  Lwt.return_some bytes
 
-  let read ?timeout:(timeout=60.0) ic  =
+  let read ?timeout:(timeout=1.0) ic  =
     match%lwt read_raw_msg_for_time timeout ic with
     | None -> Lwt.return_none
     | Some buf ->
@@ -301,7 +301,7 @@ module BRCMessageHelper = struct
   (* [extract_peer_list msg p2p] extracts the list of peers from the given
    * message [msg] that the [p2p] node received. An empty list is returned if
    * the message wasn't a manage message, or didn't contain the necessary fields.
-   *)
+  *)
   let extract_peer_list msg p2p =
     match msg.manage with
     | Some manage ->
@@ -374,13 +374,11 @@ let handle close_func f p2p conn =
     close_func p2p conn >> remove_handle_connection conn p2p >> res
   else remove_handle_connection conn p2p >> res
 
-(* [handler_data_peer f p2p conn] handles a data peer connection. *)
-let handle_data_peer=
-  handle close_data_peer_connection
+let handle_data_peer f p2p conn =
+  handle close_data_peer_connection f p2p conn
 
-(* [handle_sync_peer f p2p conn] handles a peer sync connection. *)
-let handle_sync_peer =
-  handle close_sync_peer_connection
+let handle_sync_peer f p2p conn =
+  handle close_sync_peer_connection f p2p conn
 
 (* [@<>] operator for [handle]]*)
 let (@<>) (p2p,conn) f =
@@ -600,9 +598,9 @@ let rec connect_to_any_peer_for_x
     get_active_connection ()
   else if (Array.length peers > 0) then
     let peer = (random_peer peers) in
-  match%lwt (f p2p peer) with
-  | Some peer -> Lwt.return_some peer
-  | None ->
+    match%lwt (f p2p peer) with
+    | Some peer -> Lwt.return_some peer
+    | None ->
       let good_peer_lst = PeerList.filter peers (fun p -> p <> peer) in
       Lwt_unix.sleep 0.025 (*So this thread doesn't stall*)
       >> connect_to_any_peer_for_x
@@ -660,7 +658,7 @@ let connect_to_any_peer_for_data p2p () =
   connect_to_any_peer_for_time p2p 5.0 connect_to_peer_for_data
     (fun () -> (Lwt_stream.is_empty conn_stream)
       >>= (fun res -> Lwt.return (not res)))
-  (fun () -> Lwt_stream.get conn_stream)
+    (fun () -> Lwt_stream.get conn_stream)
 
 (* [connect_to_any_peer_for_peer_sync p2p ()] is a sync connection to a random peer
  * of the [p2p] node. [None] is no such connection is possible. *)
@@ -670,7 +668,7 @@ let connect_to_any_peer_for_peer_sync p2p () =
   connect_to_any_peer_for_time p2p 5.0 connect_to_peer_for_sync
     (fun () -> (Lwt_stream.is_empty conn_stream)
       >>= (fun res -> Lwt.return (not res)))
-  (fun () -> Lwt_stream.get conn_stream)
+    (fun () -> Lwt_stream.get conn_stream)
 
 (* [broadcast msg p2p] broadcasts a single message to all known peers. Returns
  * once message has been transmitted to all peers*)
@@ -736,7 +734,7 @@ let peer_stream p2p =
 
 (* [start_server p2p] is a server on the port of the given [p2p] node. *)
 let start_server p2p =
-  let port = Unix.(ADDR_INET (inet_addr_loopback, server_port p2p)) in
+  let port = Unix.(ADDR_INET (inet_addr_any, server_port p2p)) in
   let%lwt server =
     Lwt_io.establish_server_with_client_address ~no_close:true port
       (p2p |> handle_new_peer_connection)
