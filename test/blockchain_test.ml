@@ -112,7 +112,7 @@ let tests = [suite "blockchain tests" [
     test "mining sync" begin fun () ->
       Miner.start miner1 >>
       Miner.start miner2 >>
-      Lwt_unix.sleep 18.0 >>
+      Lwt_unix.sleep 180.0 >>
       let chain1 = Blockchain.chain !blockchain in
       let chain2 = Blockchain.chain !blockchain2 in
       let index = Chain.height chain1 - 4 in

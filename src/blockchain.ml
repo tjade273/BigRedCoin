@@ -113,14 +113,17 @@ let serve_blocks {blockdb; head; forks; _} oc startblocks height =
   in
   if height >= Chain.height head
   then
+    Lwt_log.notice "too high" >>
    write oc empty_message >|= ignore
   else
+    Lwt_log.notice "Good height" >>
     let blocks = List.mapi (fun i x -> (height - 16*i, x)) startblocks in
     let same_hash (index, hash) = Chain.block_at_index head index
       >|= fun b -> Block.hash b = hash
     in
     let%lwt (index, shared_root) = Lwt_list.find_s same_hash blocks in
     let blocks_to_send = List.map Block.messageify (Chain.revert head shared_root |> fst) in
+    Lwt_log.notice ("Sending "^(string_of_int (List.length blocks_to_send))) >>
     post_blocks blocks_to_send oc
 
 let reorganize_chain bc new_chain root =
@@ -167,12 +170,15 @@ let insert_blocks bc blocks =
  * If [msg] is not a post request, [bc] is unchanged *)
 let handle_message bc (ic,oc) {method_; get; post; _} : t Lwt.t =
   let handle_get {request; startblocks; block_height} =
+    Lwt_log.notice "Got get">>
+    Lwt_log.notice "Test" >>
     match request with
     | Peer -> Lwt.return_unit
     | Mempool -> failwith "Unimplemented"
-    | Blocks -> serve_blocks bc oc startblocks block_height
+    | Blocks -> Lwt_log.notice "Blocks request" >> serve_blocks bc oc startblocks block_height
   in
   let handle_post {blocks; _} =
+    Lwt_log.notice "Got post">>
     Lwt.catch (fun () ->
         insert_blocks bc (List.map Block.demessageify blocks))
       (fun exn -> Lwt_log.debug "Bad block received\n" >> Lwt.return bc)
@@ -185,9 +191,9 @@ let handle_message bc (ic,oc) {method_; get; post; _} : t Lwt.t =
 (* [read_messages (ic, oc) blockchain] is [blockchain] after reading all available
  * messages from the channel pair*)
 let rec read_messages (ic, oc) bc : t Lwt.t =
-  Lwt_log.notice "reading..." >>
-  match%lwt read ic with
-  | None -> Lwt_log.notice "stopped_reading" >> close_in ic >> close_out oc >> Lwt.return bc
+  Lwt_unix.sleep 0. >>
+  match%lwt read ~timeout:5. ic with
+  | None -> Lwt.return bc
   | Some msg -> Lwt_log.notice "Got bc message" >> handle_message bc (ic, oc) msg
     >>= read_messages (ic, oc)
 
@@ -202,7 +208,6 @@ let sync_with_peer ({head; _} as bc) (ic, oc) =
     | 0 -> Lwt.return [Chain.hash head]
     | _ ->
       let%lwt hash = Chain.block_at_index head (Chain.height head - n) >|= Block.hash in
-      Lwt_log.notice "hi" >>
       let%lwt tl = checkpoints (n - 16) in
       Lwt.return (hash::tl)
   in
@@ -230,12 +235,13 @@ let rec sync blockchain =
   match%lwt Lwt_stream.get peer_stream with
   | None -> Lwt_log.notice "closed" >> close_blockchain blockchain
   | Some peer ->
+    (bc.p2p,peer) @<> (fun peer -> 
     Lwt_log.notice "Syncing with peer..." >>
     let ic = P2p.BRCPeer.ic peer in
     let oc = P2p.BRCPeer.oc peer in
     let%lwt bc' = sync_with_peer bc (ic,oc) in
     blockchain := bc'; Lwt_main.yield () >>
-    sync blockchain
+    sync blockchain >> Lwt.return(true,Lwt.return_unit))
 
 let push_block blockchain block =
   let open Block in
