@@ -48,11 +48,11 @@ let message_check_thread node =
   let%lwt peer = Lwt_stream.get( P2p.peer_stream node) in
   match peer with 
   | Some peer -> 
-    (node,peer) @<> (fun peer ->
+    (node,peer ) @<> (fun peer ->
         (match%lwt BRCMessage_channel.read (BRCPeer.ic peer) with
          | Some msg ->  Lwt.return (true,Lwt.return true)
-         | None -> Lwt_log.notice "No message" >> Lwt.return (true,Lwt.return false))) 
-  |None -> Lwt_log.notice "No peer" >> Lwt.return_false 
+         | None -> Lwt_log.notice "No message" >> Lwt.return (true,Lwt.return false)))  
+  |None -> Lwt_log.notice "No peer" >> Lwt.return_false
 
 let close_all (node_lst:P2p.t array) = 
   Array.fold_left (fun acc node -> 
