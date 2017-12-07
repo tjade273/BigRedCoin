@@ -3,12 +3,13 @@ open Block
 (* A t is a miner with a push stream of blocks in push, and a list of mining
  * process ids with a read pipe and a write pipe. *)
 type t = {
+  blockchain : Blockchain.t ref;
   push : Block.header option -> unit;
-  pids : (int * Unix.file_descr * Unix.file_descr) list
+  pids : (int * Lwt_io.input_channel * Lwt_io.output_channel) list
 }
 
-let create f =
-  {push = f; pids = []}
+let create f chain =
+  {push = f; pids = []; blockchain = chain}
 
 (* [write w s] writes the length of the string [s] followed by [s] to [w]. *)
 let write w s =
@@ -64,24 +65,27 @@ let rec mine r w p =
 (* [manage t b] pulls a block from the blockchain and updates the miners in [t]
  * if the block is not [b]. When a miner finds a block, push it into the push
  * stream in [t]. *)
-let manage t b =
-  let%lwt newb = Blockchain.next_block () in
-  if Some newb = b then begin
+let rec manage t b =
+  let%lwt newb = Blockchain.next_block !(t.blockchain) in
+  if (Some newb) = b then begin
       let check (_, r, _) =
-        let%lwt str = read r in
-        if str = "" then 
-          Lwt.return ()
-        else 
-          try t.push (Block.deserialize str) with
-          | Exception n -> Lwt.return () in
+        let f r = 
+          let%lwt str = read r in
+          if str = "" then 
+            Lwt.return ()
+          else
+          try Lwt.return (t.push (Some (Block.deserialize str).header)) with
+          | _ -> Lwt.return () in
+        ignore (f r) in
       List.iter check t.pids;
-      manage t (Some b)
+      manage t b
     end
-  else
+  else begin
     let f (_, _, wr) = 
-      write (Block.serialize b) w >>= ignore (flush w) in
-    List.iter f t.pids;
+      write wr (Block.serialize newb) >>= fun _ -> (Lwt_io.flush wr) in
+    List.iter (fun x -> ignore (f x)) t.pids;
     manage t (Some newb)
+  end
 
 let start t num =
   let rec start_instance t num =
@@ -91,14 +95,15 @@ let start t num =
       let r = Lwt_io.pipe () in
       let w = Lwt_io.pipe () in
       let id = Unix.fork () in
-      if id = 0 then mine (open_in (fst w)) (open_out (snd r)) None
-    else
-      start_instance 
-        {t with pids = (t.pids :: (id, open_in (fst r), open_out (snd w)))} 
-        (num - 1) in
+      if id = 0 then 
+        ignore(mine (fst w) (snd r) None)
+      else
+        start_instance 
+          {t with pids = (id, (fst r), (snd w))::t.pids} 
+          (num - 1) in
   start_instance t num;
-  manage t None
+  ignore (manage t None)
 
 let stop t =
-  let f = fun () x -> Unix.kill x Sys.sigterm in
-  List.fold_left f t.mining_pids
+  let f = fun () (x, _, _) -> Unix.kill x Sys.sigterm in
+  List.fold_left f () t.pids

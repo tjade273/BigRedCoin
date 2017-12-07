@@ -4,7 +4,7 @@ type t
 (* [create pull_stream push_stream] is a new mining instance which can fetch
  * new candidate block headers from [pull_stream] and push solved blocks back 
  * to [push_stream]. *)
-val create : (Block.header option -> unit) -> t
+val create : (Block.header option -> unit) -> Blockchain.t ref -> t
 
 (* [start miner cores] starts the mining worker [miner] running on
  * [cores] CPU cores. *)
