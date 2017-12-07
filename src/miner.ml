@@ -48,8 +48,10 @@ let rec mine t prev =
                   nonce = block.header.nonce + 1 mod 2147483647
                 }
               } in
-              if Block.hash block < Block.target block.header.nBits then
-                Lwt.return (t.push (Some block))
+              if Block.hash block < Block.target block.header.nBits then begin 
+                t.push (Some block);
+                mine t None
+              end
               else mine t next
             else
               let y = Some Block.{b with

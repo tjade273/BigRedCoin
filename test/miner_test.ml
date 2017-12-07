@@ -131,12 +131,18 @@ let miner_tests = suite "miner tests" [
     end;
 
     test "mine_block" begin fun () ->
-      print_endline "mining test";
-      start miner >>
-      Lwt_log.info "started" >>
+      ignore(start miner);
       Lwt.pick [
         (Lwt_unix.sleep 120.0 >> begin stop miner; print_endline "Warning: block not mined within 120 seconds. Not necessarily a failure."; Lwt.return true end);
         (Lwt_stream.get stream >>= fun _ -> Lwt_stream.get stream >>= fun x -> (stop miner; Lwt.return true))
+      ] >>= fun x -> begin Lwt.return x end
+    end;
+
+    test "mine_two_blocks" begin fun () ->
+      ignore(start miner);
+      Lwt.pick [
+        Lwt_unix.sleep 120.0 >> begin stop miner; print_endline "Warning: block not mined within 120 seconds. Not necessarily a failure."; Lwt.return true end;
+        Lwt_stream.get stream >>= fun _ -> Lwt_stream.get stream >>= fun x -> begin stop miner; Lwt.return true end;
       ] >>= fun x -> begin Lwt.return x end
     end;
   ]
