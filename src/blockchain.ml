@@ -228,7 +228,7 @@ let rec sync blockchain =
   let bc = !blockchain in
   let peer_stream = P2p.peer_stream bc.p2p in
   match%lwt Lwt_stream.get peer_stream with
-  | None -> Lwt_log.notice "closed" >> close_blockchain blockchain
+  | None -> sync blockchain
   | Some peer ->
     Lwt_log.notice "Syncing with peer..." >>
     let ic = P2p.BRCPeer.ic peer in

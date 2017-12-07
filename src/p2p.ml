@@ -519,7 +519,6 @@ let rec send_for_time conn time msg =
   | None -> Lwt.return_none
 
 (*[get_connection_ping conn] wraps [read_for_manage_ping] in a timeout *)
-
 (* [connect_to_peer peer p2p] is a peer connection to the given peer or None
  * if no connection was found or failed to be established. If a connection was
  * found, it is added to the table of opened connections in the [p2p] node,
@@ -527,11 +526,6 @@ let rec send_for_time conn time msg =
  * peers. *)
 let connect_to_peer peer p2p =
   let target = (s_addr peer) in
-  if (is_conn_handled target p2p) then
-    Lwt.return_none
-  else if (is_conn_open target p2p)then
-    Lwt.return_none
-  else
     let addr =
       Unix.(ADDR_INET (Unix.inet_addr_of_string peer.address, peer.port)) in
     match%lwt (initiate_connection addr p2p) with
