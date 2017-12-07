@@ -9,7 +9,7 @@
       sudo add-apt-repository ppa:tah83/secp256k1
       sudo apt-get update
       sudo apt install libleveldb-dev libsecp256k1-dev
-      opam pin . -y
+      opam pin add . -y
       make
       make repl
     
