@@ -651,7 +651,7 @@ let peer_stream p2p =
 
 (* [start_server p2p] is a server on the port of the given [p2p] node. *)
 let start_server p2p =
-  let port = Unix.(ADDR_INET (inet_addr_loopback, server_port p2p)) in
+  let port = Unix.(ADDR_INET (inet_addr_any, server_port p2p)) in
   let%lwt server =
     Lwt_io.establish_server_with_client_address ~no_close:true port
       (p2p |> handle_new_peer_connection)
