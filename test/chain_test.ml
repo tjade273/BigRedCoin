@@ -39,11 +39,18 @@ let blockchain =
     if n = 0 then acc
     else
       let prv = List.hd acc in
-      let target = Block.target prv.header.nBits in
-      let block = mine_header {prv.header with prev_hash = Block.hash prv} target in
+      let nBits =
+        let height = List.length acc - 1 in
+        if height mod Block.blocks_per_recalculation = 0 && height <> 0
+        then Block.next_difficulty prv.header (List.nth acc (height - Block.blocks_per_recalculation)).header
+        else prv.header.nBits
+      in
+      let target = Block.target nBits in
+      let block = mine_header {prv.header with prev_hash = Block.hash prv; nBits} target in
+      print_endline (Hex.of_string (Block.hash block) |> function `Hex x -> x);
       make_chain (n-1) (block::acc)
   in
-  make_chain 5 [genesis]
+  make_chain (2 * Block.blocks_per_recalculation + 1) [genesis]
 
 let id s = Hex.of_string s |>  function `Hex x -> x
 
@@ -53,12 +60,12 @@ let opt_exn = function
   | Some x -> x
   | None -> failwith "Unexpected none"
 
-
 let%lwt c1 = Lwt_list.fold_left_s (fun c b -> (extend c b >|= opt_exn))
     (create db genesis)
     (blockchain |> List.rev |> List.tl)
 
-let new_block = {genesis with header = {genesis.header with prev_hash = Block.hash @@ Chain.head c1}}
+let head1 = Chain.head c1
+let new_block = {head1 with header = {head1.header with prev_hash = Block.hash @@ head1}}
 
 let%lwt c2 = extend c1 genesis
 let%lwt c3 = extend c1 new_block
@@ -67,14 +74,16 @@ let%lwt c5 = extend c1 {(Chain.head c4) with header = {(Chain.head c4).header wi
 
 let%lwt b3 = block_at_index c1 3
 
+let printer b = Block.hash b |> Hex.of_string |> function `Hex x -> x
+
 let tests = "Chain Tests" >::: [
     "mine_genesis" >:: (fun _ -> assert_equal 0 (create db genesis |> height));
     "extend_chain" >:: (fun _ -> assert_equal (Block.hash  (List.hd blockchain)) (Chain.head c1 |> Block.hash));
-    "extend_height" >:: (fun _ -> assert_equal 5 (height c1));
+    "extend_height" >:: (fun _ -> assert_equal (2 * Block.blocks_per_recalculation + 1) (height c1));
     "extend_out_of_order" >:: (fun _ -> assert_equal None c2);
     "extend_bad_target" >:: (fun _ -> assert_equal None c3);
     "extend_bad_nbits" >:: (fun _ -> assert_equal None c5);
-    "block_at_index" >:: (fun _ -> assert_equal (List.nth blockchain 2) b3);
+    "block_at_index" >:: (fun _ -> assert_equal ~printer:printer (List.nth (List.rev blockchain) 3) b3);
     "revert_to_self" >:: (fun _ -> assert_equal [] (fst (Chain.revert c1 (Chain.hash c1))));
     "revert_two" >:: (fun _ -> assert_equal (Block.hash b3) (Chain.hash (snd (Chain.revert c1 (Block.hash b3)))))
   ]

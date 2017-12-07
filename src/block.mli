@@ -22,6 +22,10 @@ type block = {
 
 type t = block
 
+val target_block_time : int
+
+val blocks_per_recalculation : int
+
 (* [target nbits] is the decompressed target that [nbits] represents. *)
 val target : int -> string
 

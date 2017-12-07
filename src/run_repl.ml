@@ -1,6 +1,6 @@
 open Brc_repl
 open ANSITerminal
-
+open Block
 (* [command_parser] is parser for the repl. *)
 let command_parser = CommandParserImpl.from_command_file "res/commands.json"
 
@@ -9,15 +9,36 @@ type t =
   {
     mutable active_account: Accounts.t option;
     mutable p2p:P2p.t option;
-    mutable bc:Blockchain.t option
+    mutable bc:Blockchain.t option;
   }
 
 (* [main] is an instance of [t] used to maintain state for the repl. *)
 let main = {
   active_account=None;
   p2p=None;
-  bc=None
+  bc=None;
 }
+
+let block_format = format_of_string
+    "
+  ----- | Header | ----- 
+  hash: %s
+  version: %i
+  prev_hash: %s 
+  merkle_root: %s
+  nonce: %i 
+  nBits: %i
+  timestamp: %i 
+  transaction_count: %i"
+
+
+let quit_hook (command,args) =
+  if command = "quit" then
+    match main.p2p with 
+    | Some p2p -> P2p.shutdown p2p >> Lwt.return_none
+    | None -> Lwt.return_none
+  else
+    Lwt.return_none
 
 let lookup_hook (command,args) =
   if command = "lookup" then
@@ -25,8 +46,17 @@ let lookup_hook (command,args) =
     match main.bc with 
     | Some bc ->  
       (match%lwt Blockchain.retrieve_block bc hash with 
-       | Some block -> Lwt.return_some "Valid block hash."
-       | None -> Lwt.return_some "Invalid block hash.")
+       | Some block -> 
+         let header = block.header in
+         let block_string = Printf.sprintf block_format 
+             args.(0)
+             header.version 
+             (Hex.show (Hex.of_string (header.prev_hash)))
+             (Hex.show (Hex.of_string (header.merkle_root)))
+             header.nonce header.nBits header.timestamp block.transactions_count
+         in
+         Lwt.return_some block_string
+       | None -> Lwt.return_some "Invalid block hash")
     | None -> Lwt.return_some "No chain found."
   else
     Lwt.return_none
@@ -35,7 +65,7 @@ let chain_head_hook (command,args) =
   if command = "chain_head" then
     match main.bc with 
     | Some bc -> Lwt.return_some ("| Chain Head | \n" ^ 
-      Hex.show (Hex.of_string (Blockchain.head bc)))
+                                  Hex.show (Hex.of_string (Blockchain.head bc)))
     | None -> Lwt.return_some "No chain found."
   else
     Lwt.return_none

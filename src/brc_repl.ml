@@ -70,6 +70,7 @@ type t = {
   mutable hooks:(command -> string option Lwt.t) list;
   mutable error_lst:string list;
   mutable data_lst:string list;
+  mutable running:bool;
 }
 
 (* An instance of a repl. *)
@@ -77,6 +78,7 @@ let repl = {
   hooks = [];
   error_lst = [];
   data_lst = [];
+  running = true;
 }
 
 (* [header] is the text-based graphic to be displayed at the beginning of the
@@ -149,7 +151,10 @@ let handle_input parser =
             | Some data -> store_data data; Lwt.return_unit
             | None -> Lwt.return_unit)::acc) [] repl.hooks
           in
-            Lwt.join threads >> Lwt.return_unit
+            Lwt.join threads >>  
+              (if (fst command) = "quit" then
+                repl.running <- false;
+              Lwt.return_unit)
   | None -> Lwt.return_unit
 
 let rec run parser =
@@ -159,4 +164,7 @@ let rec run parser =
   post_errors();
   post_data ();
   handle_input parser >>
-  run parser
+  if repl.running then 
+    run parser
+  else
+    Lwt.return_unit

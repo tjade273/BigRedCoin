@@ -24,22 +24,22 @@ let header2 = {
 
 let header3 = {
   header1 with
-  timestamp = header1.timestamp + 30*2016
+  timestamp = header1.timestamp + target_block_time*blocks_per_recalculation
 }
 
 let header4 = {
   header1 with
-  timestamp = header1.timestamp + 30*2016*5
+  timestamp = header1.timestamp + target_block_time*blocks_per_recalculation*5
 }
 
 let header5 = {
   header1 with
-  timestamp = header1.timestamp + 2*2016
+  timestamp = header1.timestamp + 2*blocks_per_recalculation
 }
 
 let header6 = {
   header1 with
-  timestamp = header1.timestamp + (30*2016*3)/2
+  timestamp = header1.timestamp + (target_block_time*blocks_per_recalculation*3)/2
 }
 
 let header7 = {

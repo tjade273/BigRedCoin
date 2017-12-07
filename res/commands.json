@@ -49,6 +49,11 @@
             "name": "lookup",
             "regex": ["lookup [a-z0-9]+$"],
             "hint": "lookup <hash> : displays information about block with [hash]"
+        },
+        {
+            "name": "quit",
+            "regex": ["quit$"],
+            "hint": "quit : shutsdown services and closes client"
         }
     ]
 }
