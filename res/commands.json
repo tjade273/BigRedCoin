@@ -39,6 +39,16 @@
             "name": "peers",
             "regex": ["peers$"],
             "hint": "peers : lists all currently known peers"
+        },
+        {
+            "name": "chain_head",
+            "regex": ["chain_head$"],
+            "hint": "chain_head : displays hash of current block chain head"
+        },
+        {
+            "name": "lookup",
+            "regex": ["lookup [a-z0-9]+$"],
+            "hint": "lookup <hash> : displays information about block with [hash]"
         }
     ]
 }

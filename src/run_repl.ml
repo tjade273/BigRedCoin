@@ -8,14 +8,29 @@ let command_parser = CommandParserImpl.from_command_file "res/commands.json"
 type t =
   {
     mutable active_account: Accounts.t option;
-    mutable p2p:P2p.t option
+    mutable p2p:P2p.t option;
+    mutable bc:Blockchain.t
   }
 
 (* [main] is an instance of [t] used to maintain state for the repl. *)
 let main = {
   active_account=None;
-  p2p=None
+  p2p=None;
+  bc=None;
 }
+
+(* [peers_hook (commands,args)] is a repl hook that listens for the "peers"
+ * command and prints a list of the known peers of running P2P node. *)
+ let chain_head_hook (command,args) =
+  if command = "chain_head" then
+    let hash = args.(0) in
+
+(* [peers_hook (commands,args)] is a repl hook that listens for the "peers"
+ * command and prints a list of the known peers of running P2P node. *)
+ let lookup_hook (command,args) =
+  if command = "lookup" then
+    let hash = args.(0) in 
+    
 
 (* [peers_hook (commands,args)] is a repl hook that listens for the "peers"
  * command and prints a list of the known peers of running P2P node. *)
