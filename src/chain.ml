@@ -25,9 +25,7 @@ let block_at_index {hash; head; height; cache; db} (n : int) =
   | None ->
     let rec parent block n =
       if n = 0 then Lwt.return block else
-        Lwt_log.notice "Getting 1" >>
         let%lwt p = BlockDB.get db Block.(block.header.prev_hash) in
-        Lwt_log.notice "Got 1" >>
       parent p (n - 1)
     in
     parent head (height - n)
@@ -45,7 +43,6 @@ let extend ({hash; head; height; cache; _} as chain) new_block =
   let%lwt nbits' = next_difficulty chain in
   let target = Block.target nbits' in
   let blockhash = Block.hash new_block  in
-  Lwt_log.notice @@ (string_of_int new_block.header.nBits)^", " ^ (string_of_int nbits')>>
   if blockhash > target ||
      new_block.header.nBits <> nbits' ||
      new_block.header.prev_hash <> hash
@@ -73,7 +70,6 @@ let extend_cache {cache; db; _} =
   let rec add_parent cache (height, child) n =
     if n = 0 then Lwt.return cache
     else
-      Lwt_log.notice "Getting 2" >>
       let%lwt parent = BlockDB.get db child.header.prev_hash in
       let cache' = Cache.add child.header.prev_hash (height - 1, parent) cache in
       add_parent cache' (height - 1, parent) (n-1)
@@ -140,7 +136,6 @@ let deserialize db s =
   let buf = Cstruct.of_string s in
   let height = Cstruct.BE.get_uint64 buf 0 |> Int64.to_int in
   let hash = Cstruct.copy buf 8 32 in
-  Lwt_log.notice "Getting 3" >> 
   let%lwt head = BlockDB.get db hash in
   let cache = Cache.add hash (height, head) Cache.empty in
   let chain = {height; hash; head; cache; db} in
