@@ -36,7 +36,8 @@ let rec mine t prev =
           ins = [];
           outs = [{amount = 25; address = t.address}];
           sigs = Some [Crypto.random 256]
-        }::b.transactions
+        }::b.transactions;
+           transactions_count = List.length b.transactions + 1
       } in
       match prev with
         | Some block -> begin 
