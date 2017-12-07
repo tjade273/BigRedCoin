@@ -36,7 +36,36 @@ let revert_transaction {pool; db} transaction =
   in
   Lwt.return {pool = readded_inputs; db}
 
+(*verify inputs exist*)
+let verify pool ({ins; outs; sigs} as transaction) =
+  try
+    match (Transaction.signers transaction) with
+    | None -> raise Invalid_block
+    | Some signers ->
+      begin
+        let is_signed =
+          List.for_all
+            (fun input -> (List.mem (UTXOMap.find input pool).address signers))
+            ins
+        in
+        let has_coinbase =
+          (List.hd outs).amount = 25
+        in
+        let zero_sum =
+          let out_sum =
+            List.fold_left (fun acc {amount; _} -> acc + amount) 0 (List. tl outs)
+          in
+          let in_amnt input = (UTXOMap.find input pool).amount in
+          let in_sum = List.fold_left (+) 0 (List.map in_amnt ins) in
+          in_sum >= out_sum
+        in
+        if not (is_signed && has_coinbase && zero_sum)
+        then raise Invalid_block
+      end
+  with _ -> raise Invalid_block
+
 let put_transaction tm transaction =
+  verify tm transaction;
   let removed =
     List.fold_left (fun acc input ->
         (UTXOMap.remove input acc)
@@ -49,13 +78,6 @@ let put_transaction tm transaction =
   in
   fst added
 
-(*verify inputs exist*)
-let verify transaction =
-  match (Transaction.signers transaction) with
-  | None ->  false
-  | Some signers ->
-    List.for_all(fun output -> (List.mem output.address signers)) transaction.outs
-
 let revert p (b:Block.t) =
   let transactions = b.transactions in
   let%lwt pool = Lwt_list.fold_left_s revert_transaction p transactions in
@@ -63,11 +85,8 @@ let revert p (b:Block.t) =
 
 let apply {pool; db} block =
   Lwt_list.iter_p (TransactionDB.put db) block.transactions >>
-  if (List.for_all verify block.transactions) then
-    Lwt.return
+  Lwt.return
      {db; pool = List.fold_left put_transaction pool block.transactions}
-  else
-    raise Invalid_block
 
 
 let filter {pool; _} addr =

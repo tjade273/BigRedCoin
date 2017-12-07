@@ -9,7 +9,8 @@ let db = BlockDB.create "chain_test.db"
 let rec mine_header header target =
   let h = {header with
            timestamp = int_of_float (Unix.time ());
-           nonce = header.nonce + 1}
+           nonce = header.nonce + 1;
+          }
   in
   let b = {header = h;
            transactions=[{ins = [];
@@ -17,6 +18,7 @@ let rec mine_header header target =
                           sigs = Some [];}];
            transactions_count = 1}
   in
+  let b = {b with header = {header with merkle_root = merkle_root b.transactions}} in
   if Block.hash b < target then b
   else mine_header h target
 

@@ -93,7 +93,7 @@ let rec shared_root c1 c2 =
 
 let rec revert ({hash; head; height; cache; db} as c) h =
   if hash = h
-  then ([], {c with cache = Cache.empty})
+  then ([], c)
   else
     let prev_hash = head.header.prev_hash in
     let _, parent = Cache.find prev_hash cache in

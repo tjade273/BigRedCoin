@@ -7,7 +7,10 @@ let dir = "test_blockchain/"
 
 let show = function `Hex x -> x
 
-let () = Unix.mkdir dir 0o777
+let () =
+  try
+    Unix.mkdir dir 0o777
+  with Unix.Unix_error (Unix.EEXIST, _, _) -> ()
 
 let () =
   try
@@ -15,6 +18,8 @@ let () =
   with Sys_error _ -> ()
 
 let%lwt () = Lwt_io.with_file ~mode:Lwt_io.output (dir^"genesis.blk") (fun oc -> Lwt_io.write oc (Block.serialize Chain_test.genesis))
+
+let () = print_endline (Hex.of_string Chain_test.genesis.header.merkle_root |> show)
 
 let%lwt peer1 = P2p.create_from_list ~port:3000 ["127.0.0.1", 4001, None]
 let%lwt peer2 = P2p.create_from_list ~port:3001 ["127.0.0.1", 4000, None]
@@ -32,7 +37,6 @@ let tests = [suite "blockchain tests" [
     end;
 
     test "push block" begin fun () ->
-      Lwt_log.notice ("Block 1: "^ (Hex.of_string (List.nth Chain_test.blockchain 4).header.prev_hash |> show)) >>
       let%lwt () = Blockchain.push_block blockchain (List.nth Chain_test.blockchain 4) in
       Lwt.return (Blockchain.head !blockchain = Block.hash @@ List.nth Chain_test.blockchain 4)
     end;
