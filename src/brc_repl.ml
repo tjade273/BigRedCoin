@@ -3,7 +3,7 @@ open Yojson.Basic.Util
 
 
 type command = (string*(string array))
-type command_hook = command -> string option
+type command_hook = command -> string option Lwt.t
 
 
 type command_dir = 
@@ -43,7 +43,7 @@ module CommandParserImpl = struct
         (Some (command_head,Array.of_list (Str.split (Str.regexp_string " ") command_tail))) 
       else
         let valid_regex_msg = 
-            ("Invalid format for " ^ command_head ^ ": \n\t" ^ command.hint) in 
+          ("Invalid format for " ^ command_head ^ ": \n\t" ^ command.hint) in 
         cb valid_regex_msg;
         (None)
     | None -> cb ("Unknown command: "^command_head); None
@@ -56,18 +56,18 @@ module CommandParserImpl = struct
         let hint = json_command |> member "hint" |> to_string in
         let json_regexes = json_command |> member "regex" in 
         let regexes = convert_each (fun json_regex -> 
-          let regex_str = (to_string json_regex) in 
-          (Str.regexp regex_str)) json_regexes in 
-      (name,{name=name;hint=hint;regexes=regexes})) json_commands
-               
+            let regex_str = (to_string json_regex) in 
+            (Str.regexp regex_str)) json_regexes in 
+        (name,{name=name;hint=hint;regexes=regexes})) json_commands
+
     in {commands = commands}
 
-    let commands parser = 
-      parser.commands
+  let commands parser = 
+    parser.commands
 end
 
 type t = {
-  mutable hooks:(command -> string option) list;
+  mutable hooks:(command -> string option Lwt.t) list;
   mutable error_lst:string list;
   mutable data_lst:string list;
 }
@@ -77,7 +77,7 @@ let repl = {
   error_lst = [];
   data_lst = [];
 }
-  
+
 let header = 
   let ic = open_in "res/logo.txt" in
   let rec read_all (ic:in_channel) lst = 
@@ -107,8 +107,8 @@ let store_data (data:string) =
 
 let post_errors () = 
   List.iter (fun error -> 
-    ANSITerminal.set_cursor 5 (73 - (List.length repl.error_lst)); 
-    print_string [red] error) repl.error_lst;
+      ANSITerminal.set_cursor 5 (73 - (List.length repl.error_lst)); 
+      print_string [red] error) repl.error_lst;
   repl.error_lst <- []
 
 (*[count_char str ch] counts the number of occurances of [ch] in [str]*)
@@ -118,31 +118,33 @@ let count_char str ch =
   !count
 
 let post_data () = 
-    let new_lines = List.fold_left(fun acc data -> acc + (count_char data '\n')) 0 repl.data_lst in
-    List.iter (fun data -> 
-    ANSITerminal.set_cursor 1 (58-new_lines); 
-    print_string [white] data) repl.data_lst
-  
+  let new_lines = List.fold_left(fun acc data -> acc + (count_char data '\n')) 0 repl.data_lst in
+  List.iter (fun data -> 
+      ANSITerminal.set_cursor 1 (58-new_lines); 
+      print_string [white] data) repl.data_lst
+
 (*[handle_input ()] reads input from stdin and attemps to parse into a command.*)
-let handle_input command_parser() = 
-  ANSITerminal.set_cursor 10 60;    
-  print_string [red] "> ";
-  let input = read_line () in 
+let handle_input command_parser = 
+  ANSITerminal.set_cursor 10 60;      
+  print_string [red] ">";  
+  let%lwt input = (Lwt_io.read_line Lwt_io.stdin) in 
   let command = CommandParserImpl.parse command_parser input ~parse_error_callback:(store_error) in
   match command with 
   | Some command -> 
     repl.data_lst <- [];
-    List.iter (fun (f:command -> string option) ->
-       match (f command) with
-       | Some data -> store_data data
-       | None -> ()) repl.hooks
-  | None -> ()
+    let threads = List.fold_left (fun acc (f:command -> string option Lwt.t) ->
+          (match%lwt (f command) with
+            | Some data -> store_data data; Lwt.return_unit
+            | None -> Lwt.return_unit)::acc) [] repl.hooks
+          in
+            Lwt.join threads >> Lwt.return_unit
+  | None -> Lwt.return_unit
 (*[run ()] runs repl continuously*)
 let rec run command_parser = 
-  ANSITerminal.erase ANSITerminal.Screen;
   ANSITerminal.resize 200 75;
+  ANSITerminal.erase ANSITerminal.Screen;  
   print_header ();
   post_errors();
   post_data ();
-  handle_input command_parser();
+  handle_input command_parser >>
   run command_parser

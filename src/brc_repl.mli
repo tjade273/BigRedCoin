@@ -1,7 +1,7 @@
 
 
 type command = (string*(string array))
-type command_hook = command -> string option
+type command_hook = command -> string option Lwt.t
 
 
 type command_dir = 
@@ -26,4 +26,4 @@ module CommandParserImpl : CommandParser
 val add_hook : command_hook -> unit
 
 (*[run] runs the repl continuously.*)
-val run : CommandParserImpl.t -> unit
+val run : CommandParserImpl.t -> unit Lwt.t 
