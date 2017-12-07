@@ -9,28 +9,36 @@ type t =
   {
     mutable active_account: Accounts.t option;
     mutable p2p:P2p.t option;
-    mutable bc:Blockchain.t
+    mutable bc:Blockchain.t option
   }
 
 (* [main] is an instance of [t] used to maintain state for the repl. *)
 let main = {
   active_account=None;
   p2p=None;
-  bc=None;
+  bc=None
 }
 
-(* [peers_hook (commands,args)] is a repl hook that listens for the "peers"
- * command and prints a list of the known peers of running P2P node. *)
- let chain_head_hook (command,args) =
-  if command = "chain_head" then
-    let hash = args.(0) in
-
-(* [peers_hook (commands,args)] is a repl hook that listens for the "peers"
- * command and prints a list of the known peers of running P2P node. *)
- let lookup_hook (command,args) =
+let lookup_hook (command,args) =
   if command = "lookup" then
-    let hash = args.(0) in 
-    
+    let hash = Hex.to_string (`Hex args.(0)) in
+    match main.bc with 
+    | Some bc ->  
+      (match%lwt Blockchain.retrieve_block bc hash with 
+       | Some block -> Lwt.return_some "Valid block hash."
+       | None -> Lwt.return_some "Invalid block hash.")
+    | None -> Lwt.return_some "No chain found."
+  else
+    Lwt.return_none
+
+let chain_head_hook (command,args) =
+  if command = "chain_head" then
+    match main.bc with 
+    | Some bc -> Lwt.return_some ("| Chain Head | \n" ^ 
+      Hex.show (Hex.of_string (Blockchain.head bc)))
+    | None -> Lwt.return_some "No chain found."
+  else
+    Lwt.return_none
 
 (* [peers_hook (commands,args)] is a repl hook that listens for the "peers"
  * command and prints a list of the known peers of running P2P node. *)
@@ -40,8 +48,8 @@ let peers_hook (command,args) =
     | Some p2p ->
       let peers_list = P2p.known_peers p2p in
       let post = List.fold_left (fun acc e ->
-        acc ^ P2p.BRCPeer.s_addr e ^ "\n") "| Peers | \n" peers_list in
-        Lwt.return_some post
+          acc ^ P2p.BRCPeer.s_addr e ^ "\n") "| Peers | \n" peers_list in
+      Lwt.return_some post
     | None -> Lwt.return_some "Peer not connected. Please see | launch |."
   else
     Lwt.return_none
@@ -54,6 +62,8 @@ let start_node_hook (command,args) =
     let port = int_of_string args.(0) in
     let%lwt server =  P2p.create ~port:port "peers/.peers" in
     main.p2p <- Some server;
+    let%lwt bc = Blockchain.create "brc_chain" server in 
+    main.bc <- Some bc;
     Lwt.return_some "Launched server."
   else
     Lwt.return_none
@@ -108,6 +118,8 @@ let help_hook (command,_) =
 
 (* Add hooks to the repl, and run it.*)
 let () =
+  add_hook lookup_hook;  
+  add_hook chain_head_hook;  
   add_hook help_hook;
   add_hook login_hook;
   add_hook create_account_hook;

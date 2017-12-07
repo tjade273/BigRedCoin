@@ -249,3 +249,7 @@ let next_block {head; _} =
 
 let get_utxos {utxos; _} address =
   Utxo_pool.filter utxos address
+
+
+let retrieve_block bc hash = 
+  BlockDB.get_opt bc.blockdb hash

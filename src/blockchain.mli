@@ -16,3 +16,5 @@ val head : t -> string
 val next_block : t -> Block.t Lwt.t
 
 val get_utxos : t -> string -> (Transaction.input * Transaction.output) list
+
+val retrieve_block : t -> string -> Block.t option Lwt.t
