@@ -73,19 +73,19 @@ let addresses a =
  let balance a bc addr_opt : int = 
     match addr_opt with 
     | None -> List.fold_left (fun acc (pub,_) -> 
-      let utxos  = (Blockchain.get_utxo (ECDSA.to_address pub)) in
+      let utxos  = (Blockchain.get_utxos bc (ECDSA.to_address pub)) in
       let tot_for_addr = (List.fold_left (fun tot utxo -> utxo.amount + tot) 0) utxos in 
        tot_for_addr + acc) 0 a.key_pairs
-    | Some addr -> Blockchain.get_utxo addr 
+    | Some addr -> Blockchain.get_utxos addr 
 
 (* [send_transaction a [(addr1, value1); ...; (addrn,valuen)] fee] sends 
  * [valuei] coins to [addri] and with the miner fee [fee]. [true] on 
  * success, [false] on insufficient balance. *)
 let send_transaction a sub_transactions fee bc = 
-  let total = List.fold_left (+) 0 sub_transactions in 
+  let total = List.fold_left (+) 0 sub_transactions in
   if total < (balance a bc None) then 
     false
   else
-    Blockchain.send_transactions sub_transactions bc;
+    Blockchain. sub_transactions bc;
     true
 

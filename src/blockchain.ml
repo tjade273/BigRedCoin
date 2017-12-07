@@ -12,7 +12,7 @@ type t = {blockdb: BlockDB.t;
           forks: Chain.t list;
           p2p : P2p.t;
           utxos : Utxo_pool.t;
-          mempool : (string*Transaction.t) list;
+          mempool : Transaction.t list;
           dir : string}
 
 (* [initialize blockdb dir p2p] is a fresh blockchain initialized to the gensesis,
@@ -159,20 +159,23 @@ let insert_blocks bc blocks =
         else Lwt.return {bc with forks = new_chain::bc.forks}
     end
 
+let validate_new_transactions bc transactions =
+    let (new_transactions,_) = List.fold_left(fun (good_trans,utxos) t ->  
+      try let new_utxos  = Utxo_pool.force_transaction utxos t in
+        (good_trans @ [t],new_utxos) 
+      with 
+      | Invalid_block ->  (good_trans,bc.utxos) 
+    ) ([],bc.utxos) transactions
+    in new_transactions
 
 let sync_mempool bc mempool = 
-  List.fold_left(fun acc t ->
-      let hash = Transaction.hash t in 
-      if not (List.mem_assoc hash acc.mempool) then
-        {acc with mempool = (hash,t)::acc.mempool}
-      else
-        acc
-    ) bc mempool
+        let good_transactions = validate_new_transactions bc mempool in 
+        {bc with mempool = bc.mempool @ good_transactions}
 
 let serve_mempool bc oc = 
   let msg =  {method_= Post;
               post = Some {
-                  transactions=(List.map(fun (h,t) -> Transaction.messageify t) bc.mempool); blocks=[]};
+                  transactions=List.map Transaction.messageify bc.mempool; blocks=[]};
               get = None; manage = None} in 
   let encoder = Pbrt.Encoder.create() in
   Message_pb.encode_message msg encoder;
@@ -239,9 +242,9 @@ let sync_with_peer ({head; _} as bc) (ic, oc) =
                      block_height = Chain.height head}
   in
   let mempool_req_message= {method_ = Get;
-                                         get = Some mempool_req;
-                                         post = None;
-                                         manage = None}
+                            get = Some mempool_req;
+                            post = None;
+                            manage = None}
   in
   write oc block_req_message >|= ignore >> 
   write oc mempool_req_message >|= ignore >>
