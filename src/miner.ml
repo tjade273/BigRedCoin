@@ -66,6 +66,7 @@ let rec mine r w p =
  * if the block is not [b]. When a miner finds a block, push it into the push
  * stream in [t]. *)
 let rec manage t b =
+  Lwt_main.yield () >>= fun _ ->
   let%lwt newb = Blockchain.next_block !(t.blockchain) in
   if (Some newb) = b then begin
       let check (_, r, _) =

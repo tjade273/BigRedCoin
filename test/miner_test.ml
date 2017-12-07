@@ -2,7 +2,6 @@ open Transaction
 open Block
 open Lwt_test
 open Miner
-open Lwt_io
 open Lwt
 
 let suites : Lwt_test.suite list = []
@@ -117,20 +116,20 @@ let miner = create push blockchain
 
 let miner_tests = suite "miner tests" [
     test "read_write" begin fun () ->
-      print_endline "read test";
       let (r, w) = Lwt_io.pipe () in
-      write w "testaroo"
-      >>= fun _ -> read r
+      Miner.write w "testaroo"
+      >>= fun _ -> Miner.read r
       >>= fun x -> Lwt.return (x = "testaroo")
     end;
 
     test "mine_block" begin fun () ->
       print_endline "mining test";
       start miner 2;
+      print_endline "started";
       Lwt.pick [
-        Lwt_stream.get stream >>= fun x -> Lwt.return true;
-        Lwt.return (Unix.sleep 30) >>= fun x -> Lwt.return false
-      ]
+        Lwt_unix.sleep 1.0 >> begin stop miner; Lwt.return false end;
+        Lwt_stream.get stream >>= fun x -> begin stop miner; Lwt.return true end;
+      ] >>= fun x -> begin Lwt.return x end
     end;
   ]
 
