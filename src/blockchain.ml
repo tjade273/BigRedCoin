@@ -124,12 +124,9 @@ let serve_blocks {blockdb; head; forks; _} oc startblocks height =
 
 let reorganize_chain bc new_chain root =
   try
-    print_endline "push6";
     let root_hash = Block.hash root in
     let undo, _ = Chain.revert bc.head root_hash in
-    print_endline "push 7";
     let todo, _ = Chain.revert new_chain root_hash in
-    print_endline "push8";
     let%lwt utxos = Lwt_list.fold_left_s Utxo_pool.revert bc.utxos undo in
     let%lwt utxos = Lwt_list.fold_left_s Utxo_pool.apply utxos todo in
     Lwt.return {bc with head = new_chain; utxos}
@@ -146,24 +143,20 @@ let insert_blocks bc blocks =
   | [] -> Lwt.return bc
   | root::heads ->
     begin
-      print_endline "push2";
       let {header; transactions; transactions_count} = root in
       if List.length transactions <> transactions_count
       then Lwt.fail Invalid_block
       else
-        (print_endline "push3";
         let _, chain = Chain.revert bc.head (Block.hash root) in
         let try_extend chain block =
           match%lwt Chain.extend chain block with
           | None -> Lwt.fail Invalid_block
           | Some c -> Lwt.return c
         in
-        print_endline "push4";
         let%lwt new_chain = Lwt_list.fold_left_s try_extend chain heads in
-        print_endline "push5";
         if Chain.height new_chain > Chain.height bc.head
         then reorganize_chain bc new_chain root
-        else Lwt.return {bc with forks = new_chain::bc.forks})
+        else Lwt.return {bc with forks = new_chain::bc.forks}
     end
 
 (* [handle_message bc (ic, oc) msg] is [bc] after responding to the message [msg]
@@ -232,7 +225,6 @@ let rec sync blockchain =
 
 let push_block blockchain block =
   let bc = !blockchain in
-  print_endline "push";
   let%lwt bc' = insert_blocks bc [Chain.head bc.head; block] in
   blockchain := bc';
   Lwt.return_unit
