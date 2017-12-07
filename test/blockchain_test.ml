@@ -6,7 +6,6 @@ open Lwt.Infix
 (* TODO: MAKE MINER TEST DIR *)
 
 let dir = "test_blockchain/"
-let dir2 = "test_blockchain2/"
 
 let show = function `Hex x -> x
 
@@ -18,11 +17,9 @@ let () =
 let () =
   try
     Sys.remove (dir^"chains.dat"); Sys.remove (dir^"genesis.blk");
-    Sys.remove (dir2^"chains.dat"); Sys.remove (dir2^"genesis.blk")
   with Sys_error _ -> ()
 
 let%lwt () = Lwt_io.with_file ~mode:Lwt_io.output (dir^"genesis.blk") (fun oc -> Lwt_io.write oc (Block.serialize Chain_test.genesis))
-let%lwt () = Lwt_io.with_file ~mode:Lwt_io.output (dir2^"genesis.blk") (fun oc -> Lwt_io.write oc (Block.serialize Chain_test.genesis))
 
 let () = print_endline (Hex.of_string Chain_test.genesis.header.merkle_root |> show)
 
@@ -37,12 +34,6 @@ let (pubkey, privkey) = Crypto.ECDSA.create ()
 let address = Crypto.ECDSA.to_address pubkey
 
 let%lwt bc = Blockchain.create "test_blockchain" peer1
-let () =
-  try
-    Unix.mkdir dir2 0o777
-  with Unix.Unix_error (Unix.EEXIST, _, _) -> ()
-
-let%lwt bc2 = Blockchain.create "test_blockchain2" peer2
 
 let%lwt () = Lwt_log.notice ("Genesis hash: "^(Hex.of_string (Blockchain.head bc) |> show))
 
@@ -74,7 +65,6 @@ let rec mine_tx_block header target txs =
 let block2 = mine_tx_block header1 (Block.target header1.nBits) [coinbase_tx; tx1]
 
 let blockchain = ref bc
-let blockchain2 = ref bc2
 
 let push bc block =
   match block with
@@ -83,15 +73,14 @@ let push bc block =
 
 
 let miner1 = Miner.create "lucas" (push blockchain) blockchain
-let miner2 = Miner.create "cosmo" (push blockchain2) blockchain2
 
 let tests = [suite "blockchain tests" [
-    test "test_sync" begin fun () ->
+    (*test "test_sync" begin fun () ->
       let _ = Blockchain.sync blockchain in
       let _ = Blockchain.sync blockchain2 in
       Lwt_log.notice "Started syncing" >>
       Lwt.return_true
-    end;
+    end;*)
 
     test "push block" begin fun () ->
       let%lwt () = Blockchain.push_block blockchain block1 in
@@ -103,7 +92,7 @@ let tests = [suite "blockchain tests" [
       Lwt.return Transaction.((snd @@ List.hd utxos).amount = 25)
     end;
 
-    test "spend utxos" begin fun () ->
+   (* test "spend utxos" begin fun () ->
       let%lwt () = Blockchain.push_block blockchain block2 in
       let utxos = Blockchain.get_utxos !blockchain address in
       Lwt.return Transaction.(utxos = [({txid = Transaction.hash tx1; out_index = 0}, {amount = 12; address})])
@@ -125,5 +114,5 @@ let tests = [suite "blockchain tests" [
         let%lwt block2 = Chain.block_at_index chain2 index in
         Lwt.return (block1 = block2)
       end
-    end
+    end*)
   ]]

@@ -92,7 +92,7 @@ let send_transaction a transaction fee = failwith "Unimplemneted"
   if total < (balance a bc None) then 
     false
   else
-    Blockchain.send_transactions sub_transactions bc;
+    Blockchain. sub_transactions bc;
     true
 *)
 let dir a = 

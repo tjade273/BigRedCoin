@@ -77,6 +77,11 @@ let dir = "test_miner/"
 let show = function `Hex x -> x
 
 let () =
+try
+  Unix.mkdir dir 0o777
+with Unix.Unix_error (Unix.EEXIST, _, _) -> ()
+
+let () =
   try
     Sys.remove (dir^"chains.dat"); Sys.remove (dir^"genesis.blk")
   with Sys_error _ -> ()

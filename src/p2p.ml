@@ -374,9 +374,11 @@ let handle close_func f p2p conn =
     close_func p2p conn >> remove_handle_connection conn p2p >> res
   else remove_handle_connection conn p2p >> res
 
-let handle_data_peer f p2p conn =
+(* [handler_data_peer f p2p conn] handles a data peer connection. *)
+let handle_data_peer f p2p conn=
   handle close_data_peer_connection f p2p conn
 
+(* [handle_sync_peer f p2p conn] handles a peer sync connection. *)
 let handle_sync_peer f p2p conn =
   handle close_sync_peer_connection f p2p conn
 
