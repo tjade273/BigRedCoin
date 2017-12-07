@@ -79,7 +79,7 @@ let printer b = Block.hash b |> Hex.of_string |> function `Hex x -> x
 let tests = "Chain Tests" >::: [
     "mine_genesis" >:: (fun _ -> assert_equal 0 (create db genesis |> height));
     "extend_chain" >:: (fun _ -> assert_equal (Block.hash  (List.hd blockchain)) (Chain.head c1 |> Block.hash));
-    "extend_height" >:: (fun _ -> assert_equal 5 (height c1));
+    "extend_height" >:: (fun _ -> assert_equal (2 * Block.blocks_per_recalculation + 1) (height c1));
     "extend_out_of_order" >:: (fun _ -> assert_equal None c2);
     "extend_bad_target" >:: (fun _ -> assert_equal None c3);
     "extend_bad_nbits" >:: (fun _ -> assert_equal None c5);

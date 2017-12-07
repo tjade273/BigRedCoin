@@ -23,6 +23,7 @@ let initialize blockdb txdb dir p2p =
   let%lwt genesis = Lwt_io.(with_file ~mode:input gen_f)
       (fun ic -> Lwt_io.read ic >|= Block.deserialize)
   in
+  BlockDB.put blockdb genesis >>
   let gen_chain = Chain.create blockdb genesis in
   Lwt_io.(with_file ~mode:output chain_f
             (fun oc -> write oc (Chain.serialize gen_chain)))
