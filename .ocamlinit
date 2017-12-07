@@ -15,3 +15,10 @@ let () =
 #require "hex";;
 #require "yojson";;
 #require "lwt";;
+#require "ocaml-protoc";;
+
+#load "_build/src/message_types.cmo";;
+#load "_build/src/message_pb.cmo";;
+#load "_build/src/crypto.cmo";;
+#load "_build/src/transaction.cmo";;
+#load "_build/src/block.cmo";;

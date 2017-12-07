@@ -5,7 +5,8 @@ message Get {
         BLOCKS = 2;
     }
     required Request request = 1;
-    optional bytes startblock = 2;
+    repeated bytes startblocks = 2;
+    required uint32 block_height = 3;
 }
 
 message Transaction {
