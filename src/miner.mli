@@ -1,11 +1,10 @@
 (* The type of a mining instance *)
 type t
 
-(* [write w s] writes the length of the string [s] followed by [s] to [w]. *)
-val write : Lwt_io.output_channel -> string -> unit Lwt.t
-
-(* [read r] is the next message in [r]. *)
-val read : Lwt_io.input_channel -> string Lwt.t
+(* [equiv block1 block2] is true if [block1] equals [block2] in all fields but
+ * the header's nonce and timestamp. 
+ * requires: block1 and block2 both have a nonempty transaction. *)
+val equiv : Block.t -> Block.t -> bool 
 
 (* [create pull_stream push_stream] is a new mining instance which can fetch
  * new candidate block headers from [pull_stream] and push solved blocks back 
