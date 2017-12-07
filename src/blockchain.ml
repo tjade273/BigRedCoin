@@ -3,6 +3,7 @@ open Message_types
 open P2p.BRCMessage_channel
 
 module BlockDB = Chain.BlockDB
+module TxDB = Utxo_pool.TransactionDB
 
 exception Invalid_block
 
@@ -10,11 +11,12 @@ type t = {blockdb: BlockDB.t;
           head : Chain.t;
           forks: Chain.t list;
           p2p : P2p.t;
+          utxos : Utxo_pool.t;
           dir : string}
 
 (* [initialize blockdb dir p2p] is a fresh blockchain initialized to the gensesis,
  * using [blockdb] as a backend and located in [dir] *)
-let initialize blockdb dir p2p =
+let initialize blockdb txdb dir p2p =
   let gen_f = (Filename.concat dir "genesis.blk") in
   let chain_f = (Filename.concat dir "chains.dat") in
   let%lwt genesis = Lwt_io.(with_file ~mode:input gen_f)
@@ -22,8 +24,12 @@ let initialize blockdb dir p2p =
   in
   let gen_chain = Chain.create blockdb genesis in
   Lwt_io.(with_file ~mode:output chain_f
-            (fun oc -> write oc (Chain.serialize gen_chain))) 
-  >> Lwt.return {blockdb; head=gen_chain; forks = []; p2p; dir}
+            (fun oc -> write oc (Chain.serialize gen_chain)))
+  >> Lwt.return {blockdb;
+                 head=gen_chain;
+                 forks = [];
+                 utxos = Utxo_pool.empty txdb;
+                 p2p; dir}
 
 (* [create dir p2p] is a blockchain with resources stored in [dir], using
  * [p2p] as a p2p instance. *)
@@ -33,6 +39,7 @@ let create dir p2p =
    else Lwt.return_unit) >>
   let absolute = Filename.concat dir in
   let blockdb = BlockDB.create (absolute "blocks") in
+  let txdb = TxDB.create (absolute "blocks") in
   let chain_f = absolute "chains.dat" in
   if%lwt Lwt_unix.file_exists chain_f
   then
@@ -49,9 +56,9 @@ let create dir p2p =
         (fun c1 c2 -> if Chain.height c1 > Chain.height c2 then c1 else c2)
         (List.hd forks) forks
     in
-    Lwt.return {head; forks; blockdb; p2p; dir}
+    Lwt.return {head; forks; utxos = Utxo_pool.empty txdb; blockdb; p2p; dir}
   else
-    initialize blockdb dir p2p
+    initialize blockdb txdb dir p2p
 
 let close_blockchain blockchain =
   let bc = !blockchain in
@@ -129,7 +136,6 @@ let insert_blocks bc blocks =
       then Lwt.fail Invalid_block
       else
         let _, chain = Chain.revert bc.head (Block.hash root) in
-        print_endline "Hello";
         let try_extend chain block =
           match%lwt Chain.extend chain block with
           | None -> Lwt.fail Invalid_block
