@@ -1,5 +1,5 @@
 let target_block_time = 30
-let blocks_per_recalculation = 2016
+let blocks_per_recalculation = 5
 
 type header = {
   version : int;

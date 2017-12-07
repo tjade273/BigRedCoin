@@ -39,11 +39,17 @@ let blockchain =
     if n = 0 then acc
     else
       let prv = List.hd acc in
-      let target = Block.target prv.header.nBits in
-      let block = mine_header {prv.header with prev_hash = Block.hash prv} target in
+      let nBits =
+        let height = List.length acc - 1 in
+        if height mod Block.blocks_per_recalculation = 0 && height <> 0
+        then Block.next_difficulty prv.header (List.nth acc (height - Block.blocks_per_recalculation)).header
+        else prv.header.nBits
+      in
+      let target = Block.target nBits in
+      let block = mine_header {prv.header with prev_hash = Block.hash prv; nBits} target in
       make_chain (n-1) (block::acc)
   in
-  make_chain 5 [genesis]
+  make_chain (2 * Block.blocks_per_recalculation + 1) [genesis]
 
 let id s = Hex.of_string s |>  function `Hex x -> x
 
@@ -53,12 +59,16 @@ let opt_exn = function
   | Some x -> x
   | None -> failwith "Unexpected none"
 
+let%lwt () = Lwt_log.notice "Hello1"
 
 let%lwt c1 = Lwt_list.fold_left_s (fun c b -> (extend c b >|= opt_exn))
     (create db genesis)
     (blockchain |> List.rev |> List.tl)
 
-let new_block = {genesis with header = {genesis.header with prev_hash = Block.hash @@ Chain.head c1}}
+let%lwt () = Lwt_log.notice "Hello"
+
+let head1 = Chain.head c1
+let new_block = {head1 with header = {head1.header with prev_hash = Block.hash @@ head1}}
 
 let%lwt c2 = extend c1 genesis
 let%lwt c3 = extend c1 new_block

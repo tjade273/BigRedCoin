@@ -34,5 +34,4 @@ let tests =
     "big_tree" >:: (fun _ -> assert_equal (merkle_root [tx_1;tx_2; tx_1; tx_2; tx_1; tx_1; tx_1; tx_1]) (merkle_root [tx_1; tx_2; tx_1; tx_2; tx_1]));
     "deserialize" >:: (fun _ -> assert_equal tx_1 (deserialize (serialize tx_1)));
     "deserialize2" >:: (fun _ -> assert_equal tx_2 (deserialize (serialize tx_2)));
-    
 ]
