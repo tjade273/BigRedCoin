@@ -12,6 +12,7 @@ type t = {blockdb: BlockDB.t;
           forks: Chain.t list;
           p2p : P2p.t;
           utxos : Utxo_pool.t;
+          mempool : Transaction.t list;
           dir : string}
 
 (* [initialize blockdb dir p2p] is a fresh blockchain initialized to the gensesis,
@@ -28,6 +29,7 @@ let initialize blockdb txdb dir p2p =
   >> Lwt.return {blockdb;
                  head=gen_chain;
                  forks = [];
+                 mempool = [];
                  utxos = Utxo_pool.empty txdb;
                  p2p; dir}
 
@@ -56,7 +58,10 @@ let create dir p2p =
         (fun c1 c2 -> if Chain.height c1 > Chain.height c2 then c1 else c2)
         (List.hd forks) forks
     in
-    Lwt.return {head; forks; utxos = Utxo_pool.empty txdb; blockdb; p2p; dir}
+    Lwt.return {head; forks;
+                utxos = Utxo_pool.empty txdb;
+                mempool = [];
+                blockdb; p2p; dir}
   else
     initialize blockdb txdb dir p2p
 

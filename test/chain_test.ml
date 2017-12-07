@@ -2,6 +2,7 @@ open OUnit2
 open Chain
 open Block
 open Lwt
+open Transaction
 
 let db = BlockDB.create "chain_test.db"
 
@@ -11,8 +12,10 @@ let rec mine_header header target =
            nonce = header.nonce + 1}
   in
   let b = {header = h;
-           transactions=[];
-           transactions_count = 0}
+           transactions=[{ins = [];
+                          outs = [{amount = 25; address = String.make 20 '\x00'}];
+                          sigs = Some [];}];
+           transactions_count = 1}
   in
   if Block.hash b < target then b
   else mine_header h target
@@ -53,7 +56,7 @@ let%lwt c1 = Lwt_list.fold_left_s (fun c b -> (extend c b >|= opt_exn))
     (create db genesis)
     (blockchain |> List.rev |> List.tl)
 
-let new_block = {genesis with header = {genesis.header with prev_hash = hash @@ Chain.head c1}}
+let new_block = {genesis with header = {genesis.header with prev_hash = Block.hash @@ Chain.head c1}}
 
 let%lwt c2 = extend c1 genesis
 let%lwt c3 = extend c1 new_block
