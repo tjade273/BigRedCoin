@@ -55,7 +55,7 @@ module AES : sig
   val to_string : t -> string
 
   (* [decrypt t pswd] is the decrypted ECDSA keypair represented by [t], or
-   * [None] if the password is incorrect *)
+   * [None] if the password is incorrect*)
   val decrypt : t -> string -> ECDSA.keypair option
 
   (* [encrypt key pswd] is the encrypted form of [key] using the password [paswd] *)

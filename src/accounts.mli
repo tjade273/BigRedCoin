@@ -1,3 +1,5 @@
+exception InvalidPassword
+exception InvalidAccountFormat
 (* The type of an account, which tracks keys, addresses, and balances. *)
 type t
 
@@ -24,4 +26,4 @@ val send_transaction : t -> (string * int) list -> int -> bool
 (* [balance a addr_opt] is the total balance of all accounts owned by [a] if
  * [adr_opt] is [None], and the balance of [addr] when [addr_opt] is 
  * [Some addr]. *)
-val balance : t -> string option -> int
+val balance : t -> Blockchain.t -> string option -> int
