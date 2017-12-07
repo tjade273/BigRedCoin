@@ -27,7 +27,7 @@ let read r =
 (* [mine r w p] attempts to mine blocks sourced from the read pipe [r] and writes
  * results to the write pipe [w]. The next block to be mined is in [p]. *)
 let rec mine r w p =
-  Lwt_io.read r >>= fun b ->
+  read r >>= fun b ->
     if b = "stop" then begin
       let _ = Lwt_io.close r in
       Lwt_io.close w
@@ -43,7 +43,7 @@ let rec mine r w p =
               }
             } in
             if Block.hash block < Block.target block.header.nBits then begin
-                let _ = Lwt_io.write w (Block.serialize block) in
+                let _ = write w (Block.serialize block) in
                 mine r w None
               end
             else
@@ -68,7 +68,7 @@ let manage t b =
   let%lwt newb = Blockchain.next_block () in
   if Some newb = b then begin
       let check (_, r, _) =
-        let%lwt str = Lwt_io.read r in
+        let%lwt str = read r in
         if str = "" then 
           Lwt.return ()
         else 
