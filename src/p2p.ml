@@ -76,21 +76,32 @@ type output = Lwt_io.output Lwt_io.channel
     try 
       let encoder = Pbrt.Encoder.create() in
       Message_pb.encode_message msg encoder;
-      let buf = Pbrt.Encoder.to_bytes encoder in
-      let%lwt bytes_written = Lwt_io.write_from_exactly oc buf 0 (Bytes.length buf) in
-      Lwt.return (Bytes.length buf)
+      let msg_buf = Cstruct.of_bytes (Pbrt.Encoder.to_bytes encoder) in
+      let size_buf = Cstruct.create 8 in 
+      Cstruct.BE.set_uint64 size_buf 0 (Int64.of_int (Cstruct.len msg_buf));
+      let msg = Cstruct.append size_buf msg_buf in
+      let%lwt bytes_written = Lwt_io.write_from_exactly oc (Cstruct.to_bytes msg) 0 (Cstruct.len msg) in
+      Lwt.return (Cstruct.len msg)
     with 
     | _ -> Lwt_log.notice ("Failed to write.") >> Lwt.return 0
 
   let rec read_raw_msg_till_sucess ic =
-    Lwt_unix.sleep 0.001 >>
-    let buf = Bytes.create 2048 in
-    let read =
-      let%lwt sz = Lwt_io.read_into ic buf 0 2048 in Lwt.return(sz,buf)
+    let buf = Bytes.create 8 in
+    let read_size = 
+      let%lwt sz = Lwt_io.read_into ic buf 0 8 
+      in Lwt.return (sz,Cstruct.BE.get_uint64 (Cstruct.of_bytes buf) 0) 
     in
-    match%lwt read with 
-    | (0,_) -> read_raw_msg_till_sucess ic
-    | (sz,buf) -> Lwt.return (sz,buf) 
+    match %lwt read_size with 
+    |(0,_) -> Lwt_main.yield () >> read_raw_msg_till_sucess ic
+    | (sz,msg_len) ->
+      let msg_len_int = (Int64.to_int msg_len) in 
+      let buf = Bytes.create msg_len_int in 
+      let read_msg =
+        let%lwt sz = Lwt_io.read_into ic buf 0 msg_len_int in Lwt.return(sz,buf)
+      in
+      match%lwt read_msg with 
+      | (0,_) -> Lwt.return (0,Bytes.empty)
+      | (sz,buf) -> Lwt.return (sz,buf) 
 
   let read_raw_msg_for_time time ic = 
     let timeout = Lwt_unix.sleep time >> Lwt.return (0,Bytes.empty) in
