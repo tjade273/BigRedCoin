@@ -26,8 +26,8 @@ let%lwt () = Lwt_io.with_file ~mode:Lwt_io.output (dir2^"genesis.blk") (fun oc -
 
 let () = print_endline (Hex.of_string Chain_test.genesis.header.merkle_root |> show)
 
-let%lwt peer1 = P2p.create_from_list ~port:4000 ["127.0.0.1", 4001, None]
-let%lwt peer2 = P2p.create_from_list ~port:4001 ["127.0.0.1", 4000, None]
+let%lwt peer1 = P2p.create_from_list ~peer_share:false ~port:4000 ["127.0.0.1", 4001, None]
+let%lwt peer2 = P2p.create_from_list ~peer_share:false ~port:4001 ["127.0.0.1", 4000, None]
 
 let _ = P2p.set_log_level peer1 P2p.DEBUG
 let _ = P2p.set_log_level peer2 P2p.DEBUG

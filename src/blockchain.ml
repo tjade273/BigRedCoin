@@ -185,9 +185,10 @@ let handle_message bc (ic,oc) {method_; get; post; _} : t Lwt.t =
 (* [read_messages (ic, oc) blockchain] is [blockchain] after reading all available
  * messages from the channel pair*)
 let rec read_messages (ic, oc) bc : t Lwt.t =
+  Lwt_log.notice "reading..." >>
   match%lwt read ic with
-  | None -> close_in ic >> close_out oc >> Lwt.return bc
-  | Some msg -> handle_message bc (ic, oc) msg
+  | None -> Lwt_log.notice "stopped_reading" >> close_in ic >> close_out oc >> Lwt.return bc
+  | Some msg -> Lwt_log.notice "Got bc message" >> handle_message bc (ic, oc) msg
     >>= read_messages (ic, oc)
 
 (* After [sync_wit_peer blockchain channel], either [blockchain] is updated
@@ -196,14 +197,18 @@ let rec read_messages (ic, oc) bc : t Lwt.t =
 let sync_with_peer ({head; _} as bc) (ic, oc) =
   Lwt_log.notice "Peer found.." >>
   let rec checkpoints n  =
+    print_endline (string_of_int n);
     match n with
-    | 0 -> Lwt.return_nil
+    | 0 -> Lwt.return [Chain.hash head]
     | _ ->
-      let hash = Chain.block_at_index head (Chain.height head - n) >|= Block.hash in
-      let tl = checkpoints (n - 16) in
-      hash >>= fun h -> tl >|= (List.cons h)
+      let%lwt hash = Chain.block_at_index head (Chain.height head - n) >|= Block.hash in
+      Lwt_log.notice "hi" >>
+      let%lwt tl = checkpoints (n - 16) in
+      Lwt.return (hash::tl)
   in
-  let%lwt block_hashes = checkpoints (16*20) in
+  let num_checks = min 10 ((Chain.height head)/16) in
+  let%lwt block_hashes = checkpoints (num_checks) in
+  Lwt_log.notice "Got checkpoints" >>
   let block_req = {request = Blocks;
                    startblocks = block_hashes;
                    block_height = Chain.height head}
@@ -213,7 +218,9 @@ let sync_with_peer ({head; _} as bc) (ic, oc) =
                  post = None;
                  manage = None}
   in
-  write oc message >|= ignore >>
+  Lwt_log.notice "Writing message" >>
+  (write oc message >>= (fun i -> Lwt_log.notice (string_of_int i))) >>
+  Lwt_log.notice "Wrote message" >>
   read_messages (ic, oc) bc
 
 let rec sync blockchain =
