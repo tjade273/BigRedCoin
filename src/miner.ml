@@ -37,7 +37,7 @@ let rec mine t prev =
           outs = [{amount = 25; address = t.address}];
           sigs = Some [Crypto.random 256]
         }::b.transactions;
-           transactions_count = List.length b.transactions + 1
+        transactions_count = List.length b.transactions + 1
       } in
       match prev with
         | Some block -> begin 
@@ -67,7 +67,7 @@ let rec mine t prev =
 
 let start t =
   t.mining <- true;
-  mine t None
+  Lwt.return (Lwt.async (fun _ -> mine t None))
 
 let stop t =
   t.mining <- false
