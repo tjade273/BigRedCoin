@@ -4,7 +4,7 @@ open Block
  * process ids with a read pipe and a write pipe. *)
 type t = {
   blockchain : Blockchain.t ref;
-  push : Block.header option -> unit;
+  push : Block.t option -> unit;
   pids : (int * Lwt_io.input_channel * Lwt_io.output_channel) list
 }
 
@@ -74,7 +74,7 @@ let rec manage t b =
           if str = "" then 
             Lwt.return ()
           else
-          try Lwt.return (t.push (Some (Block.deserialize str).header)) with
+          try Lwt.return (t.push (Some (Block.deserialize str))) with
           | _ -> Lwt.return () in
         ignore (f r) in
       List.iter check t.pids;
