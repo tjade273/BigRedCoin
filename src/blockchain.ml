@@ -12,7 +12,7 @@ type t = {blockdb: BlockDB.t;
           forks: Chain.t list;
           p2p : P2p.t;
           utxos : Utxo_pool.t;
-          mempool : Transaction.t list;
+          mempool : (string*Transaction.t) list;
           dir : string}
 
 (* [initialize blockdb dir p2p] is a fresh blockchain initialized to the gensesis,
@@ -112,7 +112,7 @@ let serve_blocks {blockdb; head; forks; _} oc startblocks height =
   in
   if height >= Chain.height head
   then
-   write oc empty_message >|= ignore
+    write oc empty_message >|= ignore
   else
     let blocks = List.mapi (fun i x -> (height - 16*i, x)) startblocks in
     let same_hash (index, hash) = Chain.block_at_index head index
@@ -159,19 +159,45 @@ let insert_blocks bc blocks =
         else Lwt.return {bc with forks = new_chain::bc.forks}
     end
 
+
+let sync_mempool bc mempool = 
+  List.fold_left(fun acc t ->
+      let hash = Transaction.hash t in 
+      if not (List.mem_assoc hash acc.mempool) then
+        {acc with mempool = (hash,t)::acc.mempool}
+      else
+        acc
+    ) bc mempool
+
+let serve_mempool bc oc = 
+  let msg =  {method_= Post;
+              post = Some {
+                  transactions=(List.map(fun (h,t) -> Transaction.messageify t) bc.mempool); blocks=[]};
+              get = None; manage = None} in 
+  let encoder = Pbrt.Encoder.create() in
+  Message_pb.encode_message msg encoder;
+  write oc msg >|= ignore >> Lwt.return_unit
+
 (* [handle_message bc (ic, oc) msg] is [bc] after responding to the message [msg]
  * If [msg] is not a post request, [bc] is unchanged *)
 let handle_message bc (ic,oc) {method_; get; post; _} : t Lwt.t =
   let handle_get {request; startblocks; block_height} =
     match request with
     | Peer -> Lwt.return_unit
-    | Mempool -> failwith "Unimplemented"
+    | Mempool -> serve_mempool bc oc
     | Blocks -> serve_blocks bc oc startblocks block_height
   in
-  let handle_post {blocks; _} =
-    Lwt.catch (fun () ->
-        insert_blocks bc (List.map Block.demessageify blocks))
-      (fun exn -> Lwt_log.debug "Bad block received\n" >> Lwt.return bc)
+  let handle_post msg =
+    match msg with 
+    | {blocks;transactions=[]} ->
+      Lwt.catch (fun () ->
+          insert_blocks bc (List.map Block.demessageify blocks))
+        (fun exn -> Lwt_log.debug "Bad block received\n" >> Lwt.return bc)
+    | {blocks=[];transactions} ->
+      Lwt.catch (fun () ->
+          Lwt.return (sync_mempool bc (List.map Transaction.demessageify transactions)))
+        (fun exn -> Lwt_log.debug "Bad Transaction received\n" >> Lwt.return bc)
+    | _ -> Lwt.return bc
   in
   match method_, get, post with
   | Get, Some msg, _ -> handle_get msg >> Lwt.return bc
@@ -203,12 +229,22 @@ let sync_with_peer ({head; _} as bc) (ic, oc) =
                    startblocks = block_hashes;
                    block_height = Chain.height head}
   in
-  let message = {method_ = Get;
-                 get = Some block_req;
-                 post = None;
-                 manage = None}
+  let block_req_message = {method_ = Get;
+                           get = Some block_req;
+                           post = None;
+                           manage = None}
   in
-  write oc message >|= ignore >>
+  let mempool_req = {request = Mempool;
+                     startblocks = block_hashes;
+                     block_height = Chain.height head}
+  in
+  let mempool_req_message= {method_ = Get;
+                                         get = Some mempool_req;
+                                         post = None;
+                                         manage = None}
+  in
+  write oc block_req_message >|= ignore >> 
+  write oc mempool_req_message >|= ignore >>
   read_messages (ic, oc) bc
 
 let rec sync blockchain =
