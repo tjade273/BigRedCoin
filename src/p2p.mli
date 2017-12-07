@@ -1,7 +1,7 @@
 open Lwt_io
 
-
-type log_level = 
+(* The type for the logging level for a p2p node. *)
+type log_level =
   | DEBUG
   | SILENT
 
@@ -65,8 +65,8 @@ end
 
 module BRCPeer : BRCPeer_t
 
-(* The type of a p2p node. Contains a peer list, and streams for pushing and
- * pulling.*)
+(* The type of a p2p node. Contains tables of connections, list of known peers,
+ * a server. *)
 type t
 
 (* [broadcast msg p2p] sends the given message [msg] to all peers of the
@@ -79,19 +79,16 @@ val create : ?peer_share:bool -> ?port:int -> string -> t Lwt.t
 
 (* [create_from_list p peers] makes a p2p node with port [p] and the list of
  * [peers] *)
-val create_from_list : ?peer_share:bool -> ?port:int -> (string * int * (Unix.tm option)) list
-  -> t Lwt.t
+val create_from_list : ?peer_share:bool -> ?port:int ->
+  (string * int * (Unix.tm option)) list -> t Lwt.t
 
-(* [peer_stream p2p] is a stream of peers of [t]. Elements of the stream are
- * tuples of an input stream and an output stream.*)
+(* [peer_stream p2p] is a stream of unhandled data connections of the [p2p] node.
+ * if no conncetions are there, a data connection is opened with a random peer and
+ * that is pushed to the stream. *)
 val peer_stream : t -> BRCPeer.peer_connection Lwt_stream.t
 
 (* [server_port p2p] is the port linked to the [p2p] node. *)
 val server_port : t -> int
-
-(* [(p2p,conn) @<> f] is syntactic sugar for [handle f p2p conn]. *)
-val (@<>) : (t*BRCPeer.peer_connection) -> (BRCPeer.peer_connection ->
-                (bool*('a Lwt.t)) Lwt.t) -> 'a Lwt.t
 
 (* [shutdown p2p] shuts down the given [p2p] node by closing all its connections,
  * saving the updated list of known peers to file, and shuting down the server. *)
@@ -101,4 +98,4 @@ val shutdown : ?save:bool -> t -> unit Lwt.t
 val set_log_level : t -> log_level -> unit
 
 (*[known_peers p2p]* returns a list of nodes [p2p] known peers*)
-val known_peers : t -> BRCPeer.peer list 
+val known_peers : t -> BRCPeer.peer list

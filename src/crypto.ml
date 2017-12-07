@@ -23,6 +23,8 @@ module ECDSA = struct
 
   type signature = RecoverableSign.t
 
+(* [hash_msg msg] is a [bigarray] resulting from applying the [sha256] hash
+ * function to [msg]. *)
   let hash_msg msg = msg
                      |> Cstruct.of_string
                      |> Nocrypto.Hash.SHA256.digest
@@ -113,6 +115,8 @@ module AES = struct
     in
     Yojson.Basic.to_string json
 
+(* [scrypt salt password] is a scrypt derived key for [password] using the params
+ * salt=[salt], n=16348, r=8, p=1, dklen=32. *)
   let scrypt salt password =
     let pswd = Cstruct.of_string password in
     Scrypt_kdf.scrypt_kdf

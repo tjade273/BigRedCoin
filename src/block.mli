@@ -33,6 +33,9 @@ val difficulty : int -> int
  * given the timestamp and difficulty of the previous block. *)
 val next_difficulty : header -> header -> int
 
+(* [insert_transaction b tx] is [b] with the additional transaction [tx]*)
+val insert_transaction : t -> Transaction.t -> t
+
 (* [block h] is the hash of the header of the block [b]. *)
 val hash : t -> string
 
@@ -41,3 +44,8 @@ val serialize : t -> string
 
 (* [deserialize s] is the block [b] with [serialize b] = [s]. *)
 val deserialize : string -> t
+
+val messageify : t -> Message_types.block
+
+val demessageify : Message_types.block -> t
+

@@ -6,5 +6,6 @@ brc*.peers
 src/message_pb*
 src/message_types*
 *.db
-lucas/
-peers/
+lucas
+peers
+test_*

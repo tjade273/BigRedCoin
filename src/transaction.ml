@@ -3,7 +3,6 @@ type output = {
   address : string
 }
 
-
 type input = {
   txid : string;
   out_index : int
@@ -50,7 +49,7 @@ let demessageify {Message_types.outs; ins; _} =
 let deserialize s =
   let decoder = Pbrt.Decoder.of_bytes s in
   demessageify (Message_pb.decode_transaction decoder)
-  
+
 let hash tx =
   let s = serialize tx in
   Crypto.sha256 s

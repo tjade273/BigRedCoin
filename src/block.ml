@@ -30,19 +30,43 @@ let target nbits =
     Cstruct.to_string target_buf
 
 (* Based on the algorithm from the bitcoin wiki. *)
-let difficulty nbits = 
+let difficulty nbits =
   let b = log10 (float_of_int 0x00ffff) in
   let s = log10 256.0 in
-  let exp = (b -. (log10 (float_of_int (0x00ffffff land nbits))) 
+  let exp = (b -. (log10 (float_of_int (0x00ffffff land nbits)))
             +. s *. float_of_int (0x1d - ((nbits land 0xff000000) lsr 24))) in
   int_of_float (10.0**exp)
 
 (* Based on the bitcoin difficulty update scheme. *)
 let next_difficulty head prev =
-  let t = target_block_time*blocks_per_recalculation in
-  let next_t = (head.nBits * 100 *
-               (head.timestamp - prev.timestamp)/(10000 * t)) in
-  if next_t/head.nBits < 4 then next_t else 4*next_t
+  let rec normalize n =
+    if n > 0xFFFFFF then
+      let n', e' = (normalize (n/256)) in
+      (n', e'+1)
+    else
+      (n, 0)
+  in
+  let adjust n expected actual =
+    let mantissa = n land 0xFFFFFF in
+    let exponent = n lsr 24 in
+    let m', e' = normalize @@ (mantissa * expected)/actual in
+    ((exponent + e') lsl 24) lor m'
+  in
+  let expected_time = target_block_time*blocks_per_recalculation in
+  let actual_time = head.timestamp - prev.timestamp in
+  if expected_time / (max actual_time 1) > 4 then
+    adjust head.nBits 4 1
+  else if actual_time / expected_time > 4 then
+    adjust head.nBits 1 4
+  else
+    adjust head.nBits expected_time actual_time
+
+let insert_transaction {header; transactions; transactions_count} tx =
+  let transactions = tx :: transactions in
+  let transactions_count = transactions_count + 1 in
+  let merkle_root = Transaction.merkle_root transactions in
+  let header = {header with merkle_root} in
+  {header; transactions; transactions_count}
 
 (* [messageify_header h] is the protobuf encoded message representing [h]. *)
 let messageify_header {version;
@@ -51,14 +75,41 @@ let messageify_header {version;
                        nonce;
                        nBits;
                        timestamp} =
-  Message_types.({
-    Message_types.version = version;
-    prev_hash = Bytes.of_string prev_hash;
-    merkle_root = Bytes.of_string merkle_root;
+  let open Message_types in
+  {version = version;
+    prev_hash = prev_hash;
+    merkle_root = merkle_root;
     nonce = nonce;
     n_bits = nBits;
-    timestamp = timestamp
-  }) 
+    timestamp = timestamp}
+
+let demessageify_header {Message_types.version;
+                       prev_hash;
+                       merkle_root;
+                       nonce;
+                       n_bits;
+                       timestamp} =
+  {version = version;
+    prev_hash = prev_hash;
+    merkle_root = merkle_root;
+    nonce = nonce;
+    nBits = n_bits;
+    timestamp = timestamp}
+
+let messageify {header;
+                transactions;
+                transactions_count} =
+  let open Message_types in
+  {header = messageify_header header;
+   txs = List.map Transaction.messageify transactions;
+   tx_count = transactions_count}
+
+let demessageify {Message_types.header;
+                txs;
+                tx_count} =
+  {header = demessageify_header header;
+   transactions = List.map Transaction.demessageify txs;
+   transactions_count = tx_count}
 
 let hash b =
   let h = messageify_header b.header in
@@ -77,7 +128,7 @@ let serialize b =
   let encoder = Pbrt.Encoder.create () in
   Message_pb.encode_block block_ser encoder;
   Pbrt.Encoder.to_bytes encoder
-  
+
 let deserialize s =
   let decoder = Pbrt.Decoder.of_bytes s in
   let Message_types.({header; txs; tx_count}) = 
