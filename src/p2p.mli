@@ -99,3 +99,7 @@ val set_log_level : t -> log_level -> unit
 
 (*[known_peers p2p]* returns a list of nodes [p2p] known peers*)
 val known_peers : t -> BRCPeer.peer list
+
+(* [(p2p,conn) @<> f] is syntactic sugar for [handle f p2p conn]. *)
+val (@<>) : (t*BRCPeer.peer_connection) -> (BRCPeer.peer_connection ->
+(bool*('a Lwt.t)) Lwt.t) -> 'a Lwt.t
