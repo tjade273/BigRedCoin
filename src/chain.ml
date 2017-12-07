@@ -31,8 +31,8 @@ let block_at_index {hash; head; height; cache; db} (n : int) =
     parent head (height - n)
 
 let next_difficulty  ({hash; head; height; cache; _} as chain) =
-  if height + 1 mod 2016 = 0 then
-    let adjustment_block = height - 2016 in
+  if height + 1 mod Block.blocks_per_recalculation = 0 then
+    let adjustment_block = height - Block.blocks_per_recalculation in
     let%lwt reference = block_at_index chain adjustment_block in
     let nbits' = Block.(next_difficulty head.header reference.header) in
     Lwt.return nbits'
