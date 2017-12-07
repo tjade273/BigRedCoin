@@ -94,7 +94,7 @@ let messaging_tests = suite "messaging tests" [
     end;
 
     test "test_random_connection_passed" begin fun () -> 
-      let%lwt nodes = create_n_linked_nodes ~start_port:4000 2 in
+      let%lwt nodes = create_n_linked_nodes ~start_port:4125 2 in
       let peer_opt = Lwt_stream.get (P2p.peer_stream nodes.(1)) in
       let%lwt check_connection =
         match%lwt peer_opt with
@@ -104,7 +104,7 @@ let messaging_tests = suite "messaging tests" [
     end;
 
     test "simple_message_peer_list" begin fun () -> 
-      let%lwt nodes = create_n_linked_nodes ~start_port:4000 2 in
+      let%lwt nodes = create_n_linked_nodes ~start_port:4421 2 in
       P2p.broadcast simple_data_msg nodes.(1) >> 
       let%lwt check_message = message_check_thread nodes.(0)      
       in close_all nodes >> Lwt.return check_message
@@ -139,8 +139,8 @@ let messaging_tests = suite "messaging tests" [
     end;
 
     test "peer_sync_test_explicit" begin fun () ->
-      let%lwt nodes = create_n_linked_nodes ~start_port:4000 2 in
-      let do_sync = Lwt_unix.sleep 3. 
+      let%lwt nodes = create_n_linked_nodes ~start_port:4889 2 in
+      let do_sync = Lwt_unix.sleep 15. 
       in 
       do_sync >> close_all nodes >> 
       let string_sort e1 e2 = 
@@ -150,9 +150,8 @@ let messaging_tests = suite "messaging tests" [
       in 
       close_all nodes >> 
         if (known_peers_b = 
-         ["127.0.0.1:3999";
-          "127.0.0.1:4000";
-          "127.0.0.1:4001"]) then 
+         ["127.0.0.1:4887";
+          "127.0.0.1:4888";]) then 
           Lwt.return_true else
           Lwt_log.notice "Explicit Sync not succesful but not fatal." >>
           Lwt.return_true
@@ -161,7 +160,7 @@ let messaging_tests = suite "messaging tests" [
     test "peer_sync_test_share" begin fun () ->
       let%lwt node_a = P2p.create ~port:4443 "test/nodes/node_a.peers" in
       let%lwt node_b = P2p.create ~port:4445 "test/nodes/node_b.peers" in 
-      Lwt_unix.sleep 3. >> 
+      Lwt_unix.sleep 15. >> 
       let string_sort e1 e2 = 
         if e1 < e2 then (~-1) else if e1 > e2 then 1 else 0 in
       let known_peers_a = List.sort string_sort

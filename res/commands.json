@@ -18,7 +18,7 @@
         {
             "name": "balance",
             "regex": ["balance$"],
-            "hint": "balance <address> : returns current balance of peer with given address"
+            "hint": "balance: returns current balance of the current account"
         },
         {
             "name": "create",
