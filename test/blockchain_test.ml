@@ -4,6 +4,7 @@ open Chain
 open Lwt.Infix
 
 let dir = "test_blockchain/"
+let dir2 = "test_blockchain2/"
 
 let show = function `Hex x -> x
 
@@ -21,13 +22,22 @@ let%lwt () = Lwt_io.with_file ~mode:Lwt_io.output (dir^"genesis.blk") (fun oc ->
 
 let () = print_endline (Hex.of_string Chain_test.genesis.header.merkle_root |> show)
 
-let%lwt peer1 = P2p.create_from_list ~port:3000 ["127.0.0.1", 4001, None]
-let%lwt peer2 = P2p.create_from_list ~port:3001 ["127.0.0.1", 4000, None]
+let%lwt peer1 = P2p.create_from_list ~port:4000 ["127.0.0.1", 4001, None]
+let%lwt peer2 = P2p.create_from_list ~port:4001 ["127.0.0.1", 4000, None]
 let%lwt bc = Blockchain.create "test_blockchain" peer1
+let () =
+  try
+    Unix.mkdir dir2 0o777
+  with Unix.Unix_error (Unix.EEXIST, _, _) -> ()
+
+let%lwt bc2 = Blockchain.create "test_blockchain2" peer2
+let (stream1, push1) = Lwt_stream.create ()
+let miner = create "lucas" push1 bc
+let miner2 = create "cosmo" push2 bc2
 
 let%lwt () = Lwt_log.notice ("Genesis hash: "^(Hex.of_string (Blockchain.head bc) |> show))
 
-let blockchain  = ref bc
+let blockchain = ref bc
 
 let tests = [suite "blockchain tests" [
     test "test_sync" begin fun () ->
@@ -45,4 +55,6 @@ let tests = [suite "blockchain tests" [
       let utxos = Blockchain.get_utxos !blockchain (String.make 20 '\x00') in
       Lwt.return Transaction.((snd @@ List.hd utxos).amount = 25)
     end
+    
+    
   ]]
