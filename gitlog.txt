@@ -1,0 +1,1747 @@
+commit 23dac049a7ebda525a224e60610d2d365cf50a3e
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 16:09:44 2017 -0500
+
+    Readme
+
+commit ca9e8c6008bb9438daad4d17298535648c23fe21
+Merge: 0148233 b44cf99
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 16:08:11 2017 -0500
+
+    Final tests
+
+commit 014823357e84df167b931cda40e6319b670e3b1d
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 15:42:18 2017 -0500
+
+    Fixed tests
+
+commit 0acb78e22754653ac7a390cfa3909bc236b2e2ba
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 15:41:14 2017 -0500
+
+    Finished p2p tests
+
+commit fa0bab14428dc886715babf98d9ea4f54c421324
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 15:09:16 2017 -0500
+
+    Added peers file
+
+commit 256cd8ff0f24b563fd079ec234e97cde1b1fb89c
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 14:54:31 2017 -0500
+
+    Removed p2p check
+
+commit a3dc1c6e7d7b5b74be5d07266d92d720285ca9de
+Merge: 7a8423b 2096dc3
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 14:39:44 2017 -0500
+
+    Added p2p infix
+
+commit 7a8423bc870521187dbf039e1b3d95507046f0b4
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 14:18:22 2017 -0500
+
+    fixed p2p binds
+
+commit 0f3015d212f4c8486c12774903cdf18d73a38122
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Dec 7 13:49:29 2017 -0500
+
+    Add logging
+
+commit 93c042d1d72a6a186f6f224e3c9ccace26f91194
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Dec 7 13:18:38 2017 -0500
+
+    Sync tests
+
+commit 2096dc3255d8f68440c9393f6255f080af40a600
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 13:18:12 2017 -0500
+
+    Added balance
+
+commit 2b92138e73d7985d5c9373b4ed77e31bfb42fe71
+Merge: 0122909 f5c102f
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Dec 7 13:11:15 2017 -0500
+
+    Merge branch 'feature_miner' into two_chains_test
+
+commit f5c102f83240216559ce259968d30c5333195b7f
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Thu Dec 7 13:10:14 2017 -0500
+
+    Made start return immediately instead of when mine returns.
+
+commit 0122909b92740a01da903d926a788cdfc6d415b1
+Merge: a067e99 87b452b
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Dec 7 13:04:27 2017 -0500
+
+    Merge branch 'feature_miner' into two_chains_test
+
+commit 87b452bac194e6d7906853de89322a71201549a2
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Dec 7 13:04:08 2017 -0500
+
+    Fix tx count
+
+commit a067e99f5cefa1d42ae3601b287bceeb1139cac4
+Merge: c74d95b 90e5a41
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Dec 7 12:58:04 2017 -0500
+
+    Merge branch 'feature_miner' into two_chains_test
+
+commit c74d95bf4f681a8784b9eec0d5bba71cf814928c
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Dec 7 12:55:55 2017 -0500
+
+    reenable tests
+
+commit 90e5a41d458d86fa1cc96f6b602fcd5bf51ef3cd
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Thu Dec 7 12:55:03 2017 -0500
+
+    Fix miner returning after mining one block.
+
+commit 1bf963230763c0c07287f92111844b6992d081a6
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Dec 7 12:51:20 2017 -0500
+
+    track down bugs
+
+commit dffde58fd57b6b2875de115d8d49adeeb37c6f96
+Merge: 6b8b944 61049b3
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 12:48:53 2017 -0500
+
+    Added lookup and quit hooks
+
+commit d2ad2a76b78e9190a428b1f3344da7f194601687
+Merge: 6f8c62f 4ac652d
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Dec 7 12:27:50 2017 -0500
+
+    Merge branch 'blockchain' into two_chains_test
+
+commit 4ac652d9bffc7556cce48c4e69a0154ebee5b4e8
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Dec 7 12:26:09 2017 -0500
+
+    cleanup
+
+commit 6b8b9449f1b05739646dc19bb5bcfb169c4655cf
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 12:16:23 2017 -0500
+
+    Lookup hooks
+
+commit 61049b36205a823c587c141da31f02b54a02f78e
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Dec 7 12:15:31 2017 -0500
+
+    Fix tests
+
+commit cb2f65f7a01a767074aa4d84667f4af26a52bb57
+Merge: 43e1fbe e32d543
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 11:22:36 2017 -0500
+
+    merged
+
+commit 43e1fbee9133ec1f85bf38dd8c597b1b11c4d374
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 11:21:42 2017 -0500
+
+    Removed bad folders
+
+commit 5f865362b61c988a7c872be27d2b0db617830bd4
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 11:21:12 2017 -0500
+
+    Started Block Chain rooks
+
+commit 8c90d124d1c8680fd0fbfdd31339fc6c2866db41
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Dec 7 11:20:34 2017 -0500
+
+    Fix chain test
+
+commit b44cf991a2b6e8f707afa26de99cf3fe2e401331
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 11:13:34 2017 -0500
+
+    Transaction validation
+
+commit 6f8c62f7d0969b16bfcc9e84f13bcee057036d6e
+Merge: 512fc28 2e4cb9d
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Thu Dec 7 10:59:22 2017 -0500
+
+    Merge branch 'blockchain' into two_chains_test
+
+commit 512fc28961e5a25f9a42d2d6fe1a57ee1acb45e6
+Merge: e1ef3ad 0f5e0cf
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Thu Dec 7 10:58:54 2017 -0500
+
+    Work on testing syncing. Not working right now.
+
+commit 2e4cb9d5a28a8e3f63f5fbbf0dabc809b1f2f0f3
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Dec 7 10:57:51 2017 -0500
+
+    Proper difficulty adjustment in tests
+
+commit 6de6a820b19de6156967009a4d644064e840c247
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 09:54:34 2017 -0500
+
+    Added mempool sync
+
+commit 78062d014dee6c049f3397655a40fb3e6e64a3db
+Merge: 5a7e721 4ce0df2
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 09:53:49 2017 -0500
+
+    Merge branch 'feature_mempool' of https://github.com/tjade273/BigRedCoin into feature_mempool
+
+commit 5a7e721cf87b8bba7ad896821a573b9124fb3c11
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 09:52:34 2017 -0500
+
+    Fixed p2p types
+
+commit 6eb7fd009a2d40054f0757d9e73d47f4d22c054e
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Dec 7 09:47:29 2017 -0500
+
+    Don't hardcode difficulty readjustment
+
+commit 4ce0df2ae6a9a6b685eb309c4adcc95c7f4ee977
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 09:46:59 2017 -0500
+
+    fixed p2p monomorphic types
+
+commit e1ef3adfd19c1bccd3f1e6f364a3bb1b2ee0b3fc
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Thu Dec 7 09:36:46 2017 -0500
+
+    Begin adding test for syncing mined blocks.
+
+commit 0f5e0cfe4bb8e00e652dc7e11b13c95559acbe73
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Dec 7 09:35:55 2017 -0500
+
+    Add chain interface
+
+commit b28dfc11ba38cc780e52028f9c882f59de3e6f6a
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Dec 7 09:34:51 2017 -0500
+
+    Test multiple transactions
+
+commit ff8e79c0f1af6463a2f9e76034e3620521dcf395
+Merge: 71a53c2 e32d543
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Thu Dec 7 09:18:57 2017 -0500
+
+    Merge branch 'blockchain' into two_chains_test.
+
+commit e32d5432fdf5163ce49c89170f08f8e39fe790e6
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Dec 7 09:11:14 2017 -0500
+
+    Fix coinbase validation
+
+commit 71a53c2515e3b989a165d9d6dc41790005b352c7
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Thu Dec 7 09:09:44 2017 -0500
+
+    Make coinbase transaction have random signature.
+
+commit 936c9644eb98bb58c22a6d93185f7df35fc16125
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Thu Dec 7 08:01:13 2017 -0500
+
+    Specification for chain, crypto and transaction cleaned up
+
+commit e7cb9f1a1e3ec4ff7247d6be6c66b5da904fe8d7
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Thu Dec 7 07:04:16 2017 -0500
+
+    Specifications for p2p finalized
+
+commit 2548736db5efec69a314516dda17106b6cf6b771
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Thu Dec 7 04:07:58 2017 -0500
+
+    Specification for miner cleaned up
+
+commit 98980d2db1da936e178e06276c902c8406e22dfa
+Merge: 8cf3b50 6a051e3
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Dec 7 03:00:50 2017 -0500
+
+    Merge branch 'feature_miner' into blockchain
+
+commit d204c40c1a2b763c7a8eaeecf66b98bf21a7f2bc
+Merge: 927c85a 01fb5b1
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 02:40:32 2017 -0500
+
+    Merge branch 'feature_repl' of https://github.com/tjade273/BigRedCoin into feature_repl
+
+commit 927c85a28d54283f4f57a503866e10e8fa462422
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 02:40:16 2017 -0500
+
+    Changed loopback ip
+
+commit 6a051e391666e539b80fea294d3ea2824b3fa71f
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 02:04:41 2017 -0500
+
+    Added Coinbase transaction
+
+commit 8cf3b5015c149561ae74511eba8193ed7e431661
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Dec 7 02:02:25 2017 -0500
+
+    Basic block validation
+
+commit d70873ec0a9edb6395b2671c0cea8217f1d2eaaa
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 02:01:44 2017 -0500
+
+    Added CoinBase transaction
+
+commit 3abf69701ac8a3190c0bb667aab8c39cc0f6493b
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 01:47:58 2017 -0500
+
+    We can mine!
+
+commit ab7441e6d91d91f00ef73e7862f910924fdb78c9
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 01:47:29 2017 -0500
+
+    We can mine!
+
+commit c4349314e078b5dca9179fc19e4de35f6fd403a0
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Thu Dec 7 01:34:22 2017 -0500
+
+    Make miner single threaded.
+
+commit 01fb5b172c30af9aefdc8af7e4681f9e82896321
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Thu Dec 7 00:34:26 2017 -0500
+
+    Added specification to the repl files.
+
+commit a7909eb97b344e86473be83ace29d28c53644bf3
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Thu Dec 7 00:30:16 2017 -0500
+
+    Fix prolems with tests.
+
+commit 463bbd02a76d0693ea2d6234a32062f33783ada3
+Merge: e2fe8df f9124c6
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Dec 7 00:25:26 2017 -0500
+
+    Merge branch 'p2p' into blockchain
+
+commit e2fe8df105715d733b01a9ba2d9e09ca51069c40
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Dec 7 00:16:49 2017 -0500
+
+    Add miner fee
+
+commit f9124c6172f7c2ef981c8f35a2855a3650bbba7d
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 00:11:05 2017 -0500
+
+    Fixed p2p sizes
+
+commit 9d33f607d40587a5290b1f8054a1a7324343f4cb
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Dec 7 00:09:39 2017 -0500
+
+    Fixed p2p sizes
+
+commit 654653f95ee5ef3bd6bbe9664f56291698e1899b
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Wed Dec 6 23:17:01 2017 -0500
+
+    Actually push the tests.
+
+commit 29061bb440b58e793ccdf9d8f52355333193f679
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Wed Dec 6 23:09:12 2017 -0500
+
+    Begin writing tests. This currently fails.
+
+commit b0e6607d81338df42261f241208719375ad85e27
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Wed Dec 6 22:41:13 2017 -0500
+
+    Added more hooks
+
+commit 21d280a73cf140bf245aaf82024b93a5d9879a25
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Wed Dec 6 22:28:34 2017 -0500
+
+    utxo fixes
+
+commit be934ada6437d10c483a50b6183b371f46e70c9f
+Merge: 7596212 9a32cd5
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Wed Dec 6 21:16:44 2017 -0500
+
+    Merge branch 'blockchain' into feature_miner
+
+commit 9a32cd5595a2e1e73b97e55902dfdf5890523789
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Wed Dec 6 21:14:46 2017 -0500
+
+    Fix db
+
+commit 759621210cfa46952772a30e4e4f6c0f90f2622d
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Wed Dec 6 21:14:38 2017 -0500
+
+    Make miner actually compile.
+
+commit b20fb48caf0d38b045ae871df7896cf9afef85df
+Merge: bbf3f9e 3e6091e
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Wed Dec 6 20:01:05 2017 -0500
+
+    Merge branch 'blockchain' into feature_miner
+
+commit bbf3f9e62c92b920be75f9b03971562574b99469
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Wed Dec 6 19:58:04 2017 -0500
+
+    Use new read and write functions.
+
+commit 01f08a7017530f6b1fa0bf6f7588c5f2348651b4
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Wed Dec 6 19:56:04 2017 -0500
+
+    Implement a read and write function.
+
+commit 3e6091ef241d387d2c0527023d9965600d8cfac8
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Wed Dec 6 19:46:03 2017 -0500
+
+    Add UTXO support
+
+commit f13a8ff1568ffdc3b04a7cede1e8ffeee77ed1d5
+Merge: 2d6e2cf f45aae1
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Wed Dec 6 19:35:43 2017 -0500
+
+    Merge remote-tracking branch 'origin/feature_block' into feature_repl
+
+commit 2d6e2cf41e5137373f4816541686afc8490c22ef
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Wed Dec 6 19:30:10 2017 -0500
+
+    Added login hooks
+
+commit b2d6cf0070722a7d63ba37c3be5e73760baab776
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Wed Dec 6 19:03:52 2017 -0500
+
+    Fix errors.
+
+commit be93256a18c016efa11ca78b58e7e89a248cdfbc
+Merge: b3e2e30 8d51513
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Wed Dec 6 18:56:20 2017 -0500
+
+    Merge branch 'mempool_utxo_feature' into blockchain
+
+commit 8d5151391141c3da08d2883812fac5377bfa725d
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Wed Dec 6 18:32:07 2017 -0500
+
+    Finished transiton revert
+
+commit b3e2e3036590c8cf7f8d3e2bc740cd6bdaac7cb1
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Wed Dec 6 18:11:54 2017 -0500
+
+    Make next_block
+
+commit 25fb6d9be40fe77c093a7b9f996fe8ce1a91b206
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Wed Dec 6 18:05:49 2017 -0500
+
+    Add create function to miner. Remove pull stream from miner.
+
+commit c68b0c37b9e6b3c9400d670bd287c5908baf5e9e
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Wed Dec 6 17:04:37 2017 -0500
+
+    Write some tests
+
+commit 88529fcf7bc973d465c42221c38db7d44b5d0138
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Wed Dec 6 13:57:02 2017 -0500
+
+    Fix types
+
+commit 86a04ace6ad3f55a489c064c5501423c3004aeea
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Wed Dec 6 02:24:21 2017 -0500
+
+    Implement mining thread management.
+    
+    Miner should work now once Blockchain.next_block is implemented, though no tests are implemented. (Or maybe I forgot something and I'm tired.)
+
+commit 7379f39d4788e15464ea23aab3a48585ce7f16ec
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Wed Dec 6 01:59:47 2017 -0500
+
+    Fix reading from file failing because of newlines.
+    
+    Change input_line to Lwt_io.read, which should work.
+
+commit 4f0bac6164631cf94d4935024ea8127b21206035
+Merge: b4f0695 57b4ffc
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Dec 5 21:42:34 2017 -0500
+
+    Merge remote-tracking branch 'origin/mempool_utxo_feature' into blockchain
+
+commit b4f0695afa16e618817140c5d9225db8f3b6484c
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Dec 5 19:29:47 2017 -0500
+
+    Demessageify
+
+commit 798d14fae91b422425a72220b7a8b0bf0be31901
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Dec 5 18:14:37 2017 -0500
+
+    Nearly working
+
+commit 1e32bf0ad606ad0a5a6487062796629533df37c7
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Dec 5 18:01:47 2017 -0500
+
+    More efficient syncing scheme
+
+commit 424525f4a42e05d177534a922beac07c188093ed
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Dec 5 17:00:25 2017 -0500
+
+    Implement posting blocks
+
+commit 74faad3e456e563fe0b262fe8fa7224aea31ef7d
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Dec 5 14:39:33 2017 -0500
+
+    Start p2p integration
+
+commit 3d04865faaeb2cdbaf0a9bdf6f60667b7f339d9d
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Tue Dec 5 04:03:58 2017 -0500
+
+    Implement mine function. Spawn mining threads.
+
+commit 57b4ffccad6f259dbb4f9cffc0edc5f6e91a2de4
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Mon Dec 4 22:09:48 2017 -0500
+
+    started utxo_pool
+
+commit d9d0588690ef9a4cc979f7b73e9dcdd1dbc8e7ca
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Mon Dec 4 17:21:58 2017 -0500
+
+    Start blockchain.ml
+
+commit ce040fde5ea2fb4ba798908aca1339c27fd42afb
+Merge: 7dc1d9e 98953cf
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Mon Dec 4 15:20:14 2017 -0500
+
+    Merge pull request #11 from tjade273/hotfix_block
+    
+    Fix difficulty adjustment algorithm
+
+commit 70856bd16927a6ea41be06f1a18e63a6655f9fa5
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Mon Dec 4 15:19:38 2017 -0500
+
+    Write more tests
+
+commit c0f0ffdb89eb174adacb5df298f1343150686540
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Mon Dec 4 15:03:48 2017 -0500
+
+    Write tests
+
+commit ed3826901a4e4c07d9d05104fe63c04912580d2c
+Merge: fed9554 98953cf
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Mon Dec 4 14:06:04 2017 -0500
+
+    Merge branch 'hotfix_block' into blockchain
+
+commit 98953cf6005f85abbafff8e575d77cf13cc233ca
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Mon Dec 4 14:02:01 2017 -0500
+
+    Add tests
+
+commit fed95541998273b34fcb6fe2fefd7e64b7f17624
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Mon Dec 4 13:36:24 2017 -0500
+
+    Implement create
+
+commit bd3bff5fc4e9d9556b951351e64957013fd97c50
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Mon Dec 4 13:36:04 2017 -0500
+
+    Fix difficulty adjustment
+
+commit 7dc1d9ec03824f9363118757a49a384cafd23059
+Merge: 6bea359 f45aae1
+Author: Cosmo Viola <cviola14580@gmail.com>
+Date:   Mon Dec 4 13:22:21 2017 -0500
+
+    Merge pull request #10 from tjade273/feature_block
+    
+    Feature block
+
+commit 93e8e29beb6678a512cb872a309f44f32bea0c96
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Mon Dec 4 10:39:06 2017 -0500
+
+    Fix interfaces
+
+commit 622f0f05a9db784a042c6198ab4626aaf30715e7
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Mon Dec 4 10:27:11 2017 -0500
+
+    Implement chain reorganization
+
+commit 2cbeaeb968450e57b1b575daba612a25f7691710
+Author: Lucas Switzer <LucasSwitz>
+Date:   Sun Dec 3 17:45:13 2017 -0500
+
+    Made peer sync/data polling more effiecient
+
+commit bdaa5550b6ef3c2ada5b2c90423c0774498e5aff
+Merge: d0f99f5 6bea359
+Author: Lucas Switzer <LucasSwitz>
+Date:   Sun Dec 3 00:29:09 2017 -0500
+
+    Merge branch 'master' into feature_accounts
+
+commit d0f99f5114f30ef306d1fed021bc41074e9f3591
+Author: Lucas Switzer <LucasSwitz>
+Date:   Sun Dec 3 00:25:11 2017 -0500
+
+    Added account file saving and transaction handling
+
+commit 0bc059c5ec98d644b02ce0b7ab38637403bce272
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Sat Dec 2 20:30:23 2017 -0500
+
+    Implement chain merging
+
+commit fdcf26726ca2de241a325af2113110dfda484351
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Sat Dec 2 17:11:34 2017 -0500
+
+    Progress
+
+commit 547d8f5625fae286fed71310c02ddb44342a1497
+Merge: ccd4d4e f45aae1
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Sat Dec 2 16:18:35 2017 -0500
+
+    Merge branch 'feature_block' into blockchain
+
+commit ccd4d4e66c5a956a93bc27d3758fbc555374e585
+Merge: 3ceb98f 4c768ca
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Sat Dec 2 16:12:32 2017 -0500
+
+    Merge branch 'feature_block' into blockchain
+
+commit 3ceb98f2c6efbf11dd424dccf43066b48894b086
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Sat Dec 2 16:10:36 2017 -0500
+
+    Start implementation
+
+commit f45aae16725eb15ccdc34d1bab33f5ed5ea69f2c
+Merge: ea69105 6bea359
+Author: Cosmo Viola <cviola14580@gmail.com>
+Date:   Sat Dec 2 14:52:22 2017 -0500
+
+    Merge branch 'master' into feature_block
+
+commit ea69105fd3a752647dd42af1551054997adc0db4
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Sat Dec 2 14:46:31 2017 -0500
+
+    Add test case for hash.
+    
+    Also included is a fix to a databsae comment and getting rid of some compiler warnings in block.ml.
+
+commit 4c768ca2e896d2df88337cef70bd1463368bae98
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Sat Dec 2 00:52:09 2017 -0500
+
+    Add serialization and deserialization test.
+    
+    Fix compilation issue.
+
+commit 7a35fd39a453a4fadb81198e64755893f9d58fd1
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Fri Dec 1 23:40:52 2017 -0500
+
+    Various fixes. Add some tests.
+
+commit bfb0902a6641b61439f23b5e3cc156a481636280
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Fri Dec 1 19:17:48 2017 -0500
+
+    Change target to return binary string instead of hex.
+
+commit c97e3076819ae432a4143240116556e9c2e87587
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Fri Dec 1 18:48:53 2017 -0500
+
+    Implement things
+
+commit 0307b3b03de119ff833e8fbfe3993d2b78562be6
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Fri Dec 1 18:43:12 2017 -0500
+
+    Implement serialization and deserialization of blocks.
+    
+    Update hash to use protobuf serialization.
+
+commit 6bea359e3d8b7733ded04f11ca86a04db2eafff7
+Merge: fb977b2 072c661
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Fri Dec 1 12:39:37 2017 -0500
+
+    Merge pull request #8 from tjade273/feature_repl
+    
+    Feature repl
+
+commit 072c661a90dfbead5682e89a6f758b9a28085349
+Merge: eb339d1 fb977b2
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Fri Dec 1 12:06:06 2017 -0500
+
+    Merge branch 'master' into feature_repl
+
+commit fb977b2f6918ccb02504b6faee1a311a284977e8
+Merge: 9cd741e a958bd7
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Fri Dec 1 12:05:16 2017 -0500
+
+    Merge pull request #9 from tjade273/p2p_hotfix
+    
+    P2p hotfix
+
+commit a958bd748533c8f56deebbb08ca50c78ce762c76
+Author: Lucas Switzer <LucasSwitz>
+Date:   Fri Dec 1 11:38:23 2017 -0500
+
+    moved nodes
+
+commit c38aae36e4a612a86a1abba74374300842157781
+Author: Lucas Switzer <LucasSwitz>
+Date:   Fri Dec 1 11:35:19 2017 -0500
+
+    moved node test files
+
+commit eb339d103cfb97d5c74520e9871e9fe61cfedb94
+Author: Lucas Switzer <LucasSwitz>
+Date:   Fri Dec 1 11:11:43 2017 -0500
+
+    fixed commands and tests
+
+commit 977641e167304677986f6c74c4c9c6c6adcba547
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Fri Dec 1 01:25:22 2017 -0500
+
+    Implement serialization and deserialization of blocks.
+
+commit 80d4d94f6e3948156b2ac63514a7c94c591e9521
+Merge: 9f9fb1e 9cd741e
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Fri Dec 1 00:28:20 2017 -0500
+
+    Merge master into block.mli.
+
+commit 9f9fb1ee2ee4424524b93ce0f3f2d9fc01e9e043
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Fri Dec 1 00:26:34 2017 -0500
+
+    Add serialization methods to interfaces.
+
+commit 81adbf77c7acc9f68d653faf8dbd46a3f5de2f61
+Author: Lucas Switzer <LucasSwitz>
+Date:   Thu Nov 30 20:52:58 2017 -0500
+
+    merged with master
+
+commit ec13741dd85d131ae6e4b3a83e5f138b1e2c62e5
+Merge: f01cf5c 9cd741e
+Author: Lucas Switzer <LucasSwitz>
+Date:   Thu Nov 30 20:36:04 2017 -0500
+
+    merged with main
+
+commit 9cd741e600f9abbc8787a5927434cd66e6855da9
+Merge: 74f3dcb 793f63b
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Nov 30 20:12:40 2017 -0500
+
+    Merge pull request #7 from tjade273/transaction
+    
+    Transaction
+
+commit 793f63b7af0fb6362e6ecf42c8f70ee337873148
+Merge: ab25fa1 74f3dcb
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Nov 30 19:11:33 2017 -0500
+
+    Merge branch 'master' into transaction
+
+commit f01cf5c53b98b5d5dc99ff2fa2b809b5e2469dba
+Merge: 25a7e5c 66e5ae3
+Author: Lucas Switzer <LucasSwitz>
+Date:   Thu Nov 30 18:46:36 2017 -0500
+
+    merged with master
+
+commit 74f3dcb463d97bcfa594d56c6e7ad17c2b79af71
+Merge: 66e5ae3 a04dee4
+Author: Lucas Switzer <lucswitz@gmail.com>
+Date:   Thu Nov 30 18:31:45 2017 -0500
+
+    Merge pull request #5 from tjade273/message_handling
+    
+    Message handling
+
+commit a04dee4dd2e748d9547d0a389e0e9fb4c9287f3e
+Merge: 210a2af 66e5ae3
+Author: Lucas Switzer <LucasSwitz>
+Date:   Thu Nov 30 15:07:27 2017 -0500
+
+    fixed merges
+
+commit ab25fa1846c8aa9faa9a49354feaf494cb5c8788
+Merge: 9285a4e 66e5ae3
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Nov 30 14:50:29 2017 -0500
+
+    Merge branch 'master' into transaction
+
+commit 66e5ae35cd03484994350a8c8d50fedb8b4601ff
+Merge: 4048244 bba8b93
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Nov 30 14:49:10 2017 -0500
+
+    Merge pull request #6 from tjade273/secp_update
+    
+    Secp update
+
+commit 210a2afe29a08454b04a6eb6b97551e5558a8b3b
+Author: Lucas Switzer <LucasSwitz>
+Date:   Thu Nov 30 14:42:04 2017 -0500
+
+    Fixed gitignore
+
+commit 074ddd33f7bf78dfbd375bd32c5c7c422f7684a7
+Author: Lucas Switzer <LucasSwitz>
+Date:   Thu Nov 30 14:38:06 2017 -0500
+
+    fixed makefile
+
+commit febc6c98b4ab11f3cea955a829abb7de8e0abc20
+Author: Lucas Switzer <LucasSwitz>
+Date:   Thu Nov 30 14:32:04 2017 -0500
+
+    updated make file
+
+commit ac070758b4612d9d833fc7bf526625fe68752bcd
+Merge: 2b5de37 4048244
+Author: Lucas Switzer <LucasSwitz>
+Date:   Thu Nov 30 14:29:57 2017 -0500
+
+    Merge branch 'master' into message_handling
+
+commit 2b5de378e649827a0c48d66d19cb4b06c9d830c9
+Author: Lucas Switzer <LucasSwitz>
+Date:   Thu Nov 30 14:27:39 2017 -0500
+
+    ignored dynanically generted pb files & fixed testing config
+
+commit 25a7e5c20a9235be851219d4a6700513198e134f
+Author: Lucas Switzer <LucasSwitz>
+Date:   Thu Nov 30 14:14:00 2017 -0500
+
+    Cleaned up Repl
+
+commit bba8b93372c877b256f6d45487925cb081d66206
+Merge: e16f670 4048244
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Nov 30 13:44:02 2017 -0500
+
+    Merge branch 'master' into secp_update
+
+commit 9285a4e1a53e9747fd9d1d2ec0c88e31dc7f7162
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Nov 30 13:43:22 2017 -0500
+
+    Fix specification comments
+
+commit 0e96e9bd736ba4680449c212b370faff5a442c7d
+Merge: cacc7a8 4048244
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Nov 30 13:23:47 2017 -0500
+
+    Merge branch 'master' into transaction
+
+commit b3c0685d249ec137647a3d8e003999e59cf71b20
+Author: Lucas Switzer <LucasSwitz>
+Date:   Thu Nov 30 12:26:39 2017 -0500
+
+    command text holding
+
+commit ab886641a851a62417ab888fa953938890efa9b1
+Merge: 1b4348d 4048244
+Author: Lucas Switzer <LucasSwitz>
+Date:   Thu Nov 30 11:41:04 2017 -0500
+
+    Merge branch 'master' into feature_repl
+
+commit 1b4348ddc5c4a671260a2662ee680cf2950fc0af
+Author: Lucas Switzer <LucasSwitz>
+Date:   Thu Nov 30 11:39:29 2017 -0500
+
+    Documented REPL
+
+commit 777b9adbebfd4a915585fceb4967c36b627f2493
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Thu Nov 30 11:31:08 2017 -0500
+
+    Create block_test.ml.
+
+commit d7a6b6fd811f250d9c54fb89d43ef5a59e5bd718
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Thu Nov 30 11:26:26 2017 -0500
+
+    Change hash to accept a block instead of a header.
+
+commit 4048244a29c6ec480055f1d9817cb7a7a9cc1895
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Thu Nov 30 00:55:45 2017 -0500
+
+    Fix depext
+
+commit 599191e1887f61b18b3d11eb367f02180b1e7161
+Author: Lucas Switzer <LucasSwitz>
+Date:   Thu Nov 30 00:08:55 2017 -0500
+
+    Preliminary REPL
+
+commit ca8fc60daee4d2d7df50eeca5f035d59ec70b382
+Author: Lucas Switzer <LucasSwitz>
+Date:   Wed Nov 29 21:22:45 2017 -0500
+
+    Command regex
+
+commit b0d7f30c0807ae2abb8b603b87db84385a8f7d8a
+Author: Lucas Switzer <LucasSwitz>
+Date:   Wed Nov 29 21:22:18 2017 -0500
+
+    Command regex
+
+commit 44b3ec00f1d214b1f5daf4aa01ee28d2cf431ef7
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Wed Nov 29 16:58:40 2017 -0500
+
+    Add blockhash function. Small fixes.
+    
+    Fixed capitalization error in next_target.
+
+commit d980922af48fb2c22caeca49f0e7e97c25b15b23
+Author: Lucas Switzer <LucasSwitz>
+Date:   Wed Nov 29 16:44:59 2017 -0500
+
+    Started repl
+
+commit 30d13d17a57a119080d227fc41fb50be7e365489
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Wed Nov 29 16:43:45 2017 -0500
+
+    Implement difficulty and next_target.
+
+commit acceaefb0d6c1cadac600fd72cdcecd2578098d1
+Author: Lucas Switzer <LucasSwitz>
+Date:   Wed Nov 29 14:34:35 2017 -0500
+
+    ignore test database folder
+
+commit 54f3b6bd2f7725159f16e775a1ae64d07b6e7c8c
+Author: Lucas Switzer <LucasSwitz>
+Date:   Wed Nov 29 14:31:01 2017 -0500
+
+    Updated proto file
+
+commit cacc7a8255e896d4835d0aef415530392ba4cc1d
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Wed Nov 29 14:19:05 2017 -0500
+
+    Make transaction compatible with database
+
+commit d104ac5174108c44501d9b05207c79cbccf06e94
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Wed Nov 29 00:09:01 2017 -0500
+
+    Clean up
+
+commit 31204141e4d04eb4ca0193b5b372b603b0f254fe
+Author: Lucas Switzer <LucasSwitz>
+Date:   Wed Nov 29 00:04:27 2017 -0500
+
+    Removed unessesary files
+
+commit cbd5c83fdbd0b3771c205479f15b4a8f9e350cd8
+Author: Lucas Switzer <LucasSwitz>
+Date:   Tue Nov 28 23:49:54 2017 -0500
+
+    Refactored
+
+commit 34c04eb8f6fa4103782259d47fe28772f03b48d9
+Author: Lucas Switzer <LucasSwitz>
+Date:   Tue Nov 28 23:49:32 2017 -0500
+
+    Refactored
+
+commit 021b7167bd984f9efc8b4be3dc215fe13622dc2b
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Nov 28 23:45:54 2017 -0500
+
+    More tests
+
+commit d0dade86120db77c18f2aefbb45bbaa9457cda64
+Merge: 407a551 e16f670
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Nov 28 23:10:20 2017 -0500
+
+    Merge branch 'secp_update' into transaction
+
+commit e16f670e3bb9bd4ea0a2e659ddbc6009175fd77e
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Nov 28 23:08:07 2017 -0500
+
+    Add protection against bad private key decryption
+
+commit 5e16a4ec049cfedf9dd91059d90c979b7ffb14ef
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Nov 28 22:47:39 2017 -0500
+
+    Use new secp256k1 interface
+    
+    Remember to use new ppa version
+
+commit d25a4cf6e418cc4db982318a32b2196bed2b32df
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Nov 28 22:46:51 2017 -0500
+
+    Remove automatically generated source files
+
+commit 3a47044744f29c02cc0eacf2e6f23cc67ea90498
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Nov 28 22:45:43 2017 -0500
+
+    Build environment tweaks
+
+commit af4328fb1f536aeb53c6170880aa1e0b916dd4be
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Tue Nov 28 22:25:22 2017 -0500
+
+    Begin block.ml.
+    
+    Implement types. Implement target.
+
+commit 407a551a836570a2fa60900b082d8460643ea63e
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Nov 28 20:47:50 2017 -0500
+
+    Add ignored files
+
+commit 955446f9836abbd7e58356e8c658ca42a741c46f
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Nov 28 20:47:40 2017 -0500
+
+    Tweak interface
+
+commit 89d431fa3833a7cf23652c8dc3d8e4436e9510cc
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Nov 28 18:49:08 2017 -0500
+
+    Implement transaction module
+
+commit 6767f950d22a75a80c4dacbb3c23c8a14193721a
+Author: Lucas Switzer <LucasSwitz>
+Date:   Tue Nov 28 15:45:04 2017 -0500
+
+    Added csv-lwt as opam depend
+
+commit 1cc7ebf450661833a9de08b6a2befed013eef8d1
+Author: Lucas Switzer <LucasSwitz>
+Date:   Tue Nov 28 15:13:44 2017 -0500
+
+    Fixed file tree
+
+commit 36298644d41379d7994a22e65b0823126cb51c84
+Author: Lucas Switzer <LucasSwitz>
+Date:   Tue Nov 28 15:03:16 2017 -0500
+
+    Merging with master
+
+commit 2a600e2b8207c82794b0182fa380ae85fba3423e
+Merge: 472cea1 abd28df
+Author: Lucas Switzer <LucasSwitz>
+Date:   Tue Nov 28 14:35:38 2017 -0500
+
+    Reorganizing
+
+commit 472cea18c5a97560ac75b6590ce8aa7d0d320c43
+Author: Lucas Switzer <LucasSwitz>
+Date:   Tue Nov 28 14:19:26 2017 -0500
+
+    Cleaned up code
+
+commit 48b57b06c8d137ed68239e2a4c3dfc21148587ab
+Author: Lucas Switzer <LucasSwitz>
+Date:   Tue Nov 28 14:11:49 2017 -0500
+
+    Fixed share test
+
+commit abd28dfd680b634c400742b59fa356bd2922964a
+Merge: 1ebc53b 71bca7a
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Nov 28 14:08:13 2017 -0500
+
+    Merge pull request #4 from tjade273/database
+    
+    Database
+
+commit 71bca7a7437bd132dc5c6ce6a0f395d8c2a79370
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Tue Nov 28 13:45:25 2017 -0500
+
+    Removed duplicated function.
+    
+    create was duplicated in crypto.ml.
+
+commit 69364f6f019c639498c6dc188673012504d9e9c7
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Tue Nov 28 12:51:33 2017 -0500
+
+    Remove unused variable warning in tests.
+
+commit 3770b6900da06eadae2f4f6388c842bb5f757616
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Tue Nov 28 10:33:37 2017 -0500
+
+    Add database.ml.
+    
+    Somehow this got removed from the repo.
+
+commit 2ae7b6bf1e8cd3886de2828b8667372c5c5bb9a1
+Merge: 4b238a7 2a5bfa7
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Tue Nov 28 01:58:40 2017 -0500
+
+    Merge.
+
+commit 4b238a76bc2ef4af377b36e5ce4e5733063e5be2
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Mon Nov 27 20:32:02 2017 -0500
+
+    Make db tests run. Add tests for db functions.
+
+commit 59ceb089632a2b7fc2b449cf56041f22e5faf00e
+Author: Lucas Switzer <LucasSwitz>
+Date:   Tue Nov 28 00:47:23 2017 -0500
+
+    Changed sync timer
+
+commit 2a5bfa7af8f5f1d2bb5a82a5b3b52ac98e99f08e
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Mon Nov 27 20:32:02 2017 -0500
+
+    Make database tests actually run.
+
+commit 05fe6eec7c1ad20e8417b59b7ef4348ca586e03b
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Mon Nov 27 20:30:53 2017 -0500
+
+    Make makefile clean delete .db files.
+
+commit 6222dcff09779cf8c9f66c5725aa6f573a2cda16
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Mon Nov 27 20:12:39 2017 -0500
+
+    Begin writing database tests.
+
+commit 248d5d1170a5b3750ced502310017f40176beda3
+Merge: dc9277e 1ebc53b
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Mon Nov 27 19:24:40 2017 -0500
+
+    Merge master into branch.
+
+commit dc9277efb87726bc3360fe282c0a6480d4af081f
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Mon Nov 27 19:07:46 2017 -0500
+
+    Added mutex to tags file.
+
+commit ba26e0d4b86e845c0a9afb481f8f2360654b3598
+Merge: 4a28ad3 e0eeff8
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Mon Nov 27 19:05:30 2017 -0500
+
+    Merge remote-tracking branch 'origin/master' into database
+
+commit 1ebc53b9346141f3d9a96c55c15232b473c73e8f
+Merge: e0eeff8 473a80f
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Mon Nov 27 19:05:21 2017 -0500
+
+    Merge pull request #3 from tjade273/feature_crypto
+    
+    Implement Crypto module
+
+commit 4a28ad38a1cd18396d05ff77bc9139bd8e9c19f0
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Mon Nov 27 18:55:32 2017 -0500
+
+    Add mutex to database.ml
+
+commit b949e3604889a750402f24a74e6d3f541d6bbc7d
+Author: Lucas Switzer <LucasSwitz>
+Date:   Mon Nov 27 18:51:48 2017 -0500
+
+    Changed sync timer
+
+commit cf586e8f806ef51994d59487d812a5787ed8f988
+Author: Lucas Switzer <LucasSwitz>
+Date:   Mon Nov 27 18:51:17 2017 -0500
+
+    Changed sync timer
+
+commit e47b540e3a7799195fddd913100bd9924d5ea568
+Author: Lucas Switzer <LucasSwitz>
+Date:   Mon Nov 27 18:29:16 2017 -0500
+
+    Added read for time to ping read
+
+commit e8871345c89117f1079c5899dfd24357adc31be8
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Mon Nov 27 18:21:52 2017 -0500
+
+    Partly fixed database interface.
+
+commit d22102c8d070a51026c7ab3642ed002fd0b0d48c
+Author: Lucas Switzer <LucasSwitz>
+Date:   Mon Nov 27 18:07:37 2017 -0500
+
+    Peer syncing
+
+commit 86928af06469a179536e49e7dd29b403e90a5e87
+Author: Lucas Switzer <LucasSwitz>
+Date:   Mon Nov 27 11:45:13 2017 -0500
+
+    Peer sync
+
+commit 473a80f50df6cadfc46e398ea9065479004b7c27
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Mon Nov 27 01:10:47 2017 -0500
+
+    Clean up source tree
+
+commit c8bd2325c10c1c040fe62f31d1b05fbafd486159
+Merge: a3c9a84 e0eeff8
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Mon Nov 27 00:53:43 2017 -0500
+
+    Merge branch 'master' into feature_crypto
+
+commit e0eeff8b8acd04ba9557d0fc4bde402ac2eea54f
+Merge: edd45c1 7030ee8
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Mon Nov 27 00:50:28 2017 -0500
+
+    Merge pull request #2 from tjade273/documentation
+    
+    Documentation
+
+commit 7030ee80d8206aab40f902435b7004d601b878a2
+Merge: 2516cf2 edd45c1
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Mon Nov 27 00:32:18 2017 -0500
+
+    Merge branch 'master' into documentation
+
+commit a3c9a840e0473ec9fcb78e8c5a7afe25568650d9
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Mon Nov 27 00:28:23 2017 -0500
+
+    Implement crypto test suite and Travis config
+
+commit eb5d7fc982179b908abcbf833b504174f25e5cd1
+Merge: 47914c9 2fc1632
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Sun Nov 26 12:16:00 2017 -0500
+
+    Merge current feature_crypto into database.
+
+commit 47914c9082e3cab2b218edd66a275165408d1805
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Sun Nov 26 12:12:35 2017 -0500
+
+    Updated .merlin.
+
+commit 198f4bc0c2d501919198e08dfce1c700a841009d
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Sat Nov 25 07:38:19 2017 -0500
+
+    fixed formatting
+
+commit 0aec08d3656e22d817d41d446184a1073ac8a176
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Fri Nov 24 08:35:50 2017 -0500
+
+    fixed formatting
+
+commit 5b0060b9da28b34324b0e51f3f577d8b68a7d233
+Author: Lucas Switzer <LucasSwitz>
+Date:   Thu Nov 23 20:35:10 2017 -0500
+
+    Added log level controls
+
+commit b56cd4532caf991f72725494c88e8c8724e79c2d
+Author: Lucas Switzer <LucasSwitz>
+Date:   Thu Nov 23 19:45:53 2017 -0500
+
+    Cleaned up logging and tests
+
+commit 4d0d8a63b769861f0e956699f74430ff81420b89
+Author: Lucas Switzer <LucasSwitz>
+Date:   Thu Nov 23 19:22:50 2017 -0500
+
+    Cleaned up test cases
+
+commit 5cf76a65e8f034d3a5498104d65e9ae3820b3468
+Author: Lucas Switzer <LucasSwitz>
+Date:   Thu Nov 23 19:21:47 2017 -0500
+
+    Cleaned up test cases
+
+commit a9e6275ab4579c945a963071058788f49c9b6c12
+Author: Lucas Switzer <LucasSwitz>
+Date:   Thu Nov 23 16:40:12 2017 -0500
+
+    Reformatted and added comments
+
+commit 1fc2e18b915c6100039c76e5b31c39f283ae67e1
+Merge: 5fc6156 fbeab55
+Author: Lucas Switzer <LucasSwitz>
+Date:   Thu Nov 23 16:26:12 2017 -0500
+
+    Pre-transfer pings and Message Preambles
+
+commit 5fc61569b9f5686c8d231ac34d8fcbbf6be75c55
+Author: Lucas Switzer <LucasSwitz>
+Date:   Thu Nov 23 16:01:36 2017 -0500
+
+    Pre-transfer pings and Message Preambles
+
+commit fbeab55b31e6da249873db5f0e4164a1329d0090
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Wed Nov 22 10:52:35 2017 -0500
+
+    Finalized comments
+
+commit 22ada19ee72ba9e3ebb79838775093685fcd8bba
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Wed Nov 22 10:33:57 2017 -0500
+
+    Fixed more comments and rearranged functions to group them together
+
+commit 86b175e2f516d79379f6ad1e370f949fcf63dac4
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Wed Nov 22 09:40:13 2017 -0500
+
+    Changed PeerTbl to ConnTbl to be more descriptive
+
+commit 2b29bac264f6b167c114acd094fb2f66aaa75e46
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Wed Nov 22 09:37:11 2017 -0500
+
+    Added comments and fixed module structure
+
+commit ec0ac6fbb49544b1ea6e79e7a23a44de7c63ff73
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Wed Nov 22 08:43:28 2017 -0500
+
+    Shifted nodes to a folder to keep folders clean
+
+commit 4a1e9f1413dbd8e07200e6d8026e073c8ad3843f
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Wed Nov 22 08:38:31 2017 -0500
+
+    Added timestamp updating when connecting to peers, and saving to file during shutdown.
+    Added a node with multiple peers
+
+commit 2c8d9d54d0fce0e25425a9f9fdb03c1381f5855f
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Wed Nov 22 08:11:45 2017 -0500
+
+    convert everything to local time for easier management
+
+commit 067bb0b2d143895ed94861ac8da4c403b7b8a8b3
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Wed Nov 22 07:53:56 2017 -0500
+
+    Fixed PeerList, implemented find and remove
+
+commit 9c75cd52b670f2b67a4ad0edacae98a3988b76d8
+Merge: bfa59fc 82e2750
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Wed Nov 22 07:34:32 2017 -0500
+
+    Merge branch 'message_handling' of https://github.com/tjade273/BigRedCoin into message_handling
+    
+    # Conflicts:
+    #	p2p.mli
+
+commit 82e27502d1174e80a0691ce2031baf3edaadd2e4
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Wed Nov 22 07:21:20 2017 -0500
+
+    remove .byte files from repo
+
+commit 65fd1211b9dded7f3a39b40fa65efdd7c6ffa64e
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Wed Nov 22 07:13:02 2017 -0500
+
+    Added port number to logging and added warning messages in the tests
+
+commit ac3f0edcb3be933a19f0269362ccdd5811345dd8
+Merge: b586518 95dab52
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Wed Nov 22 06:59:39 2017 -0500
+
+    Merge branch 'message_handling' of https://github.com/tjade273/BigRedCoin into message_handling_d
+    
+    # Conflicts:
+    #	p2p.ml
+
+commit b5865187af5689c61c8f0cb2f906efc351872b94
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Wed Nov 22 06:57:46 2017 -0500
+
+    added node port to logging
+
+commit 95dab52cbffd57b9c4c4f21e9c8f3ac5f6808b3c
+Author: Lucas Switzer <LucasSwitz>
+Date:   Wed Nov 22 02:40:53 2017 -0500
+
+    Peer vs Data differentiation
+
+commit 0eeecf58cf75e94b18673318bdf9ec1940422939
+Merge: 583ca74 43233cf
+Author: Lucas Switzer <LucasSwitz>
+Date:   Wed Nov 22 01:53:21 2017 -0500
+
+    Merge branch 'message_handling' of https://github.com/tjade273/BigRedCoin into message_handling
+
+commit 583ca74d71eb86175b185c136596d80f1a1982b4
+Author: Lucas Switzer <LucasSwitz>
+Date:   Wed Nov 22 01:53:11 2017 -0500
+
+    Check message write length
+
+commit bfa59fc371cdac556fd91933bf9e79b2f6cd58d8
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Tue Nov 21 22:13:18 2017 -0500
+
+    Added PeerList structure
+
+commit 43233cf62f90464f16bbec1eda4d09d9ada35314
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Tue Nov 21 20:54:54 2017 -0500
+
+    Fixed csv saving
+
+commit f948481f5d36b7db59cb16be7362136588642fa1
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Tue Nov 21 20:34:20 2017 -0500
+
+    Removed redundancies and fixed formatting
+
+commit 2fc16326f29cdd98f99b4be671c6ba17e3b932a1
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Nov 21 20:07:45 2017 -0500
+
+    Reconfigure travis
+
+commit c478de91e5f87a2a62c9895f14307a74c529b94f
+Author: Lucas Switzer <LucasSwitz>
+Date:   Tue Nov 21 20:02:45 2017 -0500
+
+    Changed peer type to be consistent with Protobuf
+
+commit 67897c11ddb2d97ad030e33c90f789116905e9a7
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Nov 21 19:56:12 2017 -0500
+
+    Delete extdep
+
+commit b1936a92127d82928f279d8371cd019691cd20cd
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Nov 21 19:53:17 2017 -0500
+
+    Write passing tests
+
+commit bc929eeb6a9ffc2b8348c75136c3f4ded3b42b51
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Nov 21 19:16:45 2017 -0500
+
+    Add secp256k1 submodule
+
+commit 76d57227bcc274aebe672cfa76f1310cc301619e
+Merge: a370dd8 3f39f4b
+Author: Lucas Switzer <LucasSwitz>
+Date:   Tue Nov 21 19:09:23 2017 -0500
+
+    Fixed type inconsisencies
+
+commit 6fc69a75e828331503cbce91b5536a8e969d0434
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Nov 21 19:04:52 2017 -0500
+
+    Allow sudo
+
+commit ea209f14a3b52a1a5226b8ad5b5f1bb6dad4fbee
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Nov 21 18:44:09 2017 -0500
+
+    Add dependencies
+
+commit ac8f68038bd219cbd1eb77c2d60799b178daa409
+Merge: b8ebf28 edd45c1
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Nov 21 18:37:16 2017 -0500
+
+    Merge branch 'master' into feature_crypto
+
+commit b8ebf28c4f7161ece8b120920ebb6306421886c1
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Nov 21 18:35:29 2017 -0500
+
+    First passing test
+
+commit a370dd839139108e78c2a77604f046619e7e3902
+Author: Lucas Switzer <LucasSwitz>
+Date:   Tue Nov 21 18:27:09 2017 -0500
+
+    Connection Ownership
+
+commit 6efc27b4c86fb33794ece99de1469b1713f0bf05
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Nov 21 16:52:19 2017 -0500
+
+    Implement Crypto module
+
+commit 3f39f4b6a5f68ed0d222fa6d8d1ed3873f563086
+Author: Nikhil Saraf <nsaraf98@gmail.com>
+Date:   Tue Nov 21 11:38:27 2017 -0500
+
+    Implemented loading and saving peers to file, and maintaining a list of known peers
+
+commit 052931e6d92cc5cebb6a30ed551675737f6d0d3c
+Author: Lucas Switzer <LucasSwitz>
+Date:   Tue Nov 21 01:05:29 2017 -0500
+
+    Cleaned up message tests
+
+commit ac7b312d7eb089012c95490d609ebc1b19952161
+Author: Lucas Switzer <LucasSwitz>
+Date:   Tue Nov 21 01:02:42 2017 -0500
+
+    Messaging and Async testing
+
+commit 98661df1371be773a0fb000c8c5ead95378fa0bb
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Mon Nov 20 20:56:45 2017 -0500
+
+    Implement database.
+    
+    Hashable interface now requires functions to serialize and deserialize data. Functions in database module are implemented, but untested.
+
+commit 0dd90421969cfd6d74b657d3db485cdd38c90f0e
+Author: Lucas Switzer <LucasSwitz>
+Date:   Mon Nov 20 02:58:59 2017 -0500
+
+    Rudimentary Message Handling
+
+commit edd45c17433165ed9ae317227bd6af37bfd42e45
+Merge: c62068a 0b23d4b
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Sun Nov 19 13:38:27 2017 -0500
+
+    Merge pull request #1 from tjade273/travis_config
+    
+    Configure Travis-CI builds
+
+commit 0b23d4bc3fd27965109f1e87b814f367b6a4e0c8
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Sat Nov 18 16:03:38 2017 -0500
+
+    Configure Travis-CI builds
+
+commit 2516cf2d2eb2287ef5613fc2cc65b4971547b807
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Wed Nov 15 21:44:43 2017 -0500
+
+    Improved formatting of comments.
+    
+    Comments now more closely follow style guide.
+
+commit e766cae208c5a4a8cad6fee7ff2ec701cbc0d25d
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Wed Nov 15 20:33:34 2017 -0500
+
+    Add missing spec for nBits field.
+
+commit e39cfb2cee43bda4a71c0bcb7cea742b03139c8d
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Wed Nov 15 18:17:59 2017 -0500
+
+    Make interface files compile
+
+commit 2af78da8b4fb68f40a99970519e6cf292338f54b
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Wed Nov 15 17:22:13 2017 -0500
+
+    Separate transactions and blocks
+
+commit 84bd5a251de2be431d75ac30c43fe9d6bb1acfd8
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Wed Nov 15 16:23:12 2017 -0500
+
+    Unify message types
+
+commit 59d9d48356c92aafbc39effc60728e5ccd64637b
+Merge: 179af58 1934f35
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Wed Nov 15 15:43:11 2017 -0500
+
+    Merge branch 'documentation' of https://github.com/tjade273/BigRedCoin into documentation
+
+commit 179af58e1248160a44f75d5e0e22fff375401227
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Wed Nov 15 15:42:47 2017 -0500
+
+    Create interface.mli, add functions.
+    
+    These types may need to change in the future.
+
+commit 1934f35d08e17a9b267644454e817c6a8118355d
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Wed Nov 15 14:09:24 2017 -0500
+
+    Add account interface
+
+commit 10704d95b2157d10f7baf94bd71bab7e2726accc
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Nov 14 12:49:58 2017 -0500
+
+    Fix syntax errors and whitespace
+
+commit 29e864feffc25381d0cf7c6cd914598299a2c9ab
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Tue Nov 14 12:47:36 2017 -0500
+
+    Add message protobuf specs
+
+commit c2deb16da0a1e74b789d562de1658429458ab1e6
+Merge: 7f6c433 c62068a
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Mon Nov 13 21:25:28 2017 -0500
+
+    Merge branch 'master' into documentation
+
+commit 7f6c43302bb17310f5fd1aa81d8912264e7d87a9
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Mon Nov 13 21:25:12 2017 -0500
+
+    Flesh out miner
+
+commit 8b6a0a6fde4633d77c66cb673692d5ea1fb0e690
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Mon Nov 13 21:11:41 2017 -0500
+
+    Wrote crypto.mli
+
+commit ecbf8915ee57d250694c637c7b1eeea1445b663a
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Mon Nov 13 20:46:45 2017 -0500
+
+    Created miner.mli.
+    
+    Added specificaiton for pow function.
+
+commit c62068aca832466c57a70302ae49ae0f362f4187
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Mon Nov 13 12:14:41 2017 -0500
+
+    More documentation
+
+commit 6a4a60805f2bad624b99e3d6d1889ead74c3e347
+Author: Cosmo Viola <cjv48@cornell.edu>
+Date:   Sat Nov 11 23:02:39 2017 -0500
+
+    Initial documentation, WIP.
+    
+    database.mli very incomplete, needs to be a functor.
+
+commit fbba26db668041115cf1e17aaa53ffc366a92fda
+Author: Tjaden Hess <tjade273@gmail.com>
+Date:   Sat Nov 11 22:57:46 2017 -0500
+
+    first commit

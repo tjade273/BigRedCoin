@@ -9,7 +9,8 @@ type t =
   {
     mutable active_account: Accounts.t option;
     mutable p2p:P2p.t option;
-    mutable bc:Blockchain.t option;
+    mutable bc:Blockchain.t ref option;
+    mutable miner:Miner.t option
   }
 
 (* [main] is an instance of [t] used to maintain state for the repl. *)
@@ -17,6 +18,7 @@ let main = {
   active_account=None;
   p2p=None;
   bc=None;
+  miner=None;
 }
 
 let block_format = format_of_string
@@ -31,16 +33,33 @@ let block_format = format_of_string
   timestamp: %i 
   transaction_count: %i"
 
+let push bc block =
+  match block with
+  | None -> failwith "Miner stream stopped"
+  | Some b -> Lwt.async (fun () -> Blockchain.push_block bc b)
+  
+  
+
+let mine_hook (command,args) =
+  if command = "mine" then
+    match main.bc with 
+    | Some bc -> 
+      let miner1 =  Miner.create "lucas" (push bc) bc in
+       Miner.start miner1 >> Lwt.return_some "Started Miner"
+    | None -> Lwt.return_some "No chain found." 
+  else
+    Lwt.return_none
+
 
 let balance_hook (command,args) =
   if command = "balance" then
     match main.active_account with 
     | Some account -> 
       (match main.bc with 
-      | Some bc -> 
-        let balance = Accounts.balance account bc None in
-          Lwt.return_some ("| Balance | \n"^(string_of_int balance))
-      | None -> Lwt.return_some "No chain found.")
+       | Some bc -> 
+         let balance = Accounts.balance account !bc None in
+         Lwt.return_some ("| Balance | \n"^(string_of_int balance))
+       | None -> Lwt.return_some "No chain found.")
     | None -> Lwt.return_some "No account signed in."
   else
     Lwt.return_none
@@ -58,7 +77,7 @@ let lookup_hook (command,args) =
     let hash = Hex.to_string (`Hex args.(0)) in
     match main.bc with 
     | Some bc ->  
-      (match%lwt Blockchain.retrieve_block bc hash with 
+      (match%lwt Blockchain.retrieve_block !bc hash with 
        | Some block -> 
          let header = block.header in
          let block_string = Printf.sprintf block_format 
@@ -78,7 +97,7 @@ let chain_head_hook (command,args) =
   if command = "chain_head" then
     match main.bc with 
     | Some bc -> Lwt.return_some ("| Chain Head | \n" ^ 
-                                  Hex.show (Hex.of_string (Blockchain.head bc)))
+                                  Hex.show (Hex.of_string (Blockchain.head !bc)))
     | None -> Lwt.return_some "No chain found."
   else
     Lwt.return_none
@@ -105,7 +124,8 @@ let start_node_hook (command,args) =
     let port = int_of_string args.(0) in
     let%lwt server =  P2p.create ~port:port "peers/.peers" in
     main.p2p <- Some server;
-    let%lwt bc = Blockchain.create "brc_chain" server in 
+    let%lwt bc = (Blockchain.create "brc_chain" server) in 
+    let bc = ref bc in 
     main.bc <- Some bc;
     Lwt.return_some "Launched server."
   else
@@ -161,6 +181,7 @@ let help_hook (command,_) =
 
 (* Add hooks to the repl, and run it.*)
 let () =
+  add_hook mine_hook;  
   add_hook balance_hook;
   add_hook lookup_hook;  
   add_hook chain_head_hook;  

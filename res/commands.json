@@ -54,6 +54,11 @@
             "name": "quit",
             "regex": ["quit$"],
             "hint": "quit : shutsdown services and closes client"
+        },
+        {
+            "name": "mine",
+            "regex": ["mine$"],
+            "hint": "mine : starts miner"
         }
     ]
 }
