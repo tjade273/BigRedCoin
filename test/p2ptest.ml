@@ -147,14 +147,9 @@ let messaging_tests = suite "messaging tests" [
         if e1 < e2 then (~-1) else if e1 > e2 then 1 else 0 in
       let known_peers_b = List.sort string_sort
           (List.map (fun peer -> (BRCPeer.s_addr peer)) (P2p.known_peers nodes.(1))) 
-<<<<<<< Updated upstream
-      in Lwt.return 
-        (known_peers_b = 
-=======
       in 
       close_all nodes >> 
         if (known_peers_b = 
->>>>>>> Stashed changes
          ["127.0.0.1:3999";
           "127.0.0.1:4000";
           "127.0.0.1:4001"]) then 
