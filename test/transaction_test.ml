@@ -27,7 +27,7 @@ let tests =
   "Transaction Tests" >::: [
     "empty_tree" >:: (fun _ -> assert_equal (String.make 32 '\x00') (merkle_root []));
     "signers" >:: (fun _ -> assert_equal (Some [addr_1]) (signers {tx_1 with sigs = Some [sig_1]}));
-    "invalid_sig" >:: (fun _ -> assert_equal None (signers {tx_1 with sigs = Some ["lalala"^sig_1]}));
+    "invalid_sig" >:: (fun _ -> assert_bool "Invalidate message"  (Some [addr_1] <> signers {tx_1 with sigs = Some ["lalala"^sig_1]}));
     "single_tx" >:: (fun _ -> assert_equal (Crypto.sha256 (serialize tx_1)) (merkle_root [tx_1]));
     "two_txs" >:: (fun _ -> assert_equal merkle (merkle_root [tx_1;tx_2]));
     "odd_txs" >:: (fun _ -> assert_equal (merkle_root [tx_1;tx_2; tx_1]) (merkle_root [tx_1;tx_2; tx_1; tx_1]));

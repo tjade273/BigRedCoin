@@ -154,7 +154,10 @@ let insert_blocks bc blocks =
           | None -> Lwt.fail Invalid_block
           | Some c -> Lwt.return c
         in
-        let%lwt new_chain = Lwt_list.fold_left_s try_extend chain heads in
+        let%lwt new_chain =
+          Lwt.catch (fun () -> Lwt_list.fold_left_s try_extend chain heads)
+            (fun exn -> Lwt.return bc.head)
+        in
         if Chain.height new_chain > Chain.height bc.head
         then reorganize_chain bc new_chain root
         else Lwt.return {bc with forks = new_chain::bc.forks}
@@ -225,8 +228,12 @@ let rec sync blockchain =
     sync blockchain
 
 let push_block blockchain block =
+  let open Block in
   let bc = !blockchain in
-  let%lwt bc' = insert_blocks bc [Chain.head bc.head; block] in
+  BlockDB.put bc.blockdb block >>
+  let%lwt parent = BlockDB.get bc.blockdb block.header.prev_hash in
+  let%lwt bc' = Lwt.catch (fun () -> insert_blocks bc [parent; block])
+      (fun exn -> Lwt_log.notice "Mined invalid block" >> Lwt.return bc) in
   blockchain := bc';
   Lwt.return_unit
 
