@@ -1,5 +1,6 @@
 open Crypto
 open Yojson
+open Transaction
 
 exception InvalidPassword
 exception InvalidAccountFormat
@@ -71,24 +72,28 @@ let addresses a =
 (* [balance a addr_opt] is the total balance of all accounts owned by [a] if
  * [adr_opt] is [None], and the balance of [addr] when [addr_opt] is 
  * [Some addr]. *)
- let balance a bc addr_opt : int = failwith "undefined"
-    (*match addr_opt with 
-    | None -> List.fold_left (fun acc (pub,_) -> 
-      let utxos  = (Blockchain.get_utxo (ECDSA.to_address pub)) in
-      let tot_for_addr = (List.fold_left (fun tot utxo -> utxo.amount + tot) 0) utxos in 
+ let balance a bc (addr_opt:string option) : int =
+    match addr_opt with 
+    | None -> List.fold_left (
+      fun acc (pub,_) -> 
+        let utxos  = (Blockchain.get_utxos bc (ECDSA.to_address pub)) in
+        let tot_for_addr = (List.fold_left (
+                                fun tot (_,out) -> out.amount + tot) 0) utxos in 
        tot_for_addr + acc) 0 a.key_pairs
-    | Some addr -> Blockchain.get_utxo addr *)
+    | Some addr -> 
+        let utxos  = (Blockchain.get_utxos bc  addr) in
+        List.fold_left (fun tot (_,out) -> out.amount + tot) 0 utxos
 
 (* [send_transaction a [(addr1, value1); ...; (addrn,valuen)] fee] sends 
  * [valuei] coins to [addri] and with the miner fee [fee]. [true] on 
  * success, [false] on insufficient balance. *)
-let send_transaction a transaction fee = failwith "undefined"
+let send_transaction a transaction fee = failwith "Unimplemneted"
   (*let total = List.fold_left (+) 0 sub_transactions in 
   if total < (balance a bc None) then 
     false
   else
     Blockchain.send_transactions sub_transactions bc;
-    true*)
-
+    true
+*)
 let dir a = 
   a.account_path

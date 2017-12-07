@@ -32,6 +32,19 @@ let block_format = format_of_string
   transaction_count: %i"
 
 
+let balance_hook (command,args) =
+  if command = "balance" then
+    match main.active_account with 
+    | Some account -> 
+      (match main.bc with 
+      | Some bc -> 
+        let balance = Accounts.balance account bc None in
+          Lwt.return_some ("| Balance | \n"^(string_of_int balance))
+      | None -> Lwt.return_some "No chain found.")
+    | None -> Lwt.return_some "No account signed in."
+  else
+    Lwt.return_none
+
 let quit_hook (command,args) =
   if command = "quit" then
     match main.p2p with 
@@ -111,7 +124,7 @@ let create_account_hook (command,args)  =
       let pass = args.(1) in
       let new_account = Accounts.create dir pass in
       main.active_account <- Some new_account;
-      Lwt.return_some ("Successfully created new account: "^dir^"/n"^
+      Lwt.return_some ("Successfully created new account: "^dir^"\n"^
                        "Successfully logged in to: " ^ dir)
   else
     Lwt.return_none
@@ -148,6 +161,7 @@ let help_hook (command,_) =
 
 (* Add hooks to the repl, and run it.*)
 let () =
+  add_hook balance_hook;
   add_hook lookup_hook;  
   add_hook chain_head_hook;  
   add_hook help_hook;
