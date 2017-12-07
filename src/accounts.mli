@@ -21,9 +21,12 @@ val addresses : t -> string list
 (* [send_transaction a [(addr1, value1); ...; (addrn,valuen)] fee] sends 
  * [valuei] coins to [addri] and with the miner fee [fee]. [true] on 
  * success, [false] on insufficient balance. *)
-val send_transaction : t -> (string * int) list -> int -> bool
+val send_transaction : t -> string -> int -> int -> bool
 
 (* [balance a addr_opt] is the total balance of all accounts owned by [a] if
  * [adr_opt] is [None], and the balance of [addr] when [addr_opt] is 
  * [Some addr]. *)
 val balance : t -> Blockchain.t -> string option -> int
+
+
+val dir : t -> string

@@ -102,7 +102,7 @@ type output = Lwt_io.output Lwt_io.channel
       in Lwt.return (sz,Cstruct.BE.get_uint64 (Cstruct.of_bytes buf) 0)
     in
     match %lwt read_size with
-    |(0,_) -> Lwt_main.yield () >> read_raw_msg_till_sucess ic
+    |(0,_) -> Lwt_unix.sleep 0.0 >> read_raw_msg_till_sucess ic
     | (sz,msg_len) ->
       let msg_len_int = (Int64.to_int msg_len) in
       let buf = Bytes.create msg_len_int in
@@ -734,7 +734,7 @@ let peer_stream p2p =
 
 (* [start_server p2p] is a server on the port of the given [p2p] node. *)
 let start_server p2p =
-  let port = Unix.(ADDR_INET (inet_addr_loopback, server_port p2p)) in
+  let port = Unix.(ADDR_INET (inet_addr_any, server_port p2p)) in
   let%lwt server =
     Lwt_io.establish_server_with_client_address ~no_close:true port
       (p2p |> handle_new_peer_connection)
