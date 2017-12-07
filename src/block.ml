@@ -61,6 +61,13 @@ let next_difficulty head prev =
   else
     adjust head.nBits expected_time actual_time
 
+let insert_transaction {header; transactions; transactions_count} tx =
+  let transactions = tx :: transactions in
+  let transactions_count = transactions_count + 1 in
+  let merkle_root = Transaction.merkle_root transactions in
+  let header = {header with merkle_root} in
+  {header; transactions; transactions_count}
+
 (* [messageify_header h] is the protobuf encoded message representing [h]. *)
 let messageify_header {version;
                        prev_hash;

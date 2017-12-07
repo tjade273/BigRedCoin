@@ -7,26 +7,30 @@ exception Invalid_block
 let output_hash tx_id output_index =
   Crypto.sha256 (tx_id^(string_of_int output_index))
 
-module StringMap = Map.Make(String)
+module UTXO = struct
+  type t = Transaction.input
+  let compare = compare
+end
 
-type t = {pool : Transaction.output StringMap.t; db : TransactionDB.t}
+module UTXOMap = Map.Make(UTXO)
 
-let empty db = {pool = StringMap.empty; db}
+type t = {pool : Transaction.output UTXOMap.t; db : TransactionDB.t}
+
+let empty db = {pool = UTXOMap.empty; db}
 
 
 let revert_transaction {pool; db} transaction =
   let trans_hash = Transaction.hash transaction in
   let removed = List.fold_left (fun (acc,index) output ->
-      let hash = output_hash trans_hash index in
-      (StringMap.remove hash acc,index+1)
+      let utxo = {txid = trans_hash; out_index = index} in
+      (UTXOMap.remove utxo acc,index+1)
     ) (pool,0) transaction.outs
   in
   let%lwt readded_inputs =
     let add_output acc input =
-      let hash = output_hash input.txid input.out_index in
       let%lwt old_transaction = TransactionDB.get db input.txid in
       let old_output = List.nth old_transaction.outs input.out_index in
-      Lwt.return @@ StringMap.add hash old_output acc
+      Lwt.return @@ UTXOMap.add input old_output acc
     in
     Lwt_list.fold_left_s add_output (fst removed) transaction.ins
   in
@@ -35,14 +39,12 @@ let revert_transaction {pool; db} transaction =
 let put_transaction tm transaction =
   let removed =
     List.fold_left (fun acc input ->
-        let hash = output_hash input.txid input.out_index in
-        (StringMap.remove hash acc)
+        (UTXOMap.remove input acc)
       ) tm transaction.ins
   in
-  let trans_hash = Transaction.hash transaction in
-  let added = List.fold_left (fun (acc,index) output ->
-      let hash = output_hash trans_hash index in
-      (StringMap.add hash output acc,index+1)
+  let txid = Transaction.hash transaction in
+  let added = List.fold_left (fun (acc,out_index) output ->
+      (UTXOMap.add {txid; out_index} output acc, out_index+1)
     ) (removed,0) transaction.outs
   in
   fst added
@@ -66,3 +68,8 @@ let apply {pool; db} block =
      {db; pool = List.fold_left put_transaction pool block.transactions}
   else
     raise Invalid_block
+
+
+let filter {pool; _} addr =
+  UTXOMap.filter (fun input {address; _} -> address = addr) pool
+  |> UTXOMap.bindings

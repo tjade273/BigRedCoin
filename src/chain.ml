@@ -10,6 +10,7 @@ type t = {hash : string;
           head : Block.t;
           height : int;
           cache : (int * Block.t) Cache.t;
+          mempool : Transaction.t Cache.t;
           db : BlockDB.t}
 
 let block_at_index {hash; head; height; cache; db} (n : int) =
@@ -35,7 +36,6 @@ let next_difficulty  ({hash; head; height; cache; _} as chain) =
   else
     Lwt.return head.header.nBits
 
-(* doesn't validate txs yet *)
 let extend ({hash; head; height; cache; _} as chain) new_block =
   let%lwt nbits' = next_difficulty chain in
   let target = Block.target nbits' in
@@ -116,6 +116,7 @@ let create db block =
    hash;
    height = 0;
    cache;
+   mempool = Cache.empty;
    db}
 
 (*Format: 8 byte height of chain in big-endian, then 32 byte hash of head block *)
@@ -135,6 +136,6 @@ let deserialize db s =
   let hash = Cstruct.copy buf 8 32 in
   let%lwt head = BlockDB.get db hash in
   let cache = Cache.add hash (height, head) Cache.empty in
-  let chain = {height; hash; head; cache; db} in
+  let chain = {height; hash; head; cache; mempool = Cache.empty; db} in
   let%lwt cache' = extend_cache chain in
   Lwt.return {chain with cache = cache'}
