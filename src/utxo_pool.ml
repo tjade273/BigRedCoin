@@ -48,18 +48,16 @@ let verify pool ({ins; outs; sigs} as transaction) =
             (fun input -> (List.mem (UTXOMap.find input pool).address signers))
             ins
         in
-        let has_coinbase =
-          (List.hd outs).amount = 25
-        in
         let zero_sum =
           let out_sum =
-            List.fold_left (fun acc {amount; _} -> acc + amount) 0 (List. tl outs)
+            List.fold_left (fun acc {amount; _} -> acc + amount) 0 outs
           in
           let in_amnt input = (UTXOMap.find input pool).amount in
           let in_sum = List.fold_left (+) 0 (List.map in_amnt ins) in
           in_sum >= out_sum
         in
-        if not (is_signed && has_coinbase && zero_sum)
+        let inputs_unique = List.sort compare ins = List.sort_uniq compare ins in
+        if not (is_signed  && zero_sum && inputs_unique)
         then raise Invalid_block
       end
   with _ -> raise Invalid_block
@@ -78,6 +76,16 @@ let put_transaction tm transaction =
   in
   fst added
 
+(* The first (index 0) transaction in a block may be a "coinbase" transaction.
+ * This transaction has 0 inputs an a single 25-brc output. To differentiate
+ * coinbase transactions, the sigs field should contain arbitrary random data. *)
+let add_coinbase pool ({ins; outs; sigs} as tx) =
+  match ins, outs with
+  | [], ({amount = 25; _} as cbs)::[] ->
+    UTXOMap.add
+      ({txid = Transaction.hash tx; out_index = 0}) cbs pool
+  | _ -> put_transaction pool tx
+
 let revert p (b:Block.t) =
   let transactions = b.transactions in
   let%lwt pool = Lwt_list.fold_left_s revert_transaction p transactions in
@@ -85,8 +93,12 @@ let revert p (b:Block.t) =
 
 let apply {pool; db} block =
   Lwt_list.iter_p (TransactionDB.put db) block.transactions >>
-  Lwt.return
-     {db; pool = List.fold_left put_transaction pool block.transactions}
+  match block.transactions with
+  | [] -> Lwt.return {pool; db}
+  | coinbase::txs ->
+    let pool' = add_coinbase pool coinbase in
+    Lwt.return
+      {db; pool = List.fold_left put_transaction pool' txs}
 
 
 let filter {pool; _} addr =
