@@ -113,8 +113,8 @@ let serve_blocks {blockdb; head; forks; _} oc startblocks height =
   in
   if height >= Chain.height head
   then
-    Lwt_log.notice "too high" >>
-   write oc empty_message >|= ignore
+    Lwt_log.notice @@ Printf.sprintf "too high: %d, %d" (Chain.height head) (height) >>
+    write oc empty_message >|= ignore
   else
     Lwt_log.notice "Good height" >>
     let blocks = List.mapi (fun i x -> (height - 16*i, x)) startblocks in
@@ -229,13 +229,14 @@ let sync_with_peer ({head; _} as bc) (ic, oc) =
   read_messages (ic, oc) bc
 
 let rec sync blockchain =
+  let open P2p in
   Lwt_log.notice "Started syncing" >>
   let bc = !blockchain in
   let peer_stream = P2p.peer_stream bc.p2p in
   match%lwt Lwt_stream.get peer_stream with
-  | None -> Lwt_log.notice "closed" >> close_blockchain blockchain
+  | None -> Lwt_log.notice "closed" >> sync blockchain
   | Some peer ->
-    (bc.p2p,peer) @<> (fun peer -> 
+    (bc.p2p,peer) @<> (fun peer ->
     Lwt_log.notice "Syncing with peer..." >>
     let ic = P2p.BRCPeer.ic peer in
     let oc = P2p.BRCPeer.oc peer in
@@ -274,7 +275,7 @@ let next_block {head; _} =
 let get_utxos {utxos; _} address =
   Utxo_pool.filter utxos address
 
-let retrieve_block bc hash = 
+let retrieve_block bc hash =
   BlockDB.get_opt bc.blockdb hash
-  
+
 let chain {head; _} = head
