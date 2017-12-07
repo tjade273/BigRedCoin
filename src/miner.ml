@@ -38,12 +38,12 @@ let equiv block1 block2 =
 (* [mine p] attempts to mine blocks sourced from [t]'s blockchain and pushes
  * blocks with low enough hash to [t]'s push stream. The next block to be 
  * mined is in [p]. *)
-let rec mine t p =
+let rec mine t prev =
   if t.mining = false then (Lwt.return ())
   else begin
-    ignore(Lwt_main.yield ());
+    Lwt_main.yield () >>
     Blockchain.next_block !(t.blockchain) >>= fun b ->
-      match p with
+      match prev with
         | Some block -> begin 
             if equiv b block then
               let next = Some Block.{block with
@@ -52,7 +52,8 @@ let rec mine t p =
                   nonce = block.header.nonce + 1 mod 2147483647
                 }
               } in
-              if Block.hash block < Block.target block.header.nBits then Lwt.return (t.push (Some block))
+              if Block.hash block < Block.target block.header.nBits then 
+                Lwt.return (t.push (Some block))
               else mine t next
             else
               let y = Some Block.{b with
@@ -63,7 +64,7 @@ let rec mine t p =
               } in
               mine t y
             end
-        | None -> mine t None
+        | None -> mine t (Some b)
   end
 
 let start t =
