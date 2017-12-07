@@ -12,9 +12,8 @@ val read : Lwt_io.input_channel -> string Lwt.t
  * to [push_stream]. *)
 val create : (Block.t option -> unit) -> Blockchain.t ref -> t
 
-(* [start miner cores] starts the mining worker [miner] running on
- * [cores] CPU cores. *)
-val start : t -> int -> unit
+(* [start miner] starts the mining worker [miner]. *)
+val start : t -> unit Lwt.t
 
 (* [stop miner] halts [miner]. [miner] can be restarted with [start]. *)
 val stop : t -> unit

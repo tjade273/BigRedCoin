@@ -124,10 +124,10 @@ let miner_tests = suite "miner tests" [
 
     test "mine_block" begin fun () ->
       print_endline "mining test";
-      start miner 2;
+      start miner;
       print_endline "started";
       Lwt.pick [
-        Lwt_unix.sleep 1.0 >> begin stop miner; Lwt.return false end;
+        Lwt_unix.sleep 30.0 >> begin stop miner; Lwt.return false end;
         Lwt_stream.get stream >>= fun x -> begin stop miner; Lwt.return true end;
       ] >>= fun x -> begin Lwt.return x end
     end;
