@@ -112,7 +112,7 @@ let%lwt bc = Blockchain.create "test_miner" peer1
 let blockchain = ref bc
 
 let (stream, push) = Lwt_stream.create ()
-let miner = create push blockchain
+let miner = create "lucas" push blockchain
 
 let miner_tests = suite "miner tests" [
     test "read_write" begin fun () ->
