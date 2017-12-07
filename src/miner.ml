@@ -1,15 +1,17 @@
 open Lwt
 open Block
+open Transaction
 (* A t is a miner with a push stream of blocks in push, and a list of mining
  * process ids with a read pipe and a write pipe. *)
 type t = {
   blockchain : Blockchain.t ref;
   push : Block.t option -> unit;
-  mutable mining : bool
+  mutable mining : bool;
+  address : string
 }
 
-let create f chain =
-  {push = f; blockchain = chain; mining = false}
+let create addr f chain =
+  {push = f; blockchain = chain; mining = false; address = addr}
 
 (* [write w s] writes the length of the string [s] followed by [s] to [w]. *)
 let write w s =
@@ -43,6 +45,12 @@ let rec mine t prev =
   else begin
     Lwt_main.yield () >>
     Blockchain.next_block !(t.blockchain) >>= fun b ->
+      let b = {b with transactions = {
+          ins = [];
+          outs = [{amount = 25; address = t.address}];
+          sigs = Some []
+        }::b.transactions
+      } in
       match prev with
         | Some block -> begin 
             if equiv b block then
