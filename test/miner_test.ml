@@ -106,7 +106,7 @@ let genesis = mine_header {
 
 let%lwt () = Lwt_io.with_file ~mode:Lwt_io.output (dir^"genesis.blk") (fun oc -> Lwt_io.write oc (Block.serialize Chain_test.genesis))
 
-let%lwt peer1 = P2p.create_from_list ~port:3000 ["127.0.0.1", 4001, None]
+let%lwt peer1 = P2p.create_from_list ~port:3333 ["127.0.0.1", 4001, None]
 let%lwt bc = Blockchain.create "test_miner" peer1
 
 let blockchain = ref bc
@@ -127,8 +127,8 @@ let miner_tests = suite "miner tests" [
 
     test "mine_block" begin fun () ->
       print_endline "mining test";
-      ignore(start miner);
-      print_endline "started";
+      start miner >>
+      Lwt_log.info "started" >>
       Lwt.pick [
         Lwt_unix.sleep 120.0 >> begin stop miner; print_endline "Warning: block not mined within 120 seconds. Not necessarily a failure."; Lwt.return true end;
         Lwt_stream.get stream >>= fun x -> begin stop miner; Lwt.return true end;

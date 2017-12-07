@@ -33,7 +33,7 @@ module ECDSA : sig
    * address [addr] using secp256k1 with SHA256. *)
   val verify : string -> string -> signature -> bool
 
-  (* [to_address pkey] is the hex-encoded address derived from [pkey]
+  (* [to_address pubkey] is the hex-encoded address derived from [pkey]
    * The address is the sha256 hash of the first 20 bytes of the public key *)
   val to_address : pubkey -> string
 
@@ -55,7 +55,7 @@ module AES : sig
   val to_string : t -> string
 
   (* [decrypt t pswd] is the decrypted ECDSA keypair represented by [t], or
-   * [None] if the password is incorrect *)
+   * [None] if the password is incorrect*)
   val decrypt : t -> string -> ECDSA.keypair option
 
   (* [encrypt key pswd] is the encrypted form of [key] using the password [paswd] *)
@@ -65,9 +65,9 @@ module AES : sig
   val address : t -> string
 end
 
-(* [random i] is a cryptographic random byte string of length [i]
+(* [random len] is a cryptographic random byte string of length [len]
  * from the OS randomness source. *)
 val random : int -> string
 
-(* [sha256 s] is the [sha256] hash function applied to [s]. *)
+(* [sha256 msg] is the [sha256] hash function applied to [msg]. *)
 val sha256 : string -> string

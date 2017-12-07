@@ -12,6 +12,7 @@ type t = {blockdb: BlockDB.t;
           forks: Chain.t list;
           p2p : P2p.t;
           utxos : Utxo_pool.t;
+          mempool : Transaction.t list;
           dir : string}
 
 (* [initialize blockdb dir p2p] is a fresh blockchain initialized to the gensesis,
@@ -28,6 +29,7 @@ let initialize blockdb txdb dir p2p =
   >> Lwt.return {blockdb;
                  head=gen_chain;
                  forks = [];
+                 mempool = [];
                  utxos = Utxo_pool.empty txdb;
                  p2p; dir}
 
@@ -56,7 +58,10 @@ let create dir p2p =
         (fun c1 c2 -> if Chain.height c1 > Chain.height c2 then c1 else c2)
         (List.hd forks) forks
     in
-    Lwt.return {head; forks; utxos = Utxo_pool.empty txdb; blockdb; p2p; dir}
+    Lwt.return {head; forks;
+                utxos = Utxo_pool.empty txdb;
+                mempool = [];
+                blockdb; p2p; dir}
   else
     initialize blockdb txdb dir p2p
 
@@ -117,9 +122,16 @@ let serve_blocks {blockdb; head; forks; _} oc startblocks height =
     let blocks_to_send = List.map Block.messageify (Chain.revert head shared_root |> fst) in
     post_blocks blocks_to_send oc
 
-let reorganize_chain bc new_chain =
-  Lwt_log.notice "Unimplemented" >>
-  Lwt.return {bc with head = new_chain}
+let reorganize_chain bc new_chain root =
+  try
+    let root_hash = Block.hash root in
+    let undo, _ = Chain.revert bc.head root_hash in
+    let todo, _ = Chain.revert new_chain root_hash in
+    let%lwt utxos = Lwt_list.fold_left_s Utxo_pool.revert bc.utxos undo in
+    let%lwt utxos = Lwt_list.fold_left_s Utxo_pool.apply utxos todo in
+    Lwt.return {bc with head = new_chain; utxos}
+  with Utxo_pool.Invalid_block | Not_found ->
+    Lwt.return bc
 
 (* [insert_blocks bc blocks] is [bc] after attempting to sequentially
  * insert [blocks] into the chain. The first element of [blocks] should be
@@ -143,7 +155,7 @@ let insert_blocks bc blocks =
         in
         let%lwt new_chain = Lwt_list.fold_left_s try_extend chain heads in
         if Chain.height new_chain > Chain.height bc.head
-        then reorganize_chain bc new_chain
+        then reorganize_chain bc new_chain root
         else Lwt.return {bc with forks = new_chain::bc.forks}
     end
 
@@ -234,3 +246,6 @@ let next_block {head; _} =
     timestamp = 0}
   in
   Lwt.return {header; transactions = []; transactions_count = 0}
+
+let get_utxos {utxos; _} address =
+  Utxo_pool.filter utxos address
