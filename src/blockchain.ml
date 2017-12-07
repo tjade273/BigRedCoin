@@ -194,6 +194,7 @@ let rec read_messages (ic, oc) bc : t Lwt.t =
  * to be closer to the blockchain of the peer at the other side of [channel]
  * or vice versa *)
 let sync_with_peer ({head; _} as bc) (ic, oc) =
+  Lwt_log.notice "Peer found.." >>
   let rec checkpoints n  =
     match n with
     | 0 -> Lwt.return_nil
@@ -216,12 +217,13 @@ let sync_with_peer ({head; _} as bc) (ic, oc) =
   read_messages (ic, oc) bc
 
 let rec sync blockchain =
+  Lwt_log.notice "Started syncing" >>
   let bc = !blockchain in
   let peer_stream = P2p.peer_stream bc.p2p in
   match%lwt Lwt_stream.get peer_stream with
-  | None -> close_blockchain blockchain
+  | None -> Lwt_log.notice "closed" >> close_blockchain blockchain
   | Some peer ->
-    Lwt_log.notice "Syncing with peer..." >> 
+    Lwt_log.notice "Syncing with peer..." >>
     let ic = P2p.BRCPeer.ic peer in
     let oc = P2p.BRCPeer.oc peer in
     let%lwt bc' = sync_with_peer bc (ic,oc) in

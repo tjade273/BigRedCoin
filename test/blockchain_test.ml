@@ -29,6 +29,10 @@ let () = print_endline (Hex.of_string Chain_test.genesis.header.merkle_root |> s
 let%lwt peer1 = P2p.create_from_list ~port:4000 ["127.0.0.1", 4001, None]
 let%lwt peer2 = P2p.create_from_list ~port:4001 ["127.0.0.1", 4000, None]
 
+let _ = P2p.set_log_level peer1 P2p.DEBUG
+let _ = P2p.set_log_level peer2 P2p.DEBUG
+
+
 let (pubkey, privkey) = Crypto.ECDSA.create ()
 let address = Crypto.ECDSA.to_address pubkey
 
@@ -75,7 +79,7 @@ let blockchain2 = ref bc2
 let push bc block =
   match block with
   | None -> failwith "Miner stream stopped"
-  | Some b -> Lwt.async (fun () -> Lwt_log.notice "Pushing" >> Blockchain.push_block bc b)
+  | Some b -> Lwt.async (fun () -> Blockchain.push_block bc b)
 
 
 let miner1 = Miner.create "lucas" (push blockchain) blockchain
